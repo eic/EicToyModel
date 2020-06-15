@@ -1,9 +1,62 @@
 
   EicToyModel is a C++ ROOT-based software suite for EIC Central Detector 
-configuration. A library has to be installed locally.  
+configuration.  
+
+  The main objective of this software suite was providing the EIC community users
+with a tool, which would allow them to easily (whatever easy means) create possible 
+EIC detector configuration *templates* (namely, the self-consistent collections of 
+3D intergation volumes) and make use of them in the GEANT simulation environment.
+
+  The integration volumes are guaranteed to not overlap either with each other 
+or with the IR vacuum system volume within the same EIC detector configuration.
+
+  They move synchronously under generic changes to the IR layout (e.g. by the 
+nominal IP shift along the beam line direction and/or by a change in the acceptance
+boundaries separating barrel and endap regions).
+
+  Technically a user has access to the parameters characterizing the shape and 
+location of the integration volume to where his/her sub-detector component belongs, 
+and can build the respective sub-detector dynamically in the respective GEANT
+G4VUserDetectorConstruction::Construct() method depending e.g. on the detector 
+distance from the nominal IP.
+
+  Currently implemented *other features*:
+
+* Dynamic generation of the GEANT representation of the detector integration volumes.
+* Parameteric description of the IR vacuum system volumes, representing reasonably 
+well the available 25mrad crossing angle configuration as of 2020/03/20.
+* Configurable vacuum system geometry export in the GDML and ROOT TGeo formats.
+* On-disk model representation (C++ class instance export/import using ROOT serializer).
+* Interface to the BeastMagneticField library (BeAST field map import, as well as
+import of the soon-to-become-available magnetic field maps produced by the EIC 
+greenfield solenoid design team).
+* Tools for a magnetic field and IR vacuum system material scans.
+* Export of the integration volumes as a STEP file. 
+
+
+  Model limitations:
+
+* The EIC Central Detector is assumed to be composed of exactly four non-overlapping
+regions (vertex, barrel, and two endcaps).
+* Sub-detector integration volumes in a 2D view of a given region are flat
+objects, stacked along the electron beam line for the two endcaps and the normal to 
+the electron beam axis for the vertex and barrel stacks. See the picture below. 
+* Far-forward stack (and B0 magnet in particular) can probably be added with minor
+complications, but is not considered in the present implementation.
+* All stacks are organized in a "projective" geometry, which should represent a typical 
+layout of a 4pi EIC Central Detector well enough at this stage. In this sense the only 
+reason why a separate vertex stack exists is that its "silicon tracker volume" can 
+occupy a physical area wider than a "TPC volume" of a barrel stack.
+* A "crack" between the barrel and the endcap stacks in a 2D {Z,R} view is represented by
+monotonous functions in both R(Z) and Z(R) representations. "Crack" shape however can 
+be configured in a rather flexible way, see examples below.
+
+   
 
 Pre-requisites
 --------------
+
+A library has to be installed locally. 
 
 It is assumed that a more or less modern ROOT 6 version is installed and configured 
 on the local system. 6.14.00 works. The line below is for bash shell. Replace .sh
