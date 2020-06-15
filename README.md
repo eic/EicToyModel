@@ -52,7 +52,7 @@ Running
 -------
   
 ```
-# Edit a script like sandbox.C in the *../scripts/* directory according to your 
+# Edit a script like example.C in the ../scripts/ directory according to your 
 # preferences (see full list of the available commands here) and runs it:
 root -l ../scripts/example.C
 
@@ -63,18 +63,20 @@ root -l ../scripts/example.C
 
 ```
 # A limited set of interactive commands (see full list here) is available. Try 
-# e.g. the following sequence of commands with the safe-explaining results: 
+# e.g. the following sequence with the safe-explaining results: 
 root [] eic->width(1200); 
 root [] eic->mirror();
 root [] eic->mirror(off);
 root [] eic->ip(0);
-root [] eic->mirror(off);
 root [] eic->ip(-50 * etm::cm);
 # Vertical and horizontal plane cross cut; in the latter case the 25mrad crossing 
 # angle is taken into account; 
 root [] eic->vdraw();
 root [] eic->hdraw();
+# Remove e/m calorimeter from the backward (electron-going) endcap;
 root [] eic->bck()->rm("EmCal");
+# Install a 20cm long MPGD "detector" in front of the high-momentum RICH in 
+# the hadron-going endcap;
 root [] eic->fwd()->insert("MPGD", 20 * etm::cm, "HM RICH");
 # Save the current configuration;
 root [] eic->write();
