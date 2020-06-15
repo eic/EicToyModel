@@ -57,7 +57,11 @@ root -l ../scripts/sandbox.C
 
 # Re-open the produced file with the model if needed:
 root -l '../scripts/reader.C("sandbox.root")'
+```
 
+![image](doc/sandbox.png)
+
+```
 # GEANT example executable (see main.cc):
 ./exe sandbox.root
 ```
