@@ -59,6 +59,8 @@ root -l ../scripts/sandbox.C
 root -l '../scripts/reader.C("sandbox.root")'
 ```
 
+![image](doc/sandbox.eps)
+![image](doc/sandbox.gif)
 ![image](doc/sandbox.png)
 
 ```
