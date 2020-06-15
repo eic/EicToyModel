@@ -20,7 +20,9 @@ and can build the respective sub-detector dynamically in the respective GEANT
 G4VUserDetectorConstruction::Construct() method depending e.g. on the detector 
 distance from the nominal IP.
 
-  Currently implemented *other features*:
+
+Other features
+--------------
 
 * Dynamic generation of the GEANT representation of the detector integration volumes.
 * Parameteric description of the IR vacuum system volumes, representing reasonably 
@@ -34,7 +36,8 @@ greenfield solenoid design team).
 * Export of the integration volumes as a STEP file. 
 
 
-  Model limitations:
+Model limitations
+-----------------
 
 * The EIC Central Detector is assumed to be composed of exactly four non-overlapping
 regions (vertex, barrel, and two endcaps).
