@@ -111,12 +111,16 @@ GEANT interface
 
 Apart from the eic->ExportVacuumSystem() command shown above one can create G4 
 detector integration volumes on the fly, either one at a time or all of them at 
-once. See a short example executable main.cc as an example. 
+once. See a short example executable 
+
+![main](source/main.cc) 
+
+as an example. 
 
 The library should be configured with the -DGEANT cmake command line key (see above).
 
 
-The integration volumes are currently represented as G4GenericPolycone volumes.
+The integration volumes are currently represented as G4GenericPolycone shapes.
 G4BREPSolidPolyhedra option will follow soon. The interface producing an asymmetric
 boolean cut by the vacuum system shape is in the debugging stage now.
 
