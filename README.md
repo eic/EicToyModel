@@ -51,13 +51,14 @@ make
 Running
 -------
   
-```
-# Edit a script like example.C in the ../scripts/ directory according to your 
-# preferences (see full list of the available commands here) and runs it:
-root -l ../scripts/example.C
+Edit a script like ![example.C](scripts/example.C) in the ../scripts/ directory 
+according to your preferences (see full list of the available commands here) and runs it:
 
-# A ROOT canvas will appear with a picture similar to the image below.
 ```
+root -l ../scripts/example.C
+```
+
+A ROOT canvas will appear with a picture similar to the image below.
 
 ![](doc/sandbox.root.png)
 
@@ -111,11 +112,7 @@ GEANT interface
 
 Apart from the eic->ExportVacuumSystem() command shown above one can create G4 
 detector integration volumes on the fly, either one at a time or all of them at 
-once. See a short example executable 
-
-![main](source/main.cc) 
-
-as an example. 
+once. See a short example executable ![main.cc](source/main.cc) as an example. 
 
 The library should be configured with the -DGEANT cmake command line key (see above).
 
