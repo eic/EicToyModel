@@ -38,7 +38,7 @@ cmake -Wno-dev ..
 
 # additional cmake options:
 #
-# if GEANT4 is required:
+# if GEANT4 interface is required:
 #   -DGEANT=YES
 # for CAD export:
 #   -DOPENCASCADE=<OpenCascade-installation-directory>
@@ -80,6 +80,9 @@ root [] eic->bck()->rm("EmCal");
 root [] eic->fwd()->insert("MPGD", 20 * etm::cm, "HM RICH");
 # Save the current configuration;
 root [] eic->write();
+# Save example.vs.gdml file with the vacuum system layout; a BUG: command 
+# works properly only once; 
+root [] eic->ExportVacuumSystem();
 root [] .q
 ```
 
@@ -96,15 +99,64 @@ root -l '../scripts/reader.C("example.root")'
 # than a file format will change rather than the API of the commands will change 
 # (and the latter can be fixed by hand if needed);
 root [] auto eic = EicToyModel::Instance(); eic->hdraw();
+
+It should be noted that if the geometry was saved using eic->write(true) call (notice
+'true' argument), a naive permanent lock is applied to the contents of the binary 
+ROOT file. The geometry can not be modified any longer without hacking the library
+(would be a very easy task for a junior C++ programmer, admittedly).
 ```
 
+GEANT interface
+---------------
+
+Apart from the eic->ExportVacuumSystem() command shown above one can create G4 
+detector integration volumes on the fly, either one at a time or all of them at 
+once. See a short example executable main.cc as an example. 
+
+The library should be configured with the -DGEANT cmake command line key (see above).
+
+
+The integration volumes are currently represented as G4GenericPolycone volumes.
+G4BREPSolidPolyhedra option will follow soon. The interface producing an asymmetric
+boolean cut by the vacuum system shape is in the debugging stage now.
+
+Naming convention for these volumes may require some tuning.
+
+Once a user gets access to a particular logical volume, he/she is free to populate 
+this volume with the daughter objects, observing the usual GEANT boundary conditions.
+Volumes in the endcaps are shifted (a BUG: not yet!) to their geometric center along
+the beam line. Volumes in the endcaps will be shifted towards the IP. This way, to 
+first order, whatever is placed inside the integration volumes, will produce a 
+consistent geometry after moderate re-shuffling of a particular detector stack (say, 
+after removing one of the TRD volumes in the hadron-going endcap the e/m calorimeter
+behind it will be located in a proper place). It seems to be wise to check the 
+integration volume actual location by means of the available library calls, and 
+tune the detector geometry accordingly if needed).
+
+Apparently the community may want to decide exporting individual GDML objects
+describing the integration volumes for a given version of the full EIC detector
+geometry, and avoid the dependency on either ETM (EIC Toy Model) library or ROOT in 
+the GEANT environment. Providing consistency between different subdetector systems
+may be problematic in this case though.
 
 ```
-# GEANT example executable (see main.cc):
-./exe sandbox.root
+# The following command brings up the G4 Qt window with the imported model:
+./exe example.root
 ```
+
+CAD interface
+-------------
+
+
+Magnetic field interface
+------------------------
+
+
+B*dl integral and vacuum system material scans
+---------------------------------------------- 
+
 
 ROOT macro options
 ------------------
 
-Description will follow soon.
+Full current list of the options is available here.
