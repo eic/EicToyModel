@@ -71,14 +71,14 @@ bool EtmVacuumSystem::CrossingAngleResetPossible(double value) const
 
 // ---------------------------------------------------------------------------------------
 
-void EtmVacuumSystem::CheckGeometry( void )
+void EtmVacuumSystem::CheckGeometry(bool force)
 {
   double crossing_angle = EicToyModel::Instance()->GetCrossingAngle();
     
   //printf("%f\n", crossing_angle);
   // Rebuild only if the crossing angle changed; FIXME: it is assumed of course that 
   // EicToyModel ctor sets mCrossingAngle to 25mrad;
-  if (mActualCrossingAngle != crossing_angle) {
+  if (mActualCrossingAngle != crossing_angle || force) {
     CreateWorld();
     CreateGeometry();
     

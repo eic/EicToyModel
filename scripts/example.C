@@ -2,7 +2,7 @@
   auto eic = new EicToyModel();
 
   // Shift IP if needed; define canvas width; request eta=0 line in the drawing; set name;
-  eic->ip(-50.0)->width(1500)->AddEtaLine(0.0)->SetName("sandbox");
+  eic->ip(-50.0)->width(1500)->AddEtaLine(0.0)->SetName("example");
   // Define acceptance ranges and the vacuum system design;
   eic->acceptance(-4.2, -1.0, 1.2, 4.2);
   eic->DefineVacuumSystem(new vs2020_03_20());
@@ -78,8 +78,6 @@
   // Request flat field regions to be drawn in the endcaps;
   eic->DrawFlatFieldLines(-3.0)->DrawFlatFieldLines(3.0);
 
-  // 
+  // Draw horizontal cross cut view;
   eic->hdraw();
-  //eic->write();//true);
-  //eic->Export("sandbox.stp");
 } 

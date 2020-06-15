@@ -227,6 +227,15 @@ void EtmDetector::Build( void )
 				  axis.Rotate(-M_PI/2));
 	    auto to   = EtmLine2D(ip + (mActualDistance + length()/2 - 1E-6/* - dgap/2*/)*axis, 
 				  axis.Rotate(-M_PI/2));
+	    // Range check;
+	    {
+	      //double dmax = fabs(to.X().X());
+	      bool central = mStack == eic->vtx() || mStack == eic->mid();
+
+	      // Yes, I know they are exclusive;
+	      if ( central && fabs(to.X().Y()) > eic->GetIrRegionRadius())   return; 
+	      if (!central && fabs(to.X().X()) > eic->GetIrRegionLength()/2) return; 
+	    }
 	    
 	    //sides[mm] = eic->Band(qvtxarr, from, to);
 	    sides[bf] = eic->Band( vtxarr, from, to);

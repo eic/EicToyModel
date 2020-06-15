@@ -23,7 +23,7 @@ class EtmVacuumSystem: public TObject {
   double GetRadialSize(double z, double phi);// const;
 
   TGeoManager *GetWorld( void ) const { return mTGeoModel; };
-  void CheckGeometry( void );
+  void CheckGeometry(bool force = false);
   void Export(const char *fname);
 
   // The idea behind all this is to allow dynamic creation of the vacuum system volumes;

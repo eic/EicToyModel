@@ -228,13 +228,13 @@ void EicToyModel::CalculateDefaultEtaBoundaries(EtmDetectorStack *single)
   } //for stack
 } // EicToyModel::CalculateDefaultEtaBoundaries()
 
-
 // ---------------------------------------------------------------------------------------
 
 EicToyModel *EicToyModel::ip(double offset, bool redraw) 
 { 
-  if (!mGeometryLocked) {
+  if (!mGeometryLocked && offset != mIpOffset) {
     mIpOffset = offset; 
+    if (mVacuumSystem) mVacuumSystem->CheckGeometry(true);
     
     if (redraw && mCanvas) DrawMe(); 
   } //if
@@ -256,7 +256,7 @@ EicToyModel *EicToyModel::ir(double length, double radius, bool redraw) {
 
 EicToyModel *EicToyModel::RebuildEverything(bool redraw)
 { 
-  mVacuumSystem->CheckGeometry();
+  if (mVacuumSystem) mVacuumSystem->CheckGeometry();
   
   if (redraw && mCanvas) DrawMe(); 
 
@@ -322,20 +322,40 @@ EicToyModel *EicToyModel::AddEtaLine(double value, bool line, bool label, bool r
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
+//void EicToyModel::write(const char *fname, bool lock)
 void EicToyModel::write(bool lock)
 {
-  auto fout = new TFile(GetName() + TString(".root"), "RECREATE");
+  Export((GetName() + TString(".root")).Data(), lock);
+#if _OFF_
+  auto fout = new TFile(fname ? fname : GetName() + TString(".root"), "RECREATE");
 
   if (lock) mGeometryLocked = true;
 
   if (mVacuumSystem) {
-    mVacuumSystem->Export(GetName() + TString(".vs.gdml"));
+    //mVacuumSystem->Export(GetName() + TString(".vs.gdml"));
     mVacuumSystem->GetWorld()->Write();
   } //if
 
   TObject::Write("EicToyModel");
   fout->Close();
+#endif
 } // EicToyModel::write()
+
+// ---------------------------------------------------------------------------------------
+
+void EicToyModel::ExportVacuumSystem(const char *fname)
+{
+  TString str(fname ? TString(fname) : GetName() + TString(".vs.gdml"));
+
+  if (str.EndsWith(".gdml")) {
+    if (mVacuumSystem)
+      mVacuumSystem->Export(GetName() + TString(".vs.gdml"));
+    else
+      printf("EicToyModel::ExportVacuumSystem() -> vacuum system is not defined!\n");
+  }
+  else
+    printf("EicToyModel::ExportVacuumSystem(\"%s\") -> .gdml file extention expected!\n", fname); 
+} // EicToyModel::ExportVacuumSystem()
 
 // ---------------------------------------------------------------------------------------
 
@@ -343,73 +363,96 @@ void EicToyModel::write(bool lock)
 // FIXME: unify with EtmDetector::Export(); evil OCC handles;
 //
 
-void EicToyModel::Export(const char *fname)
+void EicToyModel::Export(const char *fname, bool lock)
 {
+  if (fname) {
+    TString str(fname);
+
+    if (str.EndsWith(".root")) {
+      TFile fout(str.Data(), "RECREATE");
+
+      // Permanently lock the geometry if requested;
+      if (lock) mGeometryLocked = true;
+
+      // Save vacuum system TGeo tree in the same file;
+      if (mVacuumSystem) mVacuumSystem->GetWorld()->Write();
+      
+      // Save EicToyModel class instance (ROOT serializer);
+      TObject::Write("EicToyModel");
+      fout.Close();
+    } else if (str.EndsWith(".stp")) {
 #ifdef _OPENCASCADE_
-  // Create XCAF document;
-  Handle(TDocStd_Document) outDoc;
-  Handle(XCAFApp_Application) outApp = XCAFApp_Application::GetApplication(); 
-  outApp->NewDocument("ETM", outDoc); 
-  
-  Handle (XCAFDoc_ShapeTool) outAssembly = XCAFDoc_DocumentTool::ShapeTool (outDoc->Main()); 
-  
-  Handle(XCAFDoc_ColorTool) outColors = XCAFDoc_DocumentTool::ColorTool(outDoc->Main()); 
-
-  for(auto stack: mStacks)
-    for(auto det: stack->mDetectors) {
-      // Can be a GAP or a MARKER detector;
-      if (!det->Polygons().size()) continue;
-
-      auto polygon = det->Polygons()[0];
-      unsigned dim = polygon.size();
-      double cff = 1.0;//cm/etm::cm;
-
-      //auto eic = EicToyModel::Instance();
+      // Create XCAF document;
+      Handle(TDocStd_Document) outDoc;
+      Handle(XCAFApp_Application) outApp = XCAFApp_Application::GetApplication(); 
+      outApp->NewDocument("ETM", outDoc); 
       
-      // Treat Z-offsets differently for central/vertex and endcap detectors;
-      //TVector2 ip = eic->GetIpLocation();
-      //double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
-      //(ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
-      double z0 = 0.0;
+      Handle (XCAFDoc_ShapeTool) outAssembly = XCAFDoc_DocumentTool::ShapeTool (outDoc->Main()); 
       
-      // Create OpenCascade polygon;
-      auto poly = BRepBuilderAPI_MakePolygon();
-      for(unsigned ivtx=0; ivtx<dim; ivtx++) {
-	auto &pt = polygon[ivtx];
-	
-	poly.Add(gp_Pnt(pt.Y()*cff, 0.0, (pt.X()-z0)*cff));
-	
-	//z[ivtx] = (pt.X() - z0)*cff; 
-	//r[ivtx] = pt.Y()*cff; 
-	
-	//printf("%7.2f %7.2f\n", pt.X(), pt.Y());
-      } //for vtx
-      poly.Close();
+      Handle(XCAFDoc_ColorTool) outColors = XCAFDoc_DocumentTool::ColorTool(outDoc->Main()); 
       
-      // Build a 2D face out of it; then create a revolution body;
-      auto face = BRepBuilderAPI_MakeFace(poly);
-      gp_Ax1 axis(gp_Pnt(0,0,0), gp_Dir(0,0,1)); 
-      auto solid = BRepPrimAPI_MakeRevol(face, axis); 
-
-      // Assign ROOT TGeo color;
+      for(auto stack: mStacks)
+	for(auto det: stack->mDetectors) {
+	  // Can be a GAP or a MARKER detector;
+	  if (!det->Polygons().size()) continue;
+	  
+	  auto polygon = det->Polygons()[0];
+	  unsigned dim = polygon.size();
+	  double cff = 1.0;//cm/etm::cm;
+	  
+	  //auto eic = EicToyModel::Instance();
+	  
+	  // Treat Z-offsets differently for central/vertex and endcap detectors;
+	  //TVector2 ip = eic->GetIpLocation();
+	  //double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
+	  //(ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
+	  double z0 = 0.0;
+	  
+	  // Create OpenCascade polygon;
+	  auto poly = BRepBuilderAPI_MakePolygon();
+	  for(unsigned ivtx=0; ivtx<dim; ivtx++) {
+	    auto &pt = polygon[ivtx];
+	    
+	    poly.Add(gp_Pnt(pt.Y()*cff, 0.0, (pt.X()-z0)*cff));
+	    
+	    //z[ivtx] = (pt.X() - z0)*cff; 
+	    //r[ivtx] = pt.Y()*cff; 
+	    
+	    //printf("%7.2f %7.2f\n", pt.X(), pt.Y());
+	  } //for vtx
+	  poly.Close();
+	  
+	  // Build a 2D face out of it; then create a revolution body;
+	  auto face = BRepBuilderAPI_MakeFace(poly);
+	  gp_Ax1 axis(gp_Pnt(0,0,0), gp_Dir(0,0,1)); 
+	  auto solid = BRepPrimAPI_MakeRevol(face, axis); 
+	  
+	  // Assign ROOT TGeo color;
+	  {
+	    auto rcolor = gROOT->GetColor(det->GetFillColor());
+	    
+	    Quantity_Color ccolor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), Quantity_TOC_RGB);
+	    TDF_Label aLabel = outAssembly->AddShape(solid);
+	    outColors->SetColor(aLabel, ccolor, XCAFDoc_ColorSurf);
+	  }
+	} //for stack .. det
+      
+      // Write the file out;
       {
-	auto rcolor = gROOT->GetColor(det->GetFillColor());
+	STEPCAFControl_Writer cWriter;
 	
-	Quantity_Color ccolor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), Quantity_TOC_RGB);
-	TDF_Label aLabel = outAssembly->AddShape(solid);
-	outColors->SetColor(aLabel, ccolor, XCAFDoc_ColorSurf);
+	cWriter.Transfer(outDoc, STEPControl_ManifoldSolidBrep);
+	//cWriter.Transfer(outDoc, STEPControl_AsIs);
+	cWriter.Write(fname);
       }
-    } //for stack .. det
-
-  // Write the file out;
-  {
-    STEPCAFControl_Writer cWriter;
-    
-    cWriter.Transfer(outDoc, STEPControl_ManifoldSolidBrep);
-    //cWriter.Transfer(outDoc, STEPControl_AsIs);
-    cWriter.Write(fname);
-  }
+#else
+      printf("EicToyModel::Export(\"%s\") -> OpenCascade support is not compiled in!\n", fname);
 #endif
+    } else {
+      printf("EicToyModel::Export(\"%s\") -> unknown file name extension!\n", fname);
+    } //if
+  } else
+    printf("EicToyModel::Export() -> null pointer given as file name!\n");
 } // EicToyModel::Export()
 
 // ---------------------------------------------------------------------------------------
@@ -756,7 +799,15 @@ void EicToyModel::ExecuteBoundaryModificationRequests(EtmDetectorStack *single)
 			       aaxis.Rotate(-M_PI/2));
 	  auto cut = EtmLine2D(ip + (dtref /*- hcal->length()/2*/ /*- SafetyClearance()/2*/)*caxis, 
 	  		       caxis.Rotate(-M_PI/2));
-
+	  // Range check; unify with EtmDetector::Build();
+	  {
+	    //double dmax = fabs(to.X().X());
+	    bool central = host->mStack == vtx() || host->mStack == mid();
+	    
+	    // Yes, I know they are exclusive;
+	    if ( central && fabs(cut.X().X()) > GetIrRegionLength()/2) return; 
+	    if (!central && fabs(cut.X().Y()) > GetIrRegionRadius())   return; 
+	  }
 	  
 	  for(unsigned bf=0; bf<2; bf++) {
 	    auto boundary = boundaries[bf]; 

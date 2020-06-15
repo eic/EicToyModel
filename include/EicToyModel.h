@@ -126,7 +126,8 @@ class EicToyModel: public TObject {
 
   void Construct( void )                     { DrawMe(EicToyModel::kUndefined, false); };
   void PlaceG4Volumes(G4LogicalVolume *world);
-  void Export(const char *fname);
+  void Export(const char *fname, bool lock = false);
+  void ExportVacuumSystem(const char *fname = 0);
 
  private:
   ~EicToyModel() {}; 
