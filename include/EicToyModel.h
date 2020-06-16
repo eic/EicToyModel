@@ -39,7 +39,8 @@ class EicToyModel: public TObject {
   // stacks; too much of a trouble to re-create the stack structure dynamically (in other 
   // words to guarantee that the meaning of bck(), mid() & fwd() stays the same), so eta() 
   // calls beyond LockGeometry() will not work; 
-  EicToyModel *acceptance(double eta0, double eta1, double eta2, double eta3, bool reset_stacks = false);
+  EicToyModel *acceptance(double eta0, double eta1, double eta2, double eta3, 
+			  bool reset_stacks = false, bool redraw = true);
   EicToyModel *DefineVacuumChamber(EtmVacuumChamber *vc);
   //
   // Nominal IP along the beam line direction; negative values correspond to the e-endcap direction;

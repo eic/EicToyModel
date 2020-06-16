@@ -102,7 +102,7 @@ void EicToyModel::PlaceG4Volumes(G4LogicalVolume *world)
 // ---------------------------------------------------------------------------------------
 
 EicToyModel *EicToyModel::acceptance(double eta0, double eta1, double eta2, double eta3, 
-				     bool reset_stacks)
+				     bool reset_stacks, bool redraw)
 {
   // Order the values;
   std::set<double> buffer;
@@ -139,6 +139,8 @@ EicToyModel *EicToyModel::acceptance(double eta0, double eta1, double eta2, doub
   bck()->SetEtaBoundaries(eta0, eta1);
   mid()->SetEtaBoundaries(eta1, eta2);
   fwd()->SetEtaBoundaries(eta2, eta3);
+
+  if (redraw && mCanvas) DrawMe(); 
 
   return this;
 } // EicToyModel::acceptance()

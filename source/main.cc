@@ -94,6 +94,7 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/vis/drawVolume ! ! ! -box m 0 10 0 10 -10 10");
   UImanager->ApplyCommand("/vis/scene/add/axes 0 0 0 1 m");
   UImanager->ApplyCommand("/vis/viewer/set/background white");
+  UImanager->ApplyCommand("/vis/viewer/zoom 2.0");
   ui->SessionStart();
 
   delete ui; delete visManager; delete runManager;

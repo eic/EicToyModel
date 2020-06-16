@@ -51,6 +51,7 @@ class EtmDetector: public EtmPolygonGroup {
 
   // Returns the detector length along the alignment axis; 
   double length( void ) const { return mLength; };
+  void length(double value)   { mLength = value; };
 
   // For bck() and fwd() stacks: absolute offset towards mid() stack, as counted from the 
   // alignment axis; perhaps relative to some other detector *upstream*side*, if specified;
