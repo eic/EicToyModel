@@ -2,24 +2,13 @@
   EicToyModel is a C++ ROOT-based software suite for EIC Central Detector 
 configuration.  
 
-  The main objective of this software was providing the EIC community users
-with a tool, which would allow them to easily (whatever easy means) create possible 
-EIC detector configuration *templates* (namely, the self-consistent collections of 
-3D sub-detector intergation volumes) and make use of them in the GEANT simulation 
-environment.
+  The main objective of this software was providing the EIC community users with a tool, which would allow them to easily (whatever easy means) create possible EIC detector configuration *templates* (namely, the self-consistent collections of 3D sub-detector intergation volumes) and make use of them in the GEANT simulation environment.
 
-  The integration volumes are guaranteed to not overlap either with each other 
-or with the IR vacuum chamber volume within the same EIC detector configuration.
+  The integration volumes are guaranteed to not overlap either with each other or with the IR vacuum chamber volume within the same EIC detector configuration.
 
-  They move synchronously under generic changes to the IR layout (e.g. by the 
-nominal IP shift along the beam line direction and/or by a change in the acceptance
-boundaries separating barrel and endap regions).
+  They move synchronously under generic changes to the IR layout (e.g. by the nominal IP shift along the beam line direction and/or by a change in the acceptance boundaries separating barrel and endap regions).
 
-  Technically a user has access to the parameters characterizing the shape and 
-location of the integration volume to where his/her sub-detector component belongs, 
-and can build the respective sub-detector dynamically in the respective GEANT
-G4VUserDetectorConstruction::Construct() method depending e.g. on the sub-detector 
-distance from the nominal IP.
+  Technically a user has access to the parameters characterizing the shape and location of the integration volume to where his/her sub-detector component belongs, and can build the respective sub-detector dynamically in the respective GEANT G4VUserDetectorConstruction::Construct() method depending e.g. on the sub-detector distance from the nominal IP.
 
 
 Other features
