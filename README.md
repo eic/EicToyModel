@@ -38,8 +38,8 @@ import of the soon-to-become-available magnetic field maps produced by the EIC
 greenfield solenoid design team).
 * Tools for the magnetic field B*dl integral evaluation and the IR vacuum chamber 
 material scan.
-* Export of the integration volumes as a STEP file, for the support and services
-engineering design purposes. 
+* Export of the integration volumes as a STEP file, for the support structure and 
+services engineering design purposes. 
 
 
 Model limitations
@@ -106,7 +106,7 @@ Running
   
 Edit a script like ![example.C](scripts/example.C) in the ../scripts/ directory 
 according to your preferences (see full list of the available commands 
-![here](doc/README.API.md)) and runs it:
+![here](doc/README.API.md)) and run it:
 
 ```
 root -l ../scripts/example.C
@@ -124,10 +124,12 @@ in ![EtmPalette.cc](source/EtmPalette.cc).
 
 Users can create custom detector (or detector group) tags and tag-to-color 
 associations like "PID":kPink dynamically. For the sake of consistency it would make sense 
-to hardcode the "official" Yellow Report color (and detector tag) scheme.
+to hardcode the "official" Yellow Report color (and detector tag) scheme though, after the 
+initial evaluation and debugging stage.
 
 A limited set of interactive commands (see the full list ![here](doc/README.API.md)) 
-is available. Try e.g. the following sequence with the safe-explaining results: 
+is available. Try e.g. the following sequence with the safe-explaining outcome of the 
+respective commands: 
 
 ```
 root [] eic->width(1200); 
@@ -146,7 +148,7 @@ root [] eic->bck()->rm("EmCal");
 root [] eic->fwd()->insert("MPGD", 20 * etm::cm, "HM RICH");
 # Save the current configuration;
 root [] eic->write();
-# Save example.vc.gdml file with the vacuum chamber layout; a BUG: command 
+# Save example.vc.gdml file with the vacuum chamber layout; a BUG: this command 
 # works properly only once; 
 root [] eic->ExportVacuumChamber();
 root [] .q
@@ -159,8 +161,8 @@ root -l '../scripts/reader.C("example.root")'
 ```
 
 Beyond this point one can work with the model the same way as if it was created 
-from scratch (see example.C above). It is strongly recommended to use detector 
-composition changing commands like rm() and insert() only as a quick tuning 
+from scratch (see ![example.C](scripts/example.C)). It is strongly recommended to use 
+detector composition changing commands like rm() and insert() only as a quick tuning 
 means, and once a desired configuration is found, put the respective changes
 int a consistent full script, creating a given model from scratch. The reason 
 is simple: this software is in the early debugging stage, and it is much more likely 
@@ -214,7 +216,7 @@ stack (say, after removing one of the TRD volumes in the hadron-going endcap, th
 calorimeter behind it will be located in a proper place). 
 
 It seems to be wise to check the integration volume actual location by means of the 
-available library calls, and tune the detector geometry accordingly if needed.
+available library calls, and *tune* the detector geometry accordingly if needed.
 
 Apparently the community may want to decide exporting *individual* GDML objects
 describing the sub-detector integration volumes for a given version of the full EIC detector
