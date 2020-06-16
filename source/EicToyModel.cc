@@ -67,7 +67,7 @@ EicToyModel::EicToyModel(double length, double radius):
   mXdim(_CANVAS_WIDTH_DEFAULT_), mYdim(0),
   mXsize(0.0), mYsize(0.0), mX0(0.0), mY0(0.0), 
   mColorLegendEnabled(true), mZoomedView(false), mCanvas(0), 
-  mVacuumSystem(0),
+  mVacuumChamber(0),
   mCurrentView(EicToyModel::kUndefined), 
   mMirrorImage(false), mOneSideMode(EicToyModel::kOff),
   //mSafetyClearance(_SAFETY_CLEARANCE_DEFAULT_), mVisualClearance(_VISUAL_CLEARANCE_DEFAULT_),
@@ -82,13 +82,13 @@ EicToyModel::EicToyModel(double length, double radius):
 
 // ---------------------------------------------------------------------------------------
 
-EicToyModel *EicToyModel::DefineVacuumSystem(EtmVacuumSystem *vs) 
+EicToyModel *EicToyModel::DefineVacuumChamber(EtmVacuumChamber *vc) 
 { 
   // A bit of consistency checks;
-  if (vs->CrossingAngleResetPossible(mCrossingAngle)) mVacuumSystem = vs; 
+  if (vc->CrossingAngleResetPossible(mCrossingAngle)) mVacuumChamber = vc; 
 
   return this; 
-} // EicToyModel::DefineVacuumSystem()
+} // EicToyModel::DefineVacuumChamber()
 
 // ---------------------------------------------------------------------------------------
 
@@ -234,7 +234,7 @@ EicToyModel *EicToyModel::ip(double offset, bool redraw)
 { 
   if (!mGeometryLocked && offset != mIpOffset) {
     mIpOffset = offset; 
-    if (mVacuumSystem) mVacuumSystem->CheckGeometry(true);
+    if (mVacuumChamber) mVacuumChamber->CheckGeometry(true);
     
     if (redraw && mCanvas) DrawMe(); 
   } //if
@@ -256,7 +256,7 @@ EicToyModel *EicToyModel::ir(double length, double radius, bool redraw) {
 
 EicToyModel *EicToyModel::RebuildEverything(bool redraw)
 { 
-  if (mVacuumSystem) mVacuumSystem->CheckGeometry();
+  if (mVacuumChamber) mVacuumChamber->CheckGeometry();
   
   if (redraw && mCanvas) DrawMe(); 
 
@@ -270,8 +270,8 @@ EicToyModel *EicToyModel::SetCrossingAngle(double value, bool redraw)
   // Same value -> nothing to do;
   if (value == mCrossingAngle) return this;
 
-  // Change is only allowed if vacuum system design is consistent with it;
-  if (!mVacuumSystem || mVacuumSystem->CrossingAngleResetPossible(value))
+  // Change is only allowed if vacuum chamber design is consistent with it;
+  if (!mVacuumChamber || mVacuumChamber->CrossingAngleResetPossible(value))
     mCrossingAngle = value; 
 
   return RebuildEverything(redraw);
@@ -331,9 +331,9 @@ void EicToyModel::write(bool lock)
 
   if (lock) mGeometryLocked = true;
 
-  if (mVacuumSystem) {
-    //mVacuumSystem->Export(GetName() + TString(".vs.gdml"));
-    mVacuumSystem->GetWorld()->Write();
+  if (mVacuumChamber) {
+    //mVacuumChamber->Export(GetName() + TString(".vc.gdml"));
+    mVacuumChamber->GetWorld()->Write();
   } //if
 
   TObject::Write("EicToyModel");
@@ -343,19 +343,19 @@ void EicToyModel::write(bool lock)
 
 // ---------------------------------------------------------------------------------------
 
-void EicToyModel::ExportVacuumSystem(const char *fname)
+void EicToyModel::ExportVacuumChamber(const char *fname)
 {
-  TString str(fname ? TString(fname) : GetName() + TString(".vs.gdml"));
+  TString str(fname ? TString(fname) : GetName() + TString(".vc.gdml"));
 
   if (str.EndsWith(".gdml")) {
-    if (mVacuumSystem)
-      mVacuumSystem->Export(GetName() + TString(".vs.gdml"));
+    if (mVacuumChamber)
+      mVacuumChamber->Export(str.Data());//GetName() + TString(".vc.gdml"));
     else
-      printf("EicToyModel::ExportVacuumSystem() -> vacuum system is not defined!\n");
+      printf("EicToyModel::ExportVacuumChamber() -> vacuum chamber is not defined!\n");
   }
   else
-    printf("EicToyModel::ExportVacuumSystem(\"%s\") -> .gdml file extention expected!\n", fname); 
-} // EicToyModel::ExportVacuumSystem()
+    printf("EicToyModel::ExportVacuumChamber(\"%s\") -> .gdml file extention expected!\n", fname); 
+} // EicToyModel::ExportVacuumChamber()
 
 // ---------------------------------------------------------------------------------------
 
@@ -374,8 +374,8 @@ void EicToyModel::Export(const char *fname, bool lock)
       // Permanently lock the geometry if requested;
       if (lock) mGeometryLocked = true;
 
-      // Save vacuum system TGeo tree in the same file;
-      if (mVacuumSystem) mVacuumSystem->GetWorld()->Write();
+      // Save vacuum chamber TGeo tree in the same file;
+      if (mVacuumChamber) mVacuumChamber->GetWorld()->Write();
       
       // Save EicToyModel class instance (ROOT serializer);
       TObject::Write("EicToyModel");
@@ -921,7 +921,7 @@ void EicToyModel::DrawMe(EicToyModel::View view, bool draw)
 
   if (draw) {
     // Start with the area, which describes the beam pipe;
-    if (mVacuumSystem) mVacuumSystem->DrawMe();
+    if (mVacuumChamber) mVacuumChamber->DrawMe();
     
     // Draw all booked acceptance limit lines; this looks a bit artificial, but I want to 
     // decouple the actual acceptance boundary lines from the additional "drawn-only" ones;
@@ -1159,7 +1159,7 @@ void EicToyModel::DrawMarkers( void )
     for(unsigned lr=0; lr<2; lr++) {
       // These lines are too short, so a 25mrad angle would look ugly -> 0.0; 
       //double dr = (!lr && GetCurrentView() == EicToyModel::kHorizontal) ? 
-      //-alength*tan(mVacuumSystem->mCrossingAngle) : 0.0;
+      //-alength*tan(mVacuumChamber->mCrossingAngle) : 0.0;
       TVector2 from = cnv(TVector2(mIpOffset + (lr ? 1.0 : -1.0)*alength, /*dr*/0.0));
       TVector2 to = cnv(GetIpLocation());
       

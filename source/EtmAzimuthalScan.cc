@@ -79,7 +79,7 @@ TVector3 EtmAzimuthalScan::GetBfield(const TVector3 &xx) const
 void EtmAzimuthalScan::DoIt(const char *fout)
 {
   auto eic = EicToyModel::Instance();
-  auto model = eic->GetVacuumSystem()->GetWorld();
+  auto model = eic->GetVacuumChamber()->GetWorld();
 
   // So yes, for now assume only endcaps are of interest;
   assert(mEtaMin*mEtaMax > 0.0);

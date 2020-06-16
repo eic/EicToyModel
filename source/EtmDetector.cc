@@ -359,20 +359,20 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
   visAtt->SetForceSolid(true);
 
   {
-    auto vs = eic->GetVacuumSystem();
-    bool vs_cut_required = vs;
+    auto vc = eic->GetVacuumChamber();
+    bool vc_cut_required = vc;
 
     // Figure out whether a cut is needed at all; these are mutually exclusive of 
     // course; fine, no staggered elseif's;
-    if (mStack == eic->vtx() && eic->vtx()->GetDetector(0) != this) vs_cut_required = false;
+    if (mStack == eic->vtx() && eic->vtx()->GetDetector(0) != this) vc_cut_required = false;
     if (mStack == eic->mid() && 
 	// Either vertex stack is populated or this is not the first central stack 
 	// detector -> under no sane configuration it can sit next to the beam pipe;
 	(eic->vtx()->DetectorCount() || (eic->mid()->GetDetector(0) != this)))
-      vs_cut_required = false;
+      vc_cut_required = false;
 
-    // Vacuum system defined -> carve a hole in the original poly-shape;
-    auto vcut = vs && vs_cut_required ? vs->CutThisSolid(vpol, polygon) : 0;
+    // Vacuum chamber defined -> carve a hole in the original poly-shape;
+    auto vcut = vc && vc_cut_required ? vc->CutThisSolid(vpol, polygon) : 0;
 
     if (vcut) {
       auto lcut = new G4LogicalVolume(vcut, air, label.Data(), 0, 0, 0);
@@ -380,7 +380,7 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
 
       return new G4PVPlacement(0, G4ThreeVector(0, 0, z0*cff), lcut, label.Data(), world, false, 0);
     } else {
-      // No vacuum system defined -> a simple volume export;
+      // No vacuum chamber defined -> a simple volume export;
       auto lpol = new G4LogicalVolume(vpol, air, label.Data(), 0, 0, 0);
       lpol->SetVisAttributes(visAtt);
       

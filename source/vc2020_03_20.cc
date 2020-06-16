@@ -5,7 +5,7 @@
 #include <TGeoCompositeShape.h>
 
 #include <EicToyModel.h>
-#include <vs2020_03_20.h>
+#include <vc2020_03_20.h>
 
 // --------------------------------------------------------------------------------------
 // These parameters describe the beam pipe layout as of 2020/03/20;
@@ -52,7 +52,7 @@
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
-vs2020_03_20::vs2020_03_20( void ) 
+vc2020_03_20::vc2020_03_20( void ) 
 { 
   // FIXME: it seems these value will be overwritten every time .root file is imported new?;
   //if (!mBerylliumBeamPipeDiameter) 
@@ -62,19 +62,19 @@ vs2020_03_20::vs2020_03_20( void )
     mHadronBeamPipeOpening     = _HADRON_PIPE_OPENING_DEFAULT_;
    
   //CreateGeometry(); 
-} // vs2020_03_20::vs2020_03_20()
+} // vc2020_03_20::vc2020_03_20()
 
 // ---------------------------------------------------------------------------------------
 
-//double vs2020_03_20::FixedCrossingAngle( void ) const
+//double vc2020_03_20::FixedCrossingAngle( void ) const
 //{
 //return _ESIDE_ALUMINUM_PIPE_DSLOPE_;
-//} // vs2020_03_20::FixedCrossingAngle()
+//} // vc2020_03_20::FixedCrossingAngle()
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
-void vs2020_03_20::CreateGeometry( void )
+void vc2020_03_20::CreateGeometry( void )
 {
   // FIXME: well, it's hard to get rid of this; would have to 
   auto eic = EicToyModel::Instance();
@@ -248,11 +248,11 @@ void vs2020_03_20::CreateGeometry( void )
       }
     }
   } 
-} // vs2020_03_20::CreateGeometry()
+} // vc2020_03_20::CreateGeometry()
 
 // ---------------------------------------------------------------------------------------
 
-G4VSolid *vs2020_03_20::CutThisSolid(G4VSolid *solid, const std::vector<TVector2> &polygon)
+G4VSolid *vc2020_03_20::CutThisSolid(G4VSolid *solid, const std::vector<TVector2> &polygon)
 {
 #ifdef _ETM2GEANT_
   //auto eic = EicToyModel::Instance();
@@ -274,9 +274,9 @@ G4VSolid *vs2020_03_20::CutThisSolid(G4VSolid *solid, const std::vector<TVector2
 #else
   return 0;
 #endif
-} // vs2020_03_20::CutThisSolid()
+} // vc2020_03_20::CutThisSolid()
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
-ClassImp(vs2020_03_20)
+ClassImp(vc2020_03_20)

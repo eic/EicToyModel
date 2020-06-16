@@ -3,9 +3,9 @@
 
   // Shift IP if needed; define canvas width; request eta=0 line in the drawing; set name;
   eic->ip(-50.0)->width(1500)->AddEtaLine(0.0)->SetName("example");
-  // Define acceptance ranges and the vacuum system design;
+  // Define acceptance ranges and the vacuum chamber design;
   eic->acceptance(-4.2, -1.0, 1.2, 4.2);
-  eic->DefineVacuumSystem(new vs2020_03_20());
+  eic->DefineVacuumChamber(new vc2020_03_20());
 
   // Vertex tracker;
   {

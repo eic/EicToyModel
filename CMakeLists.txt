@@ -68,14 +68,14 @@ SET( LIBSRC
   source/EtmEtaBoundary.cc 
   source/EtmPolygonGroup.cc 
   source/EtmPalette.cc 
-  source/EtmVacuumSystem.cc 
+  source/EtmVacuumChamber.cc 
   source/EtmAzimuthalScan.cc 
   source/EtmDetector.cc 
   source/EtmDetectorStack.cc 
 
   source/EicToyModel.cc 
 
-  source/vs2020_03_20.cc 
+  source/vc2020_03_20.cc 
 )
 
 SET( EXESRC 
@@ -91,7 +91,7 @@ INCLUDE_DIRECTORIES (
 # This will include all other ones; fine;
 SET( HEADERS 
   include/EicToyModel.h 
-  include/vs2020_03_20.h
+  include/vc2020_03_20.h
 )
 
 ROOT_GENERATE_DICTIONARY(G__${LIBNAME} ${HEADERS} LINKDEF include/etmLinkDef.h)

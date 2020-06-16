@@ -4,16 +4,16 @@
 #include <TVector2.h>
 #include <TGeoManager.h>
 
-#ifndef _EIC_VACUUM_SYSTEM_
-#define _EIC_VACUUM_SYSTEM_
+#ifndef _EIC_VACUUM_CHAMBER_
+#define _EIC_VACUUM_CHAMBER_
 
 class G4VSolid;
 class EicToyModel;
 
-class EtmVacuumSystem: public TObject {
+class EtmVacuumChamber: public TObject {
  public:
-  EtmVacuumSystem( void );
-  ~EtmVacuumSystem() {};
+  EtmVacuumChamber( void );
+  ~EtmVacuumChamber() {};
 
   void DrawMe( void );// const;
 
@@ -26,7 +26,7 @@ class EtmVacuumSystem: public TObject {
   void CheckGeometry(bool force = false);
   void Export(const char *fname);
 
-  // The idea behind all this is to allow dynamic creation of the vacuum system volumes;
+  // The idea behind all this is to allow dynamic creation of the vacuum chamber volumes;
   // if the respective inherited class is not flexible enough to make use of the 
   // EicToyModel::mCrossingAngle, certain operations will be prohibited;
   virtual bool ConfigurableCrossingAngle( void ) const                    = 0;
@@ -53,7 +53,7 @@ class EtmVacuumSystem: public TObject {
 
   bool mStandaloneMode; //!
 
-  ClassDef(EtmVacuumSystem, 1)
+  ClassDef(EtmVacuumChamber, 1)
 };
 
 

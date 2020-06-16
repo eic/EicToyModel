@@ -12,7 +12,7 @@ class G4LogicalVolume;
 
 #include <EtmPalette.h>
 #include <EtmAzimuthalScan.h>
-#include <EtmVacuumSystem.h>
+#include <EtmVacuumChamber.h>
 #include <EtmDetectorStack.h>
 
 // +/-4.5 m; up to ~4m radius suffices?; can be changed in the ctor (only);
@@ -26,7 +26,7 @@ class EicToyModel: public TObject {
   friend class EtmDetector;
   friend class EtmDetectorStack;
   friend class EtmAzimuthalScan;
-  friend class EtmVacuumSystem;
+  friend class EtmVacuumChamber;
 
  public:
   EicToyModel(double length = _IR_REGION_LENGTH_DEFAULT_, double radius = _IR_REGION_RADIUS_DEFAULT_);
@@ -34,13 +34,13 @@ class EicToyModel: public TObject {
   // == User commands === just the shortcuts for the "interactive" ones ==========================
   //
   // -- Geometry ---------------------------------------------------------------------------------
-  // Vacuum system derived class and eta *boundaries* can still be modified later (either 
+  // Vacuum chamber derived class and eta *boundaries* can still be modified later (either 
   // interactively or after model export-import), but not the *number* of different 
   // stacks; too much of a trouble to re-create the stack structure dynamically (in other 
   // words to guarantee that the meaning of bck(), mid() & fwd() stays the same), so eta() 
   // calls beyond LockGeometry() will not work; 
   EicToyModel *acceptance(double eta0, double eta1, double eta2, double eta3, bool reset_stacks = false);
-  EicToyModel *DefineVacuumSystem(EtmVacuumSystem *vs);
+  EicToyModel *DefineVacuumChamber(EtmVacuumChamber *vc);
   //
   // Nominal IP along the beam line direction; negative values correspond to the e-endcap direction;
   EicToyModel *ip(double offset,                bool redraw = true);
@@ -52,7 +52,7 @@ class EicToyModel: public TObject {
   EtmDetectorStack *mid( void ); EtmDetectorStack *barrel  ( void ) { return mid(); };
   EtmDetectorStack *fwd( void ); EtmDetectorStack *forward ( void ) { return fwd(); };
   //
-  // Calls describing the outline of the vacuum system;
+  // Calls describing the outline of the vacuum chamber;
   EicToyModel *SetCrossingAngle(double value, bool redraw = true);
   //
   // -- Visualization ----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ class EicToyModel: public TObject {
   void Construct( void )                     { DrawMe(EicToyModel::kUndefined, false); };
   void PlaceG4Volumes(G4LogicalVolume *world);
   void Export(const char *fname, bool lock = false);
-  void ExportVacuumSystem(const char *fname = 0);
+  void ExportVacuumChamber(const char *fname = 0);
 
  private:
   ~EicToyModel() {}; 
@@ -142,7 +142,7 @@ class EicToyModel: public TObject {
 
   EtmPalette &Palette( void )                { return mPalette; };
 
-  EtmVacuumSystem *GetVacuumSystem( void )   { return mVacuumSystem; };
+  EtmVacuumChamber *GetVacuumChamber( void )   { return mVacuumChamber; };
 
   //double SafetyClearance( void )       const { return mSafetyClearance; };
   //double VisualClearance( void )       const { return mVisualClearance; };
@@ -224,10 +224,10 @@ class EicToyModel: public TObject {
   //     knows yet, how they will be installed in reality, and h-endcap polygons will look ugly 
   //     if aligned at 25mrad);
   //   - IP offset is only considered along Z-axis; X=Y=0 per definition; if this ever becomes a problem, 
-  //     it is easier to offset the vacuum system;
+  //     it is easier to offset the vacuum chamber;
   //   - Z=0 is the center of the "nominal" +/-4.5m region;
   //   - exported integration volumes will be axially symmetric with respect to the Z-axis TGeoPolycon 
-  //     objects, perhaps at a non-zero X-offset, with a hole matching the layout of the vacuum system; 
+  //     objects, perhaps at a non-zero X-offset, with a hole matching the layout of the vacuum chamber; 
   //     the shape will be taken as a "boolean &" of the phi=0,90,180,270 degree projections with respect 
   //     to the guessed "center" (X-offset);
   double mIpOffset;
@@ -244,7 +244,7 @@ class EicToyModel: public TObject {
 
   TCanvas *mCanvas; //!
 
-  EtmVacuumSystem *mVacuumSystem;
+  EtmVacuumChamber *mVacuumChamber;
 
   EicToyModel::View mCurrentView;
 

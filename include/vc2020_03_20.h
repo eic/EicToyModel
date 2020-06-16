@@ -1,13 +1,13 @@
 
-#include <EtmVacuumSystem.h>
+#include <EtmVacuumChamber.h>
 
-#ifndef _VS2020_03_20_
-#define _VS2020_03_20_
+#ifndef _VC2020_03_20_
+#define _VC2020_03_20_
 
-class vs2020_03_20: public EtmVacuumSystem {
+class vc2020_03_20: public EtmVacuumChamber {
  public:
- vs2020_03_20( void );
-  ~vs2020_03_20() {};
+ vc2020_03_20( void );
+  ~vc2020_03_20() {};
 
   void CreateGeometry( void );
   bool ConfigurableCrossingAngle( void ) const { return true; };//false; };
@@ -15,7 +15,7 @@ class vs2020_03_20: public EtmVacuumSystem {
 
   G4VSolid *CutThisSolid(G4VSolid *solid, const std::vector<TVector2> &polygon);
 
-  ClassDef(vs2020_03_20, 1)
+  ClassDef(vc2020_03_20, 1)
 };
 
 #endif

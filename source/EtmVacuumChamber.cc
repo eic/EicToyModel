@@ -1,20 +1,20 @@
 
-#include <EtmVacuumSystem.h>
+#include <EtmVacuumChamber.h>
 #include <EicToyModel.h>
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
-EtmVacuumSystem::EtmVacuumSystem( void ): 
+EtmVacuumChamber::EtmVacuumChamber( void ): 
   mTGeoModel(0), mHadronBeamPipeOpening(0.0), mActualCrossingAngle(0.0),
   mStandaloneMode(false)
 {
-} // EtmVacuumSystem::EtmVacuumSystem()
+} // EtmVacuumChamber::EtmVacuumChamber()
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
-void EtmVacuumSystem::CreateWorld( void )
+void EtmVacuumChamber::CreateWorld( void )
 {
   auto eic = EicToyModel::Instance();
 
@@ -28,13 +28,13 @@ void EtmVacuumSystem::CreateWorld( void )
     if (mTGeoModel) delete mTGeoModel;
 
     // Create a standalone instance otherwise;
-    mTGeoModel = new TGeoManager("IR", "Simplified IR vacuum system geometry");
+    mTGeoModel = new TGeoManager("IR", "Simplified IR vacuum chamber geometry");
 
     // Vacuum (low density hydrogen), beryllium, aluminum; nothing else is needed;
     auto matVacuum = new TGeoMaterial("Vacuum", 1.008,  1, 1E-10);
     auto matBe     = new TGeoMaterial("Be",     9.01,   4, 1.85);
     auto matAl     = new TGeoMaterial("Al",    26.98,  13, 2.70);
-    // Fake material; want to mark particles, which do not leave the vacuum system;
+    // Fake material; want to mark particles, which do not leave the vacuum chamber;
     auto matEdge   = new TGeoMaterial("Edge",   1.0,    1, 1E-10);
     
     new TGeoMedium  ("Vacuum", 1, matVacuum);
@@ -54,24 +54,24 @@ void EtmVacuumSystem::CreateWorld( void )
 
     mStandaloneMode = true;
   } //if
-} // EtmVacuumSystem::CreateWorld()
+} // EtmVacuumChamber::CreateWorld()
 
 // ---------------------------------------------------------------------------------------
 
-bool EtmVacuumSystem::CrossingAngleResetPossible(double value) const 
+bool EtmVacuumChamber::CrossingAngleResetPossible(double value) const 
 {
   // So: either geometry can be tuned dynamically or the requested value 
   // matches the geometry; even if flexible, only a single change is allowed 
   // in a non-standalone mode (otherwise why would one like to erase the whole 
-  // geometry tree because of a change in the vacuum system); FIXME: may want to 
+  // geometry tree because of a change in the vacuum chamber); FIXME: may want to 
   // erase these nodes selectively later;
   return (ConfigurableCrossingAngle() || (FixedCrossingAngle() == value)) && 
     (mStandaloneMode || !mTGeoModel);
-} // EtmVacuumSystem::CrossingAngleResetPossible()
+} // EtmVacuumChamber::CrossingAngleResetPossible()
 
 // ---------------------------------------------------------------------------------------
 
-void EtmVacuumSystem::CheckGeometry(bool force)
+void EtmVacuumChamber::CheckGeometry(bool force)
 {
   double crossing_angle = EicToyModel::Instance()->GetCrossingAngle();
     
@@ -84,11 +84,11 @@ void EtmVacuumSystem::CheckGeometry(bool force)
     
     mActualCrossingAngle = crossing_angle;
   } //if
-} // EtmVacuumSystem::CheckGeometry()
+} // EtmVacuumChamber::CheckGeometry()
 
 // ---------------------------------------------------------------------------------------
 
-void EtmVacuumSystem::Export(const char *fname)
+void EtmVacuumChamber::Export(const char *fname)
 {
   CheckGeometry();
 
@@ -97,15 +97,15 @@ void EtmVacuumSystem::Export(const char *fname)
 
   // FIXME: a warning otherwise;
   if (mStandaloneMode) mTGeoModel->Export(fname);
-} // EtmVacuumSystem::Export()
+} // EtmVacuumChamber::Export()
 
 // ---------------------------------------------------------------------------------------
 // 
-//  Assume that certain parts of the vacuum system design will simply move 
+//  Assume that certain parts of the vacuum chamber design will simply move 
 //  together with the IP;
 //
 
-void EtmVacuumSystem::DrawMe( void ) //const
+void EtmVacuumChamber::DrawMe( void ) //const
 {
   CheckGeometry();
 
@@ -127,17 +127,17 @@ void EtmVacuumSystem::DrawMe( void ) //const
     for(unsigned du=0; du<2; du++)
       rprev[du] = rcurr[du];
   } //for inf
-} // EtmVacuumSystem::DrawMe()
+} // EtmVacuumChamber::DrawMe()
 
 // ---------------------------------------------------------------------------------------
 
 //
 //  FIXME: unify with the azimuthal scan; FIXME: this assumes that the electron beam 
 // pipe is aligned with Z axis, therefore point (0,0) is *inside* the vacuum 
-// system, no matter what; 
+// chamber, no matter what; 
 //
 
-double EtmVacuumSystem::GetRadialSize(double z, double phi) //const
+double EtmVacuumChamber::GetRadialSize(double z, double phi) //const
 {
   CheckGeometry();
 
@@ -170,9 +170,9 @@ double EtmVacuumSystem::GetRadialSize(double z, double phi) //const
   } //for inf
 
   return outerR;
-} // EtmVacuumSystem::GetRadialSize()
+} // EtmVacuumChamber::GetRadialSize()
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
-ClassImp(EtmVacuumSystem)
+ClassImp(EtmVacuumChamber)
