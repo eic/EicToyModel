@@ -216,7 +216,9 @@ stack (say, after removing one of the TRD volumes in the hadron-going endcap, th
 calorimeter behind it will be located in a proper place). 
 
 It seems to be wise to check the integration volume actual location by means of the 
-available library calls, and *tune* the detector geometry accordingly if needed.
+available library calls, and *tune* the sub-detector geometry accordingly if needed.
+For instance, populate the endcap HCal integration volume by towers depending on which 
+radial space is actually available.
 
 Apparently the community may want to decide exporting *individual* GDML objects
 describing the sub-detector integration volumes for a given version of the full EIC detector
