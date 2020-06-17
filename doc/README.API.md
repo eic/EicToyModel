@@ -11,6 +11,22 @@ EicToyModel::ForwardEndcap() one, and so on).
 EicToyModel class methods
 -------------------------
 
+  Several methods return *this* pointer, which allows one to chain several commands 
+in one line.
+
+```
+  EicToyModel *acceptance(double eta0, double eta1, double eta2, double eta3, 
+			  bool reset_stacks = false, bool redraw = true);
+
+  eta[0123]   : (eta0)backward-(eta1)-barrel-(eta2)-forward(eta3) pseudo-rapidity 
+acceptance boundaries
+
+  reset_stacks: if "true", stack detector composition will be erased
+
+  redraw      : if "true", redraw the scene
+```
+
+
 
 EtmDetectorStack class methods
 ------------------------------
