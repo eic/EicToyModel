@@ -14,6 +14,9 @@ EicToyModel class methods
   Several methods return *this* pointer, which allows one to chain several commands 
 in one line.
 
+# h1 tag
+####### h6 tag
+
 ```
   EicToyModel *acceptance(double eta0, double eta1, double eta2, double eta3, 
 			  bool reset_stacks = false, bool redraw = true);
@@ -25,6 +28,60 @@ acceptance boundaries
 
   redraw      : if "true", redraw the scene
 ```
+
+```
+  EtmDetectorStack *barrel( void );
+  EtmDetectorStack *mid   ( void ); 
+
+  return pointer to the barrel detector stack
+```
+
+```
+  EtmDetectorStack *bck     ( void ); 
+  EtmDetectorStack *backward( void );
+
+  return pointer to the e-endcap detector stack
+```
+
+```
+  EicToyModel *DefineVacuumChamber(EtmVacuumChamber *vc);
+
+  vc          : a derived class describing the IR vacuum chamber geometry
+```
+
+```
+  EicToyModel *ip(double offset, bool redraw = true);
+
+  offset      : nominal IP offset with respect to the Z=0 point in the middle of the 
++/- 4.5m area available for the central detector
+
+  redraw      : if "true", redraw the scene
+```
+
+```
+  EicToyModel *ir(double length, double radius, bool redraw = true);
+
+  length      : allowed IR region length along the electron beam line; +/- 4.5m per default
+
+  radius      : allowed IR region radial size; 4.0m per default
+
+  redraw      : if "true", redraw the scene
+```
+
+```
+  EtmDetectorStack *mid   ( void ); 
+  EtmDetectorStack *barrel( void );
+
+  return pointer to the barrel detector stack
+```
+
+```
+  EtmDetectorStack *vtx   ( void ); 
+  EtmDetectorStack *vertex( void );
+
+  return pointer to the vertex detector stack
+```
+
 
 
 
