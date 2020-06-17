@@ -274,11 +274,6 @@ active area aspect ratio in the world coordinates.
 EtmDetectorStack class methods
 ------------------------------
 
-
-
-EtmDetector class methods
--------------------------
-
 ```
   EtmDetector *add(const char *tag,            double length);
   EtmDetector *add(const char *tag, int color, double length);
@@ -350,4 +345,69 @@ stack at once either toward sor away from the IP).
   EtmDetector *get(const char *dname, unsigned order = 0) const;
 
   Get pointer to a detector with a tag 'dname' in this stack (or a {dname,order} pair).
+```
+
+EtmDetector class methods
+-------------------------
+
+```
+  EtmDetector *trim(double min, double max, bool preserve_modified = false);
+
+  Modify the default container volume shape layout at the eta=min and eta=max
+acceptance boundaries (min:max pair is given in ascending order!). Values are 
+betweek 0.0 and 1.0, and they determine, which portion of a volume polygon tip
+will be cut to make it look better. 0.0 value should be used to allocate as much 
+of the available space to the container volume as other boundary conditions allow.
+
+  EtmDetector *trim(double value) { return trim(value, value, false); };
+  EtmDetector *brick( void ) { return trim(0.0); };
+
+  Shortcuts to the above trim(min,max,preserve_modified) method.
+```
+
+```
+  double length( void ) const;
+  void length(double value);
+
+  Change and get the detector "depth" along the stack alignment axis, in [cm].
+```
+```
+  EtmDetector *stretch(EtmDetector *refdet,        double toffset, etm::Stretch how = etm::kRecess);
+  EtmDetector *stretch(EtmDetector *refdet,                        etm::Stretch how = etm::kRecess);
+  EtmDetector *stretch(                            double tlength, etm::Stretch how = etm::kRecess);
+  EtmDetector *stretch(EtmDetectorStack *refstack, double tlength, etm::Stretch how = etm::kRecess);
+
+  Various ways to define the length of a particular detector along the lateral direction with respect to the stack alignment axis. One can either defined it with respect to some other detector in a neighboring stack or in absolute numbers. The former option is preferred, since the detector configuration then becomes more flexible in a sense the detectors move synchronously when something changes in oe of the other stacks (like its offset with respect to the IP). 
+
+  how         : defines a way the crack between the detector stacks (say between e-endcap and barrel) gets modified; possible values are: etm::kDent, etm::kRecess and etm::kWall; try them out. 
+```
+
+```
+  double GetActualDistance( void ) const;
+
+  Returns the actual distance of the center of this detector volume to the IP, along the stack 
+alignment axis.
+```
+
+```
+  bool IsDummy( void ) const;
+
+  Returns 'true' if this is either a MARKER or GAP pseudo-detector.
+```
+
+```
+  G4VPhysicalVolume *PlaceG4Volume(G4LogicalVolume *world, const char *name = 0);
+
+  Places a GEANT physical volume into the world volume either under a given name or 
+under a name composed of the stack label, detector tag and detector order of this type in 
+a given stack.
+
+  Returns respective G4VPhysicalVolume. 
+```
+
+```
+  void Export(const char *fname);
+
+  Exports a CAD file with this single container volume. This method should probably be 
+removed, see EicToyModel::Export() call.
 ```
