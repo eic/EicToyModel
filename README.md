@@ -233,16 +233,39 @@ between different sub-detector systems may be problematic in this case though.
 
 Again, see the source file ![main.cc](source/main.cc) as a working example.
 
+
 CAD interface
 -------------
+
+This interface may be useful to export the created models in a STEP format.
+
+The code should be compiled with a -DOPENCASCADE=<OpenCascade-installation-dir> cmake
+flag (and obviously OpenCascade libraries must be installed on a local system). 
+
+  7.2.0 is known to work, but the following line 
+
+```
+_Standard_API int    _Printf  (const char* theFormat, ...);
+```
+
+in the Standard_CString.hxx file should be commented out in the installation area, in order 
+to a void an apparent conflict with the ROOT Printf() call declaration.
+
+One can either export all of the integration volumes at once by using EicToyModel::Export()
+method, or a single detector volume by using EtmDetector::Export() method, see 
+![README.API.md](doc/README.API.md) for more details.
 
 
 Magnetic field interface
 ------------------------
 
+Implemented. Description will follow soon.
+
 
 B*dl integral and vacuum chamber material scans
 ----------------------------------------------- 
+
+Implemented. Description will follow soon.
 
 
 ROOT macro options
