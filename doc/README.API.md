@@ -14,8 +14,7 @@ EicToyModel class methods
   Several methods return *this* pointer, which allows one to chain several commands 
 in one line.
 
-# h1 tag
-####### h6 tag
+### Generic IR layout description 
 
 ```
   EicToyModel *acceptance(double eta0, double eta1, double eta2, double eta3, 
@@ -27,20 +26,6 @@ acceptance boundaries
   reset_stacks: if "true", stack detector composition will be erased
 
   redraw      : if "true", redraw the scene
-```
-
-```
-  EtmDetectorStack *barrel( void );
-  EtmDetectorStack *mid   ( void ); 
-
-  return pointer to the barrel detector stack
-```
-
-```
-  EtmDetectorStack *bck     ( void ); 
-  EtmDetectorStack *backward( void );
-
-  return pointer to the e-endcap detector stack
 ```
 
 ```
@@ -68,18 +53,15 @@ acceptance boundaries
   redraw      : if "true", redraw the scene
 ```
 
-```
-  EtmDetectorStack *mid   ( void ); 
-  EtmDetectorStack *barrel( void );
-
-  return pointer to the barrel detector stack
-```
+### Detector stack access
 
 ```
-  EtmDetectorStack *vtx   ( void ); 
-  EtmDetectorStack *vertex( void );
+  EtmDetectorStack *vtx( void ); EtmDetectorStack *vertex  ( void ) { return vtx(); };
+  EtmDetectorStack *bck( void ); EtmDetectorStack *backward( void ) { return bck(); };
+  EtmDetectorStack *mid( void ); EtmDetectorStack *barrel  ( void ) { return mid(); };
+  EtmDetectorStack *fwd( void ); EtmDetectorStack *forward ( void ) { return fwd(); };
 
-  return pointer to the vertex detector stack
+  return pointer to the vertex/e-endcap/barrel/h-endcap detector stacks, respectively
 ```
 
 
