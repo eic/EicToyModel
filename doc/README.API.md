@@ -18,8 +18,14 @@ that etm::cm numerically equals to 1.0 (ROOT convention), compare to 'cm=10.0' i
 
   *redraw* argument in several commands below: if "true", redraw the scene.
 
-  Coordinate system is such that {Z,R}=(0,0) is the center of the +/-4.5m area and +Z
+  Coordinate system is chosen such that {Z,R}=(0,0) is the center of the +/-4.5m area and +Z
 axis is pointing in the hadron-going direction.
+
+  Pseudo-rapidity values are converted to [mrad] as angles with respect to the outgoing 
+electron beam line direction for the e-endcap and angles with respect to the outgoing hadron 
+beam line direction for the h-endcap (account for the crossing angle). Be aware, that the 
+crossing angle is *not* accounted for the barrel-to-hadron-endcap boundary.
+
 
 #### Generic IR layout description 
 
@@ -27,34 +33,53 @@ axis is pointing in the hadron-going direction.
   EicToyModel *acceptance(double eta0, double eta1, double eta2, double eta3, 
 			  bool reset_stacks = false, bool redraw = true);
 
-  Defines acceptance boundaries:
+  Defines the acceptance boundaries:
 
   eta[0123]   : (eta0)backward-(eta1)-barrel-(eta2)-forward(eta3) pseudo-rapidity 
 acceptance boundaries
   reset_stacks: if "true", stack detector composition will be erased
+
+  Default pseudo-rapidity values: [-4, -1, +1, +4].
 ```
 
 ```
   EicToyModel *DefineVacuumChamber(EtmVacuumChamber *vc);
 
-  Defines vacuum chamber layout:
+  Defines the vacuum chamber layout:
 
   vc          : a derived class describing the IR vacuum chamber geometry
+
+  As of 2020/06/16 only the vc2020_03_20() model is available.
+```
+
+```
+  double GetCrossingAngle( void )      const { return mCrossingAngle; };
+  double GetIrRegionLength( void )     const { return mIrRegionLength; };
+  double GetIrRegionRadius( void )     const { return mIrRegionRadius; };
+
+  Access methods: crossing angle in [rad], IR view area (full length along the beam 
+line and max radius), both in [cm].
+```
+
+```
+  TVector2 GetIpLocation( void );
+
+  Returns the IP location (where X-coordinate is the IP shift and Y-coordinate is 0).
 ```
 
 ```
   EicToyModel *ip(double offset, bool redraw = true);
 
-  Specifies nominal IP shift:
+  Specifies the nominal IP shift:
 
   offset      : nominal IP offset with respect to the Z=0 point in the middle of the 
-+/-4.5m area available for the central detector
++/-4.5m area, available for the central detector
 ```
 
 ```
   EicToyModel *ir(double length, double radius, bool redraw = true);
 
-  Defines overall scene size:
+  Defines the overall scene size:
 
   length      : allowed IR region length along the electron beam line; +/- 4.5m per default
   radius      : allowed IR region radial size; 4.0m per default
@@ -68,50 +93,7 @@ acceptance boundaries
   value       : crossing angle in [rad]
 ```
 
-```
-  TVector2 GetIpLocation( void );
-
-  Returns the IP location (where X-coordinate is the IP shift and Y-coordinate is 0).
-```
-
-```
-  double GetCrossingAngle( void )      const { return mCrossingAngle; };
-  double GetIrRegionLength( void )     const { return mIrRegionLength; };
-  double GetIrRegionRadius( void )     const { return mIrRegionRadius; };
-
-  Access methods: crossing angle in [rad], IR view area (full length along the beam 
-line and max radius), in [cm].
-```
-
-```
-  void Construct( void );
-
-  Build the detector geometry (polygon collection in 2D) based on the current 
-internal structure of the EicToyModel class instance data fields, as well as the 
-stack composition and individual sub-detector class data fields.
-```
-
-```
-  void PlaceG4Volumes(G4LogicalVolume *world);
-
-  Place all the sub-detector container volumes one by one in the provided GEANT 
-world volume.
-```
-
-```
-  void write(bool lock = false);
-
-  Export the current state of the model as a <model-name>.root file with an EicToyModel
-instance, using standard ROOT serializer.
-
-  lock        : if "true", a flag will be set in the EicToyModel class data, which effectively
-                only allows one to import it in a read-only mode. May be useful for .root file
-                distribution purposes. Apparently, one can deliberately add a method to the 
-                library, which resets the lock, but a compliant user will not be able to make 
-                any further changes to the actual geometry (as saved in the polygon structure).
-
-  write() is equivalent to Export("<model-name>.root", false). 
-```
+#### File export
 
 ```
   void Export(const char *fname, bool lock = false);
@@ -127,10 +109,49 @@ a TGeo representation of the vacuum chamber geometry.
 ```
   void ExportVacuumChamber(const char *fname = 0);
 
-  Export TGeo model of the vacuum chamber geometry. 
+  Export GDML model of the vacuum chamber geometry. 
 
-  fname       : output file name. If 0, defaults to "<model-name>.vc.root" .
+  fname       : output file name. If 0, defaults to "<model-name>.vc.gdml" .
 ```
+
+```
+  void write(bool lock = false);
+
+  Export the current state of the model as a <model-name>.root file with an EicToyModel
+instance, using standard ROOT serializer.
+
+  lock        : if "true", a flag will be set in the EicToyModel class data, which effectively
+                only allows one to import it in a read-only mode. May be useful for .root file
+                distribution purposes. Apparently, one can deliberately add a method to the 
+                library, which resets the lock, but a compliant user will not be able to make 
+                any further changes to the actual geometry (as saved in the polygon structure)
+                accidentally.
+
+  write() is equivalent to Export("<model-name>.root", false). 
+```
+
+#### Model import
+
+```
+  void Construct( void );
+
+  Build the detector geometry (a collection of polygons in 2D), based on the current 
+contents of the EicToyModel class instance data fields, as well as the 
+stack composition and individual sub-detector class data fields.
+```
+
+```
+  void PlaceG4Volumes(G4LogicalVolume *world);
+
+  Place all the sub-detector container volumes one by one in the provided GEANT 
+world volume, see ![viewer.C](../viewer.C) example script how to extract it. 
+
+  world       : GEANT world logical volume 
+```
+
+  See also ![reader.C](../scripts/reader.C), ![main.cc](../source/main.cc) and
+![viewer.C](../scripts/viewer.C) files.
+
 
 #### Detector stack access
 
@@ -140,24 +161,27 @@ a TGeo representation of the vacuum chamber geometry.
   EtmDetectorStack *mid( void ); EtmDetectorStack *barrel  ( void ) { return mid(); };
   EtmDetectorStack *fwd( void ); EtmDetectorStack *forward ( void ) { return fwd(); };
 
-  return pointer to the vertex/e-endcap/barrel/h-endcap detector stacks, respectively
+  Return pointer to the vertex / e-endcap / barrel / h-endcap detector stacks, respectively.
 ```
 
 #### Visualization
 
 ```
-  EicToyModel *width(unsigned width);
+  EicToyModel *AddEtaLine(double value, bool line = true, bool label = true, bool redraw = true);
 
-  width       : ROOT canvas width in screen pixels   
+  Display a particular pseudo-rapidity line on the picture (like eta=0.0, which is neither 
+of the acceptance boundaries):
+
+  eta         : pseudo-rapidity value
+  line        : if "true", draw the respective straight line
+  label       : if "true", draw the label
 ```
 
 ```
-  EicToyModel *mirror(bool what = true, bool redraw = true);
+  void ApplyStandardTrimming( void );
 
-  Turn mirror image on and off. They are not identical in the horizontal cut view 
-because of the 25mrad crossing angle.
-
-  what        : if "true", turn mirror image on
+  Beautify the displayed container shapes a bit. Be aware that this option actually 
+eats part of the space (edges) away from the exported integration volumes.
 ```
 
 ```
@@ -165,7 +189,14 @@ because of the 25mrad crossing angle.
   EicToyModel *left (bool redraw = true);
   EicToyModel *right(bool redraw = true);
 
-  Draw full view, left hand side (e-endcap), right hand side (h-endcap)
+  Draw either the full view, or the left hand side (e-endcap), or the right hand side 
+(h-endcap).
+```
+
+```
+  void home(bool redraw = true);
+
+  Camera home. Useful to escape from a zoom view.
 ```
 
 ```
@@ -173,40 +204,16 @@ because of the 25mrad crossing angle.
 
   Turn legend on / off:
 
-  what        : if "true", legend is on
+  what        : if "true", legend is on (default)
 ```
 
 ```
-  void vdraw( void );
-  void hdraw( void );
-  void  draw( void );
+  EicToyModel *mirror(bool what = true, bool redraw = true);
 
-  Display vertical, horizontal or current cross cut view, respectively.
-```
+  Turn mirror image on and off. Two halves are not identical in the horizontal cut view 
+because of the 25mrad crossing angle.
 
-```
-  void home(bool redraw = true);
-
-  Camera home.
-```
-
-```
-  void zoom(double blX, double blY, double trX, double trY, bool redraw = true);
-
-  Display zoomed view of a selected area. Units are in [cm]:
-
-  blX,blY     : XY-coordinates of the bottom left corner
-  trX,trY     : XY-coordinates of the top right corner
-```
-
-```
-  EicToyModel *AddEtaLine(double value, bool line = true, bool label = true, bool redraw = true);
-
-  Display a particular pseudo-rapidity line:
-
-  eta         : pseudo-rapidity value
-  line        : if "true", draw the respective straight line
-  label       : if "true", draw the label
+  what        : if "true", turn mirror image on
 ```
 
 ```
@@ -218,25 +225,38 @@ because of the 25mrad crossing angle.
 ```
 
 ```
-  void ApplyStandardTrimming( void );
+  void vdraw( void );
+  void hdraw( void );
+  void  draw( void );
 
-  Beautify the displayed container shapes a bit. Be aware that this option actually 
-eats part of the space away from the exported integration volumes.
+  Display vertical, horizontal or current cross cut view, respectively.
+```
+
+```
+  EicToyModel *width(unsigned width);
+
+  Set ROOT TCanvas width. Canvas height will be recalculated based on the current 
+active area aspect ratio in the world coordinates.
+
+  width       : ROOT canvas width in screen pixels   
+```
+
+```
+  void zoom(double blX, double blY, double trX, double trY, bool redraw = true);
+
+  Display zoomed view of a selected area. Units are in [cm]:
+
+  blX,blY     : XY-coordinates of the bottom left corner
+  trX,trY     : XY-coordinates of the top right corner
 ```
 
 #### Other
 
 
 ```
-  EicToyModel *SetName(const char *name);
-
-  Set model name.
-```
-
-```
   EicToyModel *DrawFlatFieldLines(double eta);
 
-  Hard to explain.
+  Hard to explain. 
 ```
 
 ```
@@ -245,7 +265,11 @@ eats part of the space away from the exported integration volumes.
   Returns EicToyModel singleton class instance.
 ```
 
+```
+  EicToyModel *SetName(const char *name);
 
+  Set model name.
+```
 
 EtmDetectorStack class methods
 ------------------------------
