@@ -28,7 +28,7 @@ class EtmDetectorStack: public TObject {
   // Useful for available space scans, etc;
   EtmDetector *marker( void );
   //
-  // Stick a detector *before* a specified one;
+  // Stick a detector *before* (?) a specified one;
   EtmDetector *insert(const char *tag, double length, const char *after, unsigned order = 0);
   //
   // Remove the detector, either by name or by name+order;

@@ -144,7 +144,7 @@ stack composition and individual sub-detector class data fields.
   void PlaceG4Volumes(G4LogicalVolume *world);
 
   Place all the sub-detector container volumes one by one in the provided GEANT 
-world volume, see ![viewer.C](../viewer.C) example script how to extract it. 
+world volume. See scripts/viewer.C example script how to extract it. 
 
   world       : GEANT world logical volume 
 ```
@@ -275,5 +275,79 @@ EtmDetectorStack class methods
 ------------------------------
 
 
+
 EtmDetector class methods
 -------------------------
+
+```
+  EtmDetector *add(const char *tag,            double length);
+  EtmDetector *add(const char *tag, int color, double length);
+
+  Add a detector described by a tag (like "TRD") to the current stack, behind the 
+current last detector.
+
+  tag         : either one of the hardcoded tags (see source/EtmPalette.cc)
+                or a dynamically defined tags, defined by an add(tag,color,length)
+                earlier; color will be taken out of the lookup table
+  color       : a unique ROOT color index associated with this tag
+  length      : detector "depth" along the alignment axis, in [cm]
+```
+
+```
+  EtmDetector *gap(double length);
+
+  Add a spacer between the actual detector integration volumes.
+
+  length      : gap length along the alignment axis, in [cm]
+```
+
+
+```
+  EtmDetector *marker( void );
+
+  Add a special fake detector at the current location inside the stack. It will be 
+used in B*dl integral and space-for-silicon-tracker calculations for a given endcap.
+Should be placed at the location where one believes the last silicon tracker station 
+(counting from the IP) may be realistically located (like in front of the first 
+detector with a large material budget).  
+``` 
+
+```
+  EtmDetector *insert(const char *tag, double length, const char *after, unsigned order = 0);
+
+  Insert a detector with a known tag, behind (?) some other detector, which was already 
+defined in this stack.  
+
+  tag         : one of the already defined detector tags (like "MPGD")
+  length      : detector "depth" along the alignment axis, in [cm]
+
+ {after,order} pair is required because there can be more than one detector of a given 
+type (like a TRD) in one stack.
+
+  This command is only of interest for interactive work. 
+```
+
+```
+  void rm(const char *dname);
+  void rm(const char *dname, unsigned order);
+
+  Remove a unique detector with tag 'dname' or a detector specified by a {dname,order}
+pair in case more than one detector of this type exists in this stack.
+
+  This command is only of interest for interactive work. 
+```
+
+```
+  void offset(double dstart = 0.0);
+
+  Change the offset of the very first detector of this stack (moves the whole 
+stack at once either toward sor away from the IP).
+
+  dstart      : offset in [cm]     
+```
+
+```
+  EtmDetector *get(const char *dname, unsigned order = 0) const;
+
+  Get pointer to a detector with a tag 'dname' in this stack (or a {dname,order} pair).
+```
