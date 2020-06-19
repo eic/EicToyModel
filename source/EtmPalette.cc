@@ -21,7 +21,10 @@ EtmPalette::EtmPalette()
   AddEntry("EmCal",      kGreen); 
 
   // Will not be visible anyway;
-  AddEntry(_MARKER_,     kPink-9);
+  AddEntry(_MARKER_,     kPink-8);
+
+  AddEntry("PID",        kPink-9);
+
 
   // This stuff has to do with the "magnet element" look -> don't touch;
   AddEntry("Cryostat",   kYellow-10);//White);
