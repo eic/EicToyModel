@@ -215,6 +215,7 @@ G4VPhysicalVolume *HCalDetectorConstruction::DefineHCalVolumes( void )
   TFile fin(argv[1]);
   dynamic_cast<EicToyModel *>(fin.Get("EicToyModel"));
   eic->Construct();
+  // Populate G4 world by these volumes;
   eic->PlaceG4Volumes(expHall_phys);
   
   // Place "MyHCal" tower matrix into the integration volume bubble instead of the world; 
