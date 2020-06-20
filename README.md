@@ -208,12 +208,29 @@ Naming convention for these volumes may require some tuning. At present e.g. a s
 from the IP TRD detector volume in the forward endcap will be named as "FWD.TRD.01", 
 and so on, with the stack identifiers "VTX", "MID", "BCK" and "FWD" for the vertex, 
 barrel, e-endcap and h-endcap stacks, respectively, and the detector tags as hardcoded 
-in ![EtmPalette.cc](source/EtmPalette.cc).
+in ![EtmPalette.cc](source/EtmPalette.cc). This may as well be irrelevant, since a user
+can poll the G4VPhysicalVolume pointer for a particular detector by means of the 
+EtmDetector::GetG4Volume() method.
 
 Once a user gets access to a particular logical volume, he/she can populate this volume 
-with the daughter objects, observing the usual GEANT volume boundary conditions.
-Volumes in the endcaps are shifted to their geometric center along
-the beam line. Volumes in the endcaps are shifted towards the IP. This way, to 
+with the daughter objects, observing the usual GEANT volume boundary conditions. 
+Presently the local coordinate system of the G4G4GenericPolycone (G4Polyhedra) volumes
+is defined in the following way:
+
+* In the endcaps the volumes are "shifted to 0", and there is no 180 rotation around 
+vertical axis for the electron-going endcap objects. This means (see the above picture)
+that in the local G4G4GenericPolycone coordinate system, the upstream face of the 
+e-endcap HCal will be located at +52.5cm and the downstream face at -52.5cm, where 
+upstream/downstream is counted along the *electron* beam direction. In other words, 
+calorimeter towers in this volume need to be placed centered at 0 along the beam line 
+direction, and the whole container volume will be shifted to -3.5m without any rotation.
+
+* In the vertex and the barrel stacks the G4G4GenericPolycone volumes are centered around
+the IP rather than around their (Zmax+Zmin)/2 geometric center. In other words, an object 
+placed at (0,0,0) in their local coordinate system, will be physically placed at (IP,0,0)
+in the world volume.
+
+ This way, to 
 first order, whatever daughter objects are placed inside the integration volumes, 
 the geometry will be consistent after moderate re-shuffling of a particular detector 
 stack (say, after removing one of the TRD volumes in the hadron-going endcap, the e/m 
@@ -230,19 +247,20 @@ geometry, therefore avoiding the dependency on either the ETM library described 
 or on the ROOT itself in the GEANT environment alltogether. Providing consistency 
 between different sub-detector systems may be problematic in this case though.
 
-The ![example](../examples) directory contains a couple of simple standalone code, 
+The ![example](examples) directory contains a couple of simple standalone code, 
 with their own CMakeLists.txt files, which illustrate the usage. See the bare minimum 
-GEANT example source code ![here](../examples/basic/main.cc).
+GEANT example source code ![here](examples/basic/main.cc).
 
 The following sequence of commands brings up the G4 Qt window with the model, created
 by 'root -l ../scripts/example.C' macro call earlier:
 
 ```
-# <EicToyModel-installation-directory> here is an absolute path to ../../build directory;
-# csh users should use 'setenv' syntax instead;
+cd ../examples/basic
+
+# <EicToyModel-installation-directory> here is an absolute path to the ../../build 
+# directory; csh users should use 'setenv' syntax instead;
 export LD_LIBRARY_PATH=<EicToyModel-installation-directory>/lib:${LD_LIBRARY_PATH}
 
-cd ../examples/basic
 cmake -Wno-dev -DETM=<EicToyModel-installation-directory> ..
 make
 ./basic ../../build/example.root
