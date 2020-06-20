@@ -213,17 +213,17 @@ can poll the G4VPhysicalVolume pointer for a particular detector by means of the
 EtmDetector::GetG4Volume() method.
 
 Once a user gets access to a particular logical volume, he/she can populate this volume 
-with the daughter objects, observing the usual GEANT volume boundary conditions. 
+with the daughter objects, observing the usual GEANT rules and volume boundary conditions. 
 Presently the local coordinate system of the G4G4GenericPolycone (G4Polyhedra) volumes
 is defined in the following way:
 
 * In the endcaps the volumes are "shifted to 0", and there is no 180 rotation around 
-vertical axis for the electron-going endcap objects. This means (see the above picture)
+vertical axis for the electron-going endcap objects. This e.g. means (see the above picture)
 that in the local G4G4GenericPolycone coordinate system, the upstream face of the 
 e-endcap HCal will be located at +52.5cm and the downstream face at -52.5cm, where 
 upstream/downstream is counted along the *electron* beam direction. In other words, 
 calorimeter towers in this volume need to be placed centered at 0 along the beam line 
-direction, and the whole container volume will be shifted to -3.5m without any rotation.
+direction, and the container volume will be shifted to -3.5m as a whole without any rotation.
 
 * In the vertex and the barrel stacks the G4G4GenericPolycone volumes are centered around
 the IP rather than around their (Zmax+Zmin)/2 geometric center. In other words, an object 

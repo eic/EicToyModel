@@ -369,6 +369,12 @@ This method should probably be removed, see EicToyModel::Export() call.
 ```
 
 ```
+  G4VPhysicalVolume *GetG4Volume( void );
+
+  Returns the G4VPhysicalVolume pointer. 
+```
+
+```
   bool IsDummy( void ) const;
 
   Returns 'true' if this is either a MARKER or GAP pseudo-detector.
