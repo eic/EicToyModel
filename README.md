@@ -8,8 +8,9 @@ EIC detector configuration *templates* (namely, the self-consistent collections 
 3D sub-detector intergation volumes) and make use of them in the GEANT simulation 
 environment.
 
-  The integration volumes are guaranteed to not overlap either with each other 
-or with the IR vacuum chamber volume within the same EIC detector configuration.
+  The integration volumes are guaranteed to not overlap either with each other (*done*)
+or with the IR vacuum chamber volume (*TODO list*) within the same EIC detector 
+configuration.
 
   They move synchronously under generic changes to the IR layout (e.g. by the 
 nominal IP shift along the beam line direction and/or by a change in the acceptance
@@ -19,7 +20,7 @@ boundaries separating barrel and endap regions).
 location of the integration volume to where his/her sub-detector component belongs, 
 and can build the sub-detector dynamically in the respective GEANT
 G4VUserDetectorConstruction::Construct() method, depending e.g. on the sub-detector 
-distance from the nominal IP.
+distance from the nominal IP (*partly implemented*).
 
 
 Other features
@@ -65,8 +66,6 @@ be configured in a rather flexible way, see examples below.
 Pre-requisites
 --------------
 
-A library has to be installed locally. 
-
 It is assumed that a more or less modern ROOT 6 version is installed and configured 
 on the local system. 6.14.00 works. The line below is for bash shell. Replace .sh
 by .csh if your shell is csh.
@@ -85,9 +84,12 @@ git clone https://github.com/eic/EicToyModel.git
 Compiling
 ---------
 
+A library has to be installed locally. 
+
 ```
 cd EicToyModel && mkdir build && cd build
-cmake -Wno-dev ..
+# Installation in the current "build" directory is assumed;
+cmake -DCMAKE_INSTALL_PREFIX=. -Wno-dev ..
 
 # additional cmake options:
 #
@@ -98,7 +100,7 @@ cmake -Wno-dev ..
 # for magnetic field map interface:
 #   -DBFIELD=<BeastMagneticField-installation-directry>
 
-make 
+make install
 ```
 
 Running
@@ -123,12 +125,12 @@ to both GEANT and CAD. Current palette is likely not optimal. It is hardcoded
 in ![EtmPalette.cc](source/EtmPalette.cc).
 
 Users can create custom detector (or detector group) tags and tag-to-color 
-associations like "PID":kPink dynamically. For the sake of consistency it would make sense 
-to hardcode the "official" Yellow Report color (and detector tag) scheme though, after the 
-initial evaluation and debugging stage.
+associations like "Calorimetry":kSpring dynamically. For the sake of consistency it may 
+make sense to hardcode the "official" Yellow Report color (and detector tag) scheme though, 
+after the initial evaluation and debugging stage.
 
 A limited set of interactive commands (see the full list ![here](doc/README.API.md)) 
-is available. Try e.g. the following sequence with the safe-explaining outcome of the 
+is available. Try e.g. the following sequence with the self-explaining outcome of the 
 respective commands: 
 
 ```
@@ -164,7 +166,7 @@ Beyond this point one can work with the model the same way as if it was created
 from scratch (see ![example.C](scripts/example.C)). It is strongly recommended to use 
 detector composition changing commands like rm() and insert() only as a quick tuning 
 means, and once a desired configuration is found, put the respective changes
-int a consistent full script, creating a given model from scratch. The reason 
+in a consistent full script, creating a given model from scratch. The reason 
 is simple: this software is in the early debugging stage, and it is much more likely 
 than a file format will change rather than the API of the commands will change 
 (and the latter can be fixed by hand if needed anyway).
@@ -176,14 +178,16 @@ root [] auto eic = EicToyModel::Instance(); eic->hdraw();
 It should be noted that if the geometry was saved using eic->write(*true*) call 
 (notice 'true' argument), a naive permanent lock is applied to the contents of the binary 
 ROOT file. The geometry can not be modified any longer without hacking the library
-(would be a very easy task for a junior C++ programmer though, admittedly).
+(would be a very easy task for a junior C++ programmer, but allows compliant users
+to avoid introducing changes into the selected set of the officially distributed 
+YR detector configuration files by mistake).
 
 
 GEANT interface
 ---------------
 
 If GEANT part of the functionality is required, it has to be installed and configured
-on the local system. 10.05.p01 works, and the line below is for bash shell. 
+on the local system. 10.05.p01 works. The line below is for bash shell. 
 
 
 ```
@@ -192,33 +196,33 @@ on the local system. 10.05.p01 works, and the line below is for bash shell.
 
 Apart from the eic->ExportVacuumChamber() command shown above, one can create G4 
 detector integration volumes on the fly, either one at a time or all of them at 
-once. See a short example executable ![main.cc](source/main.cc) as an example. 
+once. See a short example executable ![main.cc](examples/basic/main.cc) as an example. 
 
 The library should be configured with the -DGEANT cmake command line key (see above).
 
 The integration volumes are currently represented as G4GenericPolycone shapes.
-G4BREPSolidPolyhedra option will follow soon. The interface producing an asymmetric
+G4Polyhedra option will follow soon. The interface producing an asymmetric
 boolean cut by the vacuum chamber shape is in the debugging stage now.
 
-Naming convention for these volumes may require some tuning. At present a TOF detector
-volume in the forward endcap will be named as "FWD.TOF", and so on, with the stack 
-identifiers "VTX", "MID", "BCK" and "FWD" for the vertex, barrel, e-endcap and 
-h-endcap stacks, respectively and detector tags as hardcoded in 
-![EtmPalette.cc](source/EtmPalette.cc).
+Naming convention for these volumes may require some tuning. At present e.g. a second
+from the IP TRD detector volume in the forward endcap will be named as "FWD.TRD.01", 
+and so on, with the stack identifiers "VTX", "MID", "BCK" and "FWD" for the vertex, 
+barrel, e-endcap and h-endcap stacks, respectively, and the detector tags as hardcoded 
+in ![EtmPalette.cc](source/EtmPalette.cc).
 
 Once a user gets access to a particular logical volume, he/she can populate this volume 
 with the daughter objects, observing the usual GEANT volume boundary conditions.
-Volumes in the endcaps are shifted (a BUG: not yet!) to their geometric center along
-the beam line. Volumes in the endcaps will be shifted towards the IP. This way, to 
+Volumes in the endcaps are shifted to their geometric center along
+the beam line. Volumes in the endcaps are shifted towards the IP. This way, to 
 first order, whatever daughter objects are placed inside the integration volumes, 
 the geometry will be consistent after moderate re-shuffling of a particular detector 
 stack (say, after removing one of the TRD volumes in the hadron-going endcap, the e/m 
-calorimeter behind it will be located in a proper place). 
+calorimeter behind it will be re-located to a proper place in the world volume). 
 
 It seems to be wise to check the integration volume actual location by means of the 
 available library calls, and *tune* the sub-detector geometry accordingly if needed.
 For instance, populate the endcap HCal integration volume by towers depending on which 
-radial space is actually available.
+radial space is actually available (*radial size: TODO list*).
 
 Apparently the community may want to decide exporting *individual* GDML objects
 describing the sub-detector integration volumes for a given version of the full EIC detector
@@ -226,20 +230,30 @@ geometry, therefore avoiding the dependency on either the ETM library described 
 or on the ROOT itself in the GEANT environment alltogether. Providing consistency 
 between different sub-detector systems may be problematic in this case though.
 
-```
-# The following command brings up the G4 Qt window with the imported model:
-./exe example.root
-```
+The ![example](../examples) directory contains a couple of simple standalone code, 
+with their own CMakeLists.txt files, which illustrate the usage. See the bare minimum 
+GEANT example source code ![here](../examples/basic/main.cc).
 
-Again, see the source file ![main.cc](source/main.cc) as a working example.
+The following sequence of commands brings up the G4 Qt window with the model, created
+by 'root -l ../scripts/example.C' macro call earlier:
 
+```
+# <EicToyModel-installation-directory> here is an absolute path to ../../build directory;
+# csh users should use 'setenv' syntax instead;
+export LD_LIBRARY_PATH=<EicToyModel-installation-directory>/lib:${LD_LIBRARY_PATH}
+
+cd ../examples/basic
+cmake -Wno-dev -DETM=<EicToyModel-installation-directory> ..
+make
+./basic ../../build/example.root
+```
 
 CAD interface
 -------------
 
 This interface may be useful to export the created models in a STEP format.
 
-The code should be compiled with a -DOPENCASCADE=<OpenCascade-installation-dir> cmake
+The code has to be compiled with a -DOPENCASCADE=\<OpenCascade-installation-dir\> cmake
 flag (and obviously OpenCascade libraries must be installed on a local system). 
 
   7.2.0 is known to work, but the following line 

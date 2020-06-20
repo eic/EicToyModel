@@ -38,6 +38,7 @@
 #include "G4Box.hh"
 #include "G4Tubs.hh"
 #include "G4GenericPolycone.hh"
+#include "G4Polyhedra.hh"
 #include "G4LogicalVolume.hh"
 #include "G4VisAttributes.hh"
 #include "G4SubtractionSolid.hh"
@@ -50,7 +51,7 @@ EtmDetector::EtmDetector(const EtmDetectorStack *stack, const char *label, int f
 			 int linecolor, double length): 
   EtmPolygonGroup(fillcolor, linecolor),
   mStack(stack), //mSegmentation(1), 
-  mLength(length), mOffset(0.0), mActualDistance(0.0)
+  mLength(length), mOffset(0.0), mActualDistance(0.0), mG4PhysicalVolume(0)
 {
   trim(_DEFAULT_TRIM_VALUE_);
 
@@ -310,6 +311,27 @@ void EtmDetector::Build( void )
   //child->Build(ip, axis, distance + child->mOffset, boundaries, tb, false);
 } // EtmDetector::Build()
 
+
+// ---------------------------------------------------------------------------------------
+
+unsigned EtmDetector::GetOrder( void ) const
+{
+  unsigned counter = 0;
+  
+  for(unsigned id=0; id<mStack->DetectorCount(); id++) {
+    auto det = mStack->GetDetector(id);
+
+    if (*det->GetLabel() == *GetLabel()) {
+      if (det == this) return counter;
+
+      counter++;
+    } //if
+  } //for id
+
+  // Make commpiler happy; cannot happen;
+  return 0;
+} // EtmDetector::GetOrder()
+
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
@@ -333,7 +355,7 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
   double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
     (ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
   // FIXME: make it optional;
-  z0 = 0.0;
+  //z0 = 0.0;
   
   for(unsigned ivtx=0; ivtx<dim; ivtx++) {
     auto &pt = polygon[ivtx]; 
@@ -345,15 +367,28 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
   } //for vtx
 
   // FIXME: take order (like TRD 0/1/2) into account as well;
-  TString label = name ? TString(name) : (mStack->GetLabel() + "." + *GetLabel());
+  //TString label = name ? TString(name) : (mStack->GetLabel() + "." + *GetLabel());
+  TString label;
+  if (name) 
+    label = TString(name);
+  else
+    label.Form("%s.%s.%02d", mStack->GetLabel().Data(), GetLabel()->Data(), GetOrder());
   
   // For now just a generic polycone; FIXME: implement G4BREPSolidPolyhedra later;
+  //if (mStack == eic->bck())
   auto vpol = new G4GenericPolycone(label.Data(), 0., 360.*deg, dim, r, z);
-
+  //auto vpol = new G4Polyhedra(label.Data(), 0., 360.*deg, 12, dim, r, z);
+  //G4VSolid *vpol = 0;
+  //if (mStack == eic->bck())
+  //vpol = new G4GenericPolycone(label.Data(), 0., 360.*deg, dim, r, z);
+  //else
+  //vpol = new G4Polyhedra(label.Data(), 0., 360.*deg, 12, dim, r, z);
+  
   // Extract ROOT color attributes and assign them to GEANT volumes;
   auto rcolor = gROOT->GetColor(GetFillColor());
-  G4VisAttributes* visAtt = 
-    new G4VisAttributes(G4Colour(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue()));
+  G4VisAttributes* visAtt = new G4VisAttributes();
+  //new G4VisAttributes(G4Colour(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue()));
+  visAtt->SetColor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue());//, 0.3);
   visAtt->SetVisibility(true);
   visAtt->SetForceWireframe(false);
   visAtt->SetForceSolid(true);
@@ -378,15 +413,30 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
       auto lcut = new G4LogicalVolume(vcut, air, label.Data(), 0, 0, 0);
       lcut->SetVisAttributes(visAtt);
 
-      return new G4PVPlacement(0, G4ThreeVector(0, 0, z0*cff), lcut, label.Data(), world, false, 0);
+      mG4PhysicalVolume =
+	new G4PVPlacement(0, G4ThreeVector(0, 0, z0*cff), lcut, label.Data(), world, false, 0);
     } else {
       // No vacuum chamber defined -> a simple volume export;
       auto lpol = new G4LogicalVolume(vpol, air, label.Data(), 0, 0, 0);
       lpol->SetVisAttributes(visAtt);
       
-      return new G4PVPlacement(0, G4ThreeVector(0, 0, z0*cff), lpol, label.Data(), world, false, 0);
+      mG4PhysicalVolume =
+	new G4PVPlacement(0, G4ThreeVector(0, 0, z0*cff), lpol, label.Data(), world, false, 0);
     } //if
+
+    return mG4PhysicalVolume;
   }
+#else
+  return 0;
+#endif
+} // EtmDetector::PlaceG4Volume()
+
+// ---------------------------------------------------------------------------------------
+
+G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4VPhysicalVolume *world, const char *name)
+{
+#ifdef _ETM2GEANT_
+  return PlaceG4Volume(world->GetLogicalVolume(), name);
 #else
   return 0;
 #endif

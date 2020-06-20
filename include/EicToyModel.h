@@ -9,6 +9,7 @@
 #define _EIC_TOY_MODEL_
 
 class G4LogicalVolume;
+class G4VPhysicalVolume;
 
 #include <EtmPalette.h>
 #include <EtmAzimuthalScan.h>
@@ -126,9 +127,14 @@ class EicToyModel: public TObject {
     GetIntersection(const std::vector<TVector2> &chain, const EtmLine2D &line);
 
   void Construct( void )                     { DrawMe(EicToyModel::kUndefined, false); };
+  // Well, 'world' here means some 'parent' volume, actually;
   void PlaceG4Volumes(G4LogicalVolume *world);
+  void PlaceG4Volumes(G4VPhysicalVolume *world);
   void Export(const char *fname, bool lock = false);
   void ExportVacuumChamber(const char *fname = 0);
+  G4VPhysicalVolume *ConstructG4World( void );
+
+  static int Import(const char *fname);
 
  private:
   ~EicToyModel() {}; 
@@ -274,6 +280,8 @@ class EicToyModel: public TObject {
   // call is intentionally "irreversible"; does not prevent a smart user from writing 
   // UnlockGeometry() method of course, but un-intentional changes can not happen;
   bool mGeometryLocked;
+
+  bool mNewCanvasRequired; //!
 
   ClassDef(EicToyModel, 1)
 };

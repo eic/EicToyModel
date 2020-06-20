@@ -67,7 +67,11 @@ class EtmDetector: public EtmPolygonGroup {
   double GetActualDistance( void ) const { return mActualDistance; };
   bool IsDummy( void )             const { return !mLabel; };
 
-  G4VPhysicalVolume *PlaceG4Volume(G4LogicalVolume *world, const char *name = 0);
+  // Well, 'world' here means some 'parent' volume, actually;
+  G4VPhysicalVolume *PlaceG4Volume(G4LogicalVolume   *world, const char *name = 0);
+  G4VPhysicalVolume *PlaceG4Volume(G4VPhysicalVolume *world, const char *name = 0);
+  G4VPhysicalVolume *GetG4Volume( void ) const { return mG4PhysicalVolume; };
+
   void Export(const char *fname);
 
  private:
@@ -76,6 +80,8 @@ class EtmDetector: public EtmPolygonGroup {
   void RegisterFillColor(std::map<TString, int> &legend);
 
   void Build( void );
+
+  unsigned GetOrder( void ) const;
 
   void ClearPolygonBuffer( void );
   //void DrawMe( void ) const;
@@ -100,6 +106,8 @@ class EtmDetector: public EtmPolygonGroup {
 
   // A tree of possible children; no overlap control here;
   //std::vector<EtmDetector*> mChildren;
+
+  G4VPhysicalVolume *mG4PhysicalVolume; //!
 
   ClassDef(EtmDetector, 1)
 };

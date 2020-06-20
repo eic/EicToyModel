@@ -62,6 +62,7 @@
   }
 
   // Declare eta boundary configuration;
+#if 0
   {
     eic->vtx()->get("Si Tracker")->stretch(eic->bck()->get("TOF"));
     eic->vtx()->get("Si Tracker")->stretch(eic->fwd()->get("HM RICH"));
@@ -72,6 +73,7 @@
     eic->mid()->get("HCal")->stretch(eic->bck()->get("HCal"), 50 * etm::cm);
     eic->mid()->get("HCal")->stretch(eic->fwd()->get("HCal"), 50 * etm::cm);
   }
+#endif
 
   // Beautify picture a little bit;
   eic->ApplyStandardTrimming();
@@ -80,6 +82,6 @@
 
   // 
   eic->hdraw();
-  //eic->write();//true);
+  eic->write();//true);
   //eic->Export("sandbox.stp");
 } 

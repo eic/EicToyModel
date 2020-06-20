@@ -71,13 +71,13 @@
     bck->marker();
 
 #ifdef _SPLIT_
-    bck->add("TOF",        5 * etm::cm)->brick();;
+    bck->add("TOF",        5 * etm::cm)->brick();
     bck->add("Cherenkov", 25 * etm::cm);
 #else
     bck->add("PID",       30 * etm::cm);
 #endif
 
-    bck->add("Preshower",  5 * etm::cm)->brick();;
+    bck->add("Preshower",  5 * etm::cm)->brick();
     bck->add("EmCal",     35 * etm::cm);
     bck->add("HCal",     105 * etm::cm)->brick();
   }
@@ -104,9 +104,8 @@
 
   // Beautify picture a little bit;
   eic->ApplyStandardTrimming();
-  // Request flat field regions to be drawn in the endcaps;
-  eic->DrawFlatFieldLines(-3.0)->DrawFlatFieldLines(3.0);
 
-  // Draw horizontal cross cut view;
+  // Draw horizontal cross cut view; write the .root file out;
   eic->hdraw();
+  eic->write();
 } 

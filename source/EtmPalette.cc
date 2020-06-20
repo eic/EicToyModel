@@ -27,7 +27,9 @@ EtmPalette::EtmPalette()
 
 
   // This stuff has to do with the "magnet element" look -> don't touch;
-  AddEntry("Cryostat",   kYellow-10);//White);
+  //AddEntry("Cryostat",   kYellow-10);//White);
+  //AddEntry("Cryostat",   kCyan+2);//White);
+  AddEntry("Cryostat",   kYellow-8);
   AddEntry("M.Coil +",   kRed);
   AddEntry("M.Coil -",   kAzure+4);
   AddEntry("HCal",       kBlue+1);

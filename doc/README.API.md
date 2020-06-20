@@ -8,6 +8,10 @@ representation (e.g. there is a method EtmDetectorStack::add(), but no
 EtmDetectorStack::AddNewDetector() one; EicToyModel::fwd(), but no 
 EicToyModel::ForwardEndcap() one, and so on). 
 
+Only a small subset of methods is of interest for basic configuration work. It may 
+therefore make sense to focus on the commands, which are used e.g. in the
+![example script](../scripts/example.C).
+
 EicToyModel class methods
 -------------------------
 

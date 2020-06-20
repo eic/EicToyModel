@@ -69,8 +69,8 @@
     eic->mid()->get("TPC")       ->stretch(eic->bck()->get("MPGD"));
     eic->mid()->get("TPC")       ->stretch(eic->fwd()->get("MPGD"));
 
-    eic->mid()->get("HCal")->stretch(eic->bck()->get("HCal"), 50 * etm::cm);
-    eic->mid()->get("HCal")->stretch(eic->fwd()->get("HCal"), 50 * etm::cm);
+    eic->mid()->get("HCal")      ->stretch(eic->bck()->get("HCal"), 50 * etm::cm);
+    eic->mid()->get("HCal")      ->stretch(eic->fwd()->get("HCal"), 50 * etm::cm);
   }
 
   // Beautify picture a little bit;

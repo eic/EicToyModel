@@ -2,7 +2,7 @@
 # . <root-installation-directory>/bin/thisroot.sh
 #
 # mkdir build && mkdir build
-# cmake -Wno-dev ..
+# cmake -Wno-dev -DCMAKE_INSTALL_PREFIX=. ..
 # make 
 #
 # -DBFIELD=<BeastMagneticField-installation-directry>
@@ -42,7 +42,7 @@ if(DEFINED GEANT)
   find_package(Geant4 REQUIRED ui_all vis_all)
   include(${Geant4_USE_FILE})
 endif()
-SET( CMAKE_CXX_FLAGS "-g -Wall -std=c++11 -Wno-pedantic" )
+SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic" )
 if(DEFINED GEANT)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_ETM2GEANT_")
 endif()
@@ -78,10 +78,6 @@ SET( LIBSRC
   source/vc2020_03_20.cc 
 )
 
-SET( EXESRC 
-  source/main.cc 
-)
-
 INCLUDE_DIRECTORIES ( 
   ${ROOT_INCLUDE_DIR}
 
@@ -107,8 +103,7 @@ if(DEFINED OPENCASCADE)
 endif()
 if(DEFINED GEANT)
   TARGET_LINK_LIBRARIES( ${LIBNAME} ${Geant4_LIBRARIES} )
-
-  add_executable( ${EXENAME} ${EXESRC} )
-  TARGET_LINK_LIBRARIES( ${EXENAME} ${LIBNAME})
 endif()
 
+INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include/etm PATTERN "e*.h" EXCLUDE)
+INSTALL(TARGETS   ${LIBNAME}                   DESTINATION lib)

@@ -10,6 +10,10 @@
 
 #ifdef _ETM2GEANT_
 #include "G4LogicalVolume.hh"
+#include "G4Box.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4NistManager.hh"
+#include "G4PVPlacement.hh"
 #endif
 
 #include <EicToyModel.h>
@@ -71,14 +75,45 @@ EicToyModel::EicToyModel(double length, double radius):
   mCurrentView(EicToyModel::kUndefined), 
   mMirrorImage(false), mOneSideMode(EicToyModel::kOff),
   //mSafetyClearance(_SAFETY_CLEARANCE_DEFAULT_), mVisualClearance(_VISUAL_CLEARANCE_DEFAULT_),
-  mCrossingAngle(_CROSSING_ANGLE_DEFAULT_), mGeometryLocked(false)
+  mCrossingAngle(_CROSSING_ANGLE_DEFAULT_), mGeometryLocked(false), mNewCanvasRequired(true)
 {
+  // Sanity check;
+  if (mInstance) {
+    printf("\n\n  EicToyModel::EicToyModel() -> Singleton instance already exists!\n\n");
+    return;
+  } //if
+
   // FIXME: control duplicate invocations;
   mInstance = this;
 
   // FIXME: should this be executed in a default ctor?; FIXME: hardcoded is OK?;
   acceptance(-4.0, -1.0, 1.0, 4.0, true);
 } // EicToyModel::EicToyModel()
+
+// ---------------------------------------------------------------------------------------
+
+int EicToyModel::Import(const char *fname)
+{
+  // Sanity check;
+  if (mInstance) {
+    printf("\n\n  EicToyModel::Import() -> Singleton instance already exists!\n\n");
+    return -1;
+  } //if
+
+  // Import the ROOT file with an "EicToyModel" singleton class instance; 
+  {
+    TFile fin(fname);
+
+    if (!dynamic_cast<EicToyModel *>(fin.Get("EicToyModel"))) {
+      printf("Wrong file format (%s): no EicToyModel instance found!\n\n\n", fname);
+      return -1;
+    } //if
+    
+    fin.Close();
+  }
+
+  return 0;
+} // EicToyModel:Import()
 
 // ---------------------------------------------------------------------------------------
 
@@ -92,11 +127,41 @@ EicToyModel *EicToyModel::DefineVacuumChamber(EtmVacuumChamber *vc)
 
 // ---------------------------------------------------------------------------------------
 
+G4VPhysicalVolume *EicToyModel::ConstructG4World( void )
+{
+#ifdef _ETM2GEANT_
+  auto air = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
+
+  double cff = cm/etm::cm;
+  // Define the "experimental hall"; units are TGeo [cm], as stored;
+  auto expHall_box = new G4Box("World",  
+			       cff*GetIrRegionRadius(),
+			       cff*GetIrRegionRadius(),
+			       cff*GetIrRegionLength()/2);
+  auto expHall_log = new G4LogicalVolume(expHall_box, air, "World", 0, 0, 0);
+  
+  return new G4PVPlacement(0, G4ThreeVector(), expHall_log, "World", 0, false, 0);
+#else
+  return 0;
+#endif
+} // EicToyModel::ConstructG4World()
+
+// ---------------------------------------------------------------------------------------
+
 void EicToyModel::PlaceG4Volumes(G4LogicalVolume *world)
 {
   for(auto stack: mStacks)
     for(auto det: stack->mDetectors)
       det->PlaceG4Volume(world);
+} // EicToyModel::PlaceG4Volumes()
+
+// ---------------------------------------------------------------------------------------
+
+void EicToyModel::PlaceG4Volumes(G4VPhysicalVolume *world)
+{
+#ifdef _ETM2GEANT_
+  PlaceG4Volumes(world->GetLogicalVolume());
+#endif
 } // EicToyModel::PlaceG4Volumes()
 
 // ---------------------------------------------------------------------------------------
@@ -284,7 +349,7 @@ EicToyModel *EicToyModel::SetCrossingAngle(double value, bool redraw)
 
 EicToyModel *EicToyModel::width(unsigned width) 
 { 
-  mXdim = width; 
+  mXdim = width; mNewCanvasRequired = true;
   home(); 
   
   return this; 
@@ -294,8 +359,11 @@ EicToyModel *EicToyModel::width(unsigned width)
 
 EicToyModel *EicToyModel::mirror(bool what, bool redraw) 
 { 
-  mMirrorImage = what; 
-  home(redraw); 
+  if (mMirrorImage != what) {
+    mMirrorImage = what; 
+    mNewCanvasRequired = true;
+    home(redraw); 
+  } //if
 
   return this; 
 } // EicToyModel::mirror()
@@ -536,6 +604,9 @@ void EicToyModel::home(bool redraw)
   } //switch
   mY0    = (mMirrorImage ? -1 : 0)*mIrRegionRadius - _IR_REGION_BMARGIN_;
 
+  // Well, this is not 100% correct, but a new window will almost certainly be needed;
+  mNewCanvasRequired = true;
+
   mZoomedView = false;
 
   if (redraw && mCanvas) DrawMe();
@@ -552,6 +623,9 @@ void EicToyModel::zoom(double blX, double blY, double trX, double trY, bool redr
 
   if (ConditionChecker(mXsize && mYsize, "EicToyModel::zoom() call: zero width (height)")) {
     mZoomedView = true;
+
+    // Well, this is not 100% correct, but a new window will almost certainly be needed;
+    mNewCanvasRequired = true;
 
     if (redraw && mCanvas) DrawMe();
   } //if
@@ -871,14 +945,20 @@ void EicToyModel::DrawMe(EicToyModel::View view, bool draw)
   // This is now in pixels;
   mYdim = mXdim * mYsize / mXsize;
 
-  // Should work?;
   if (draw) {
     gStyle->SetCanvasColor(0);
-    if (mCanvas) {
-      mCanvas->Clear();
-      delete mCanvas;
+
+    if (mNewCanvasRequired) {
+      // If canvas was used already, delete it;
+      if (mCanvas) delete mCanvas;
+
+      mCanvas = new TCanvas(GetName(), GetName(), 0, 0, mXdim, mYdim);
+
+      mNewCanvasRequired = false;
+    } else {
+      // If canvas was used already, clean it;
+      if (mCanvas) mCanvas->Clear();
     } //if
-    mCanvas = new TCanvas(GetName(), GetName(), 0, 0, mXdim, mYdim);
   } //if
 
   // FIXME: is the recalculation needed here?; well, something was crashing ...;
@@ -1085,6 +1165,9 @@ void EicToyModel::DrawEtaLines( void )
     } //for eta
   } //for tb
 } // EicToyModel::DrawEtaLines()
+
+//bool account_crossing_angle = stack == fwd() && bf;
+//  if (eta > 0.0 && vh && account_crossing_angle) theta += tbsign*mCrossingAngle;
 
 // ---------------------------------------------------------------------------------------
 
