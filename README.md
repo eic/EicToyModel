@@ -287,15 +287,19 @@ to a void an apparent conflict with the ROOT Printf() call declaration.
 
 One can either export all of the integration volumes at once by using EicToyModel::Export()
 method, or a single detector volume by using EtmDetector::Export() method, see 
-![README.API.md](doc/README.API.md) for more details.
+[README.API.md](doc/README.API.md) for more details.
 
 
 Magnetic field interface
 ------------------------
 
-A small ![BeastMagneticField](https://eic.github.io/software/beast_magnetic_field.html) library 
-is used import BeAST model detector magnetic field map. The library has to be installed locally. 
-The instructions are available ![here](https://github.com/eic/BeastMagneticField). 
+A small [BeastMagneticField](https://eic.github.io/software/beast_magnetic_field.html) library 
+is used to import BeAST model detector magnetic field map. The library has to be installed locally. 
+The instructions are available [here](https://github.com/eic/BeastMagneticField). 
+
+BeastMagneticField library is meant to be compatible with any new field maps, which a joint BNL/JLAB
+magnet designer team will produce in the course of the YR/CDR work on the EIC greenfield central 
+detector solenoid.
 
 The EicToyModel library has to be configured with cmake -DBFIELD flag, see the full list of 
 keys at the beginning of this README.
