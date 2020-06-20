@@ -95,8 +95,10 @@ cmake -DCMAKE_INSTALL_PREFIX=. -Wno-dev ..
 #
 # if GEANT4 interface is required:
 #   -DGEANT=YES
+#
 # for CAD export functionality:
 #   -DOPENCASCADE=<OpenCascade-installation-directory>
+#
 # for magnetic field map interface:
 #   -DBFIELD=<BeastMagneticField-installation-directry>
 
@@ -291,7 +293,16 @@ method, or a single detector volume by using EtmDetector::Export() method, see
 Magnetic field interface
 ------------------------
 
-Implemented. Description will follow soon.
+A small ![BeastMagneticField](https://eic.github.io/software/beast_magnetic_field.html) library 
+is used import BeAST model detector magnetic field map. The library has to be installed locally. 
+The instructions are available ![here](https://github.com/eic/BeastMagneticField). 
+
+The EicToyModel library has to be configured with cmake -DBFIELD flag, see the full list of 
+keys at the beginning of this README.
+
+If the EicToyModel library is configured *without* BeastMagneticField interface, one can still 
+perform the B*dl integral scans, assuming constant field, parallel to the electron beam line
+axis.
 
 
 B*dl integral and vacuum chamber material scans
