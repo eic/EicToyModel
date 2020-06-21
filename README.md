@@ -156,7 +156,7 @@ root [] eic->fwd()->insert("MPGD", 20 * etm::cm, "HM RICH");
 # Save the current configuration;
 root [] eic->write();
 # Save example.vc.gdml file with the vacuum chamber layout; a BUG: this command 
-# works properly only once; 
+# works properly only once per session; 
 root [] eic->ExportVacuumChamber();
 root [] .q
 ```
@@ -219,18 +219,18 @@ EtmDetector::GetG4Volume() method.
 
 Once a user gets access to a particular logical volume, he/she can populate this volume 
 with the daughter objects, observing the usual GEANT rules and volume boundary conditions. 
-Presently the local coordinate system of the G4G4GenericPolycone (G4Polyhedra) volumes
+Presently the local coordinate system of the G4GenericPolycone (G4Polyhedra) volumes
 is defined in the following way:
 
 * In the endcaps the volumes are "shifted to 0", and there is no 180 rotation around 
 vertical axis for the electron-going endcap objects. This e.g. means (see the above picture)
-that in the local G4G4GenericPolycone coordinate system, the upstream face of the 
+that in the local G4GenericPolycone coordinate system, the upstream face of the 
 e-endcap HCal will be located at +52.5cm and the downstream face at -52.5cm, where 
 upstream/downstream is counted along the *electron* beam direction. In other words, 
 calorimeter towers in this volume need to be placed centered at 0 along the beam line 
 direction, and the container volume will be shifted to -3.5m as a whole without any rotation.
 
-* In the vertex and the barrel stacks the G4G4GenericPolycone volumes are centered around
+* In the vertex and the barrel stacks the G4GenericPolycone volumes are centered around
 the IP rather than around their (Zmax+Zmin)/2 geometric center. In other words, an object 
 placed at (0,0,0) in their local coordinate system, will be physically placed at (IP,0,0)
 in the world volume.
@@ -288,9 +288,14 @@ _Standard_API int    _Printf  (const char* theFormat, ...);
 in the Standard_CString.hxx file should be commented out in the installation area, in order 
 to a void an apparent conflict with the ROOT Printf() call declaration.
 
-One can either export all of the integration volumes at once by using EicToyModel::Export()
-method, or a single detector volume by using EtmDetector::Export() method, see 
-[README.API.md](doc/README.API.md) for more details.
+One can either export a CAD model with all of the integration volumes at once by using 
+EicToyModel::Export() method, or with a single detector volume by using EtmDetector::Export() 
+method, see [README.API.md](doc/README.API.md) for more details.
+
+One can also store a TObjString with a CAD model of all of the integration volumes in 
+a .root file (see EtmDetector::Export() method parameters), where from it can be retrieved
+by a separate [script](scripts/extract-cd-step.C) *without a need to have OpenCascade
+libraries installed on a local system*.
 
 
 Magnetic field interface

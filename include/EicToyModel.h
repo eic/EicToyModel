@@ -92,7 +92,7 @@ class EicToyModel: public TObject {
   // -- Other ------------------------------------------------------------------------------------
   //
   // Save the current state and TGeo model in a .root file; 
-  void write(bool lock = false);
+  void write(bool everything = false, bool lock = false);
   //void Write( void )  { write(); };
   //
   // This call also defines the output files basenames; 
@@ -131,7 +131,7 @@ class EicToyModel: public TObject {
   // Well, 'world' here means some 'parent' volume, actually;
   void PlaceG4Volumes(G4LogicalVolume *world);
   void PlaceG4Volumes(G4VPhysicalVolume *world);
-  void Export(const char *fname, bool lock = false);
+  void Export(const char *fname, bool everything = false, bool lock = false);
   void ExportVacuumChamber(const char *fname = 0);
   G4VPhysicalVolume *ConstructG4World( void );
 
@@ -157,6 +157,8 @@ class EicToyModel: public TObject {
   EtmPalette &Palette( void )                { return mPalette; };
 
   EtmVacuumChamber *GetVacuumChamber( void )   { return mVacuumChamber; };
+
+  void ExportCADmodel(const char *fname);
 
   //double SafetyClearance( void )       const { return mSafetyClearance; };
   //double VisualClearance( void )       const { return mVisualClearance; };

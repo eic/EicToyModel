@@ -100,14 +100,14 @@ line and max radius), both in [cm].
 #### File export
 
 ```
-  void Export(const char *fname, bool lock = false);
+  void Export(const char *fname, bool everything = false, bool lock = false);
 
   Export the current EIC detector geometry either as a ROOT file ("fname" has
-extension .root) or as a CAD model (extension .stp) . ROOT file will also contain 
-a TGeo representation of the vacuum chamber geometry. 
+extension .root) or as a CAD model (extension .stp) . 
 
   fname       : output file name 
-  lock        : if "true", geometry will appear to be locked (immutable) upon import.
+  everything  : see write() method description below
+  lock        : if "true", geometry will appear to be locked (immutable) upon import
 ```
 
 ```
@@ -119,10 +119,18 @@ a TGeo representation of the vacuum chamber geometry.
 ```
 
 ```
-  void write(bool lock = false);
+  void write(bool everything = false, bool lock = false);
 
   Export the current state of the model as a <model-name>.root file with an EicToyModel
 instance, using standard ROOT serializer.
+
+  everything  : if "true" (and the output file extension is .root), also save TGeoManager dump 
+                of the vacuum chamber geometry ("VC.ROOT"), 
+                attach GDML file with the same information ("VC.GDML"), and (in case OpenCascade
+                interface was enabled) a CAD model of the Central Detector integration volumes 
+                ("CD.STEP"). The latter two can be extracted from the exported .root file using
+                scripts similar to extract-vc-gdml.C and extract-cd-step.C, with no external 
+                dependencies other than the ROOT libraries themselves. 
 
   lock        : if "true", a flag will be set in the EicToyModel class data, which effectively
                 only allows one to import it in a read-only mode. May be useful for .root file
@@ -131,7 +139,7 @@ instance, using standard ROOT serializer.
                 any further changes to the actual geometry (as saved in the polygon structure)
                 accidentally.
 
-  write() is equivalent to Export("<model-name>.root", false). 
+  write() is equivalent to Export("<model-name>.root", false, false). 
 ```
 
 #### Model import

@@ -1,4 +1,8 @@
 
+#include <iostream>
+#include <fstream>
+
+#include <TObjString.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TColor.h>
@@ -402,23 +406,9 @@ EicToyModel *EicToyModel::AddEtaLine(double value, bool line, bool label, bool r
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
-//void EicToyModel::write(const char *fname, bool lock)
-void EicToyModel::write(bool lock)
+void EicToyModel::write(bool everything, bool lock)
 {
-  Export((GetName() + TString(".root")).Data(), lock);
-#if _OFF_
-  auto fout = new TFile(fname ? fname : GetName() + TString(".root"), "RECREATE");
-
-  if (lock) mGeometryLocked = true;
-
-  if (mVacuumChamber) {
-    //mVacuumChamber->Export(GetName() + TString(".vc.gdml"));
-    mVacuumChamber->GetWorld()->Write();
-  } //if
-
-  TObject::Write("EicToyModel");
-  fout->Close();
-#endif
+  Export((GetName() + TString(".root")).Data(), everything, lock);
 } // EicToyModel::write()
 
 // ---------------------------------------------------------------------------------------
@@ -429,21 +419,90 @@ void EicToyModel::ExportVacuumChamber(const char *fname)
 
   if (str.EndsWith(".gdml")) {
     if (mVacuumChamber)
-      mVacuumChamber->Export(str.Data());//GetName() + TString(".vc.gdml"));
+      mVacuumChamber->Export(str.Data());
     else
       printf("EicToyModel::ExportVacuumChamber() -> vacuum chamber is not defined!\n");
   }
   else
-    printf("EicToyModel::ExportVacuumChamber(\"%s\") -> .gdml file extention expected!\n", fname); 
+    printf("EicToyModel::ExportVacuumChamber(\"%s\") -> .gdml file extension expected!\n", 
+	   fname); 
 } // EicToyModel::ExportVacuumChamber()
 
 // ---------------------------------------------------------------------------------------
 
+void EicToyModel::ExportCADmodel(const char *fname)
+{
+  // Create XCAF document;
+  Handle(TDocStd_Document) outDoc;
+  Handle(XCAFApp_Application) outApp = XCAFApp_Application::GetApplication(); 
+  outApp->NewDocument("ETM", outDoc); 
+  
+  Handle (XCAFDoc_ShapeTool) outAssembly = XCAFDoc_DocumentTool::ShapeTool (outDoc->Main()); 
+  
+  Handle(XCAFDoc_ColorTool) outColors = XCAFDoc_DocumentTool::ColorTool(outDoc->Main()); 
+  
+  for(auto stack: mStacks)
+    for(auto det: stack->mDetectors) {
+      // Can be a GAP or a MARKER detector;
+      if (!det->Polygons().size()) continue;
+      
+      auto polygon = det->Polygons()[0];
+      unsigned dim = polygon.size();
+      double cff = 1.0;//cm/etm::cm;
+      
+      //auto eic = EicToyModel::Instance();
+      
+      // Treat Z-offsets differently for central/vertex and endcap detectors;
+      //TVector2 ip = eic->GetIpLocation();
+      //double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
+      //(ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
+      double z0 = 0.0;
+      
+      // Create OpenCascade polygon;
+      auto poly = BRepBuilderAPI_MakePolygon();
+      for(unsigned ivtx=0; ivtx<dim; ivtx++) {
+	auto &pt = polygon[ivtx];
+	
+	poly.Add(gp_Pnt(pt.Y()*cff, 0.0, (pt.X()-z0)*cff));
+	
+	//z[ivtx] = (pt.X() - z0)*cff; 
+	//r[ivtx] = pt.Y()*cff; 
+	
+	//printf("%7.2f %7.2f\n", pt.X(), pt.Y());
+      } //for vtx
+      poly.Close();
+      
+      // Build a 2D face out of it; then create a revolution body;
+      auto face = BRepBuilderAPI_MakeFace(poly);
+      gp_Ax1 axis(gp_Pnt(0,0,0), gp_Dir(0,0,1)); 
+      auto solid = BRepPrimAPI_MakeRevol(face, axis); 
+      
+      // Assign ROOT TGeo color;
+      {
+	auto rcolor = gROOT->GetColor(det->GetFillColor());
+	
+	Quantity_Color ccolor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), Quantity_TOC_RGB);
+	TDF_Label aLabel = outAssembly->AddShape(solid);
+	outColors->SetColor(aLabel, ccolor, XCAFDoc_ColorSurf);
+      }
+    } //for stack .. det
+  
+      // Write the file out;
+  {
+    STEPCAFControl_Writer cWriter;
+    
+    cWriter.Transfer(outDoc, STEPControl_ManifoldSolidBrep);
+    //cWriter.Transfer(outDoc, STEPControl_AsIs);
+    cWriter.Write(fname);
+  }
+} // EicToyModel::ExportCADmodel()
+
+// ---------------------------------------------------------------------------------------
 //
 // FIXME: unify with EtmDetector::Export(); evil OCC handles;
 //
 
-void EicToyModel::Export(const char *fname, bool lock)
+void EicToyModel::Export(const char *fname, bool everything, bool lock)
 {
   if (fname) {
     TString str(fname);
@@ -454,77 +513,48 @@ void EicToyModel::Export(const char *fname, bool lock)
       // Permanently lock the geometry if requested;
       if (lock) mGeometryLocked = true;
 
-      // Save vacuum chamber TGeo tree in the same file;
-      if (mVacuumChamber) mVacuumChamber->GetWorld()->Write();
-      
-      // Save EicToyModel class instance (ROOT serializer);
+      if (everything) {
+	if (mVacuumChamber) {
+	  // Save vacuum chamber TGeo tree in the same file;
+	  mVacuumChamber->GetWorld()->Write();
+	  
+	  // And also store GDML dump as a separate TObjString; this is kind of redundant
+	  // since one can always restore this GDML dump using TGeoManager dump; however 
+	  // technically there can be a situation where gGeoManager is initialized already, 
+	  // and it may preferrable not to disturb it; anyway, the whole idea behind this 
+	  // dump is to provide yeat another option to import the vacuum system geometry 
+	  // without loading ETM library (the dump is store as a separate object);
+	  mVacuumChamber->StoreGDMLdump();
+	} //if
+
+#ifdef _OPENCASCADE_
+	{
+	  // FIXME: unify with EtmVacuumChamber::StoreGDMLdump();
+	  const char *qfname = "/tmp/tmp.stp";
+
+	  ExportCADmodel(qfname);
+	  std::ifstream fin(qfname);
+
+	  TString str;
+	  str.ReadFile(fin);
+
+	  TObjString ostr; ostr.SetString(str);
+	  // FIXME: hardcoded (Central Detector);
+	  ostr.Write("CD.STEP");
+    
+	  // Remove the temporary file;
+	  unlink(qfname);
+	}
+#endif
+      } //if
+
+      // Save EicToyModel class instance itself (ROOT serializer);
       TObject::Write("EicToyModel");
+
       fout.Close();
     } else if (str.EndsWith(".stp")) {
 #ifdef _OPENCASCADE_
-      // Create XCAF document;
-      Handle(TDocStd_Document) outDoc;
-      Handle(XCAFApp_Application) outApp = XCAFApp_Application::GetApplication(); 
-      outApp->NewDocument("ETM", outDoc); 
-      
-      Handle (XCAFDoc_ShapeTool) outAssembly = XCAFDoc_DocumentTool::ShapeTool (outDoc->Main()); 
-      
-      Handle(XCAFDoc_ColorTool) outColors = XCAFDoc_DocumentTool::ColorTool(outDoc->Main()); 
-      
-      for(auto stack: mStacks)
-	for(auto det: stack->mDetectors) {
-	  // Can be a GAP or a MARKER detector;
-	  if (!det->Polygons().size()) continue;
-	  
-	  auto polygon = det->Polygons()[0];
-	  unsigned dim = polygon.size();
-	  double cff = 1.0;//cm/etm::cm;
-	  
-	  //auto eic = EicToyModel::Instance();
-	  
-	  // Treat Z-offsets differently for central/vertex and endcap detectors;
-	  //TVector2 ip = eic->GetIpLocation();
-	  //double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
-	  //(ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
-	  double z0 = 0.0;
-	  
-	  // Create OpenCascade polygon;
-	  auto poly = BRepBuilderAPI_MakePolygon();
-	  for(unsigned ivtx=0; ivtx<dim; ivtx++) {
-	    auto &pt = polygon[ivtx];
-	    
-	    poly.Add(gp_Pnt(pt.Y()*cff, 0.0, (pt.X()-z0)*cff));
-	    
-	    //z[ivtx] = (pt.X() - z0)*cff; 
-	    //r[ivtx] = pt.Y()*cff; 
-	    
-	    //printf("%7.2f %7.2f\n", pt.X(), pt.Y());
-	  } //for vtx
-	  poly.Close();
-	  
-	  // Build a 2D face out of it; then create a revolution body;
-	  auto face = BRepBuilderAPI_MakeFace(poly);
-	  gp_Ax1 axis(gp_Pnt(0,0,0), gp_Dir(0,0,1)); 
-	  auto solid = BRepPrimAPI_MakeRevol(face, axis); 
-	  
-	  // Assign ROOT TGeo color;
-	  {
-	    auto rcolor = gROOT->GetColor(det->GetFillColor());
-	    
-	    Quantity_Color ccolor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), Quantity_TOC_RGB);
-	    TDF_Label aLabel = outAssembly->AddShape(solid);
-	    outColors->SetColor(aLabel, ccolor, XCAFDoc_ColorSurf);
-	  }
-	} //for stack .. det
-      
-      // Write the file out;
-      {
-	STEPCAFControl_Writer cWriter;
-	
-	cWriter.Transfer(outDoc, STEPControl_ManifoldSolidBrep);
-	//cWriter.Transfer(outDoc, STEPControl_AsIs);
-	cWriter.Write(fname);
-      }
+      ExportCADmodel(fname);
 #else
       printf("EicToyModel::Export(\"%s\") -> OpenCascade support is not compiled in!\n", fname);
 #endif

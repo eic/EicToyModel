@@ -1,4 +1,9 @@
 
+#include <iostream>
+#include <fstream>
+
+#include <TObjString.h>
+
 #include <EtmVacuumChamber.h>
 #include <EicToyModel.h>
 
@@ -28,7 +33,7 @@ void EtmVacuumChamber::CreateWorld( void )
     if (mTGeoModel) delete mTGeoModel;
 
     // Create a standalone instance otherwise;
-    mTGeoModel = new TGeoManager("IR", "Simplified IR vacuum chamber geometry");
+    mTGeoModel = new TGeoManager("VC.ROOT", "Simplified IR vacuum chamber geometry");
 
     // Vacuum (low density hydrogen), beryllium, aluminum; nothing else is needed;
     auto matVacuum = new TGeoMaterial("Vacuum", 1.008,  1, 1E-10);
@@ -98,6 +103,36 @@ void EtmVacuumChamber::Export(const char *fname)
   // FIXME: a warning otherwise;
   if (mStandaloneMode) mTGeoModel->Export(fname);
 } // EtmVacuumChamber::Export()
+
+// ---------------------------------------------------------------------------------------
+
+void EtmVacuumChamber::StoreGDMLdump( void )
+{
+  CheckGeometry();
+  
+  if (mStandaloneMode) {
+    // Create GDML file first; FIXME: pipe(), shm, tmpfs or such?; PID tag, perhaps?;
+    const char *fname = "/tmp/tmp.gdml";
+
+    mTGeoModel->Export(fname);
+
+    // Create input stream; read the file in; write it out as a wrapper class instance, 
+    // which can be accessed without ETM library, if needed (TObjString);
+    {
+      std::ifstream fin(fname);
+
+      TString str;
+      str.ReadFile(fin);
+
+      TObjString ostr; ostr.SetString(str);
+      // FIXME: hardcoded;
+      ostr.Write("VC.GDML");
+    
+      // Remove the temporary file;
+      unlink(fname);
+    }
+  } //if
+} // EtmVacuumChamber::StoreGDMLdump()
 
 // ---------------------------------------------------------------------------------------
 // 
@@ -176,3 +211,4 @@ double EtmVacuumChamber::GetRadialSize(double z, double phi) //const
 // ---------------------------------------------------------------------------------------
 
 ClassImp(EtmVacuumChamber)
+//ClassImp(XString)

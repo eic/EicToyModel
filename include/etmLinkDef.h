@@ -20,6 +20,8 @@
 
 #pragma link C++ class EicToyModel+;
 
+//#pragma link C++ class XString+;
+
 #pragma link C++ class vc2020_03_20+;
 
 #endif

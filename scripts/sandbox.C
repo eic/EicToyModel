@@ -82,6 +82,7 @@
 
   // 
   eic->hdraw();
-  eic->write();//true);
+  eic->write(true);
   //eic->Export("sandbox.stp");
+  //eic->
 } 

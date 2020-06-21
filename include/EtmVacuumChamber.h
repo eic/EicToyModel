@@ -1,6 +1,7 @@
 
 #include <vector>
 
+#include <TString.h>
 #include <TVector2.h>
 #include <TGeoManager.h>
 
@@ -35,6 +36,8 @@ class EtmVacuumChamber: public TObject {
 
   virtual G4VSolid *CutThisSolid(G4VSolid *solid, const std::vector<TVector2> &polygon) = 0;
 
+  void StoreGDMLdump( void );
+
  protected:
   virtual void CreateGeometry( void )                                     = 0;
 
@@ -53,8 +56,18 @@ class EtmVacuumChamber: public TObject {
 
   bool mStandaloneMode; //!
 
+  //TString mGDMLdump;
+
   ClassDef(EtmVacuumChamber, 1)
 };
 
+#if 0
+class XString: public TObject, public TString  {
+public:
+  XString() {};
+  ~XString() {};
 
+  ClassDef(XString, 1)
+};
+#endif
 #endif
