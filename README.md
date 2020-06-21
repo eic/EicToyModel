@@ -316,7 +316,9 @@ B*dl integral and vacuum chamber material scans
 ----------------------------------------------- 
 
   One can perform a magnetic field scan, as well as the vacuum chamber material 
-scan at small scattering angles in either e-endcap or h-endcap.
+scan at small scattering angles in either e-endcap or h-endcap. This allows one to 
+evaluate the potential reach in pseudo-rapidity in both endcaps, as well as to get 
+an idea about the azimuthal acceptance asymmetry.
 
   Magnetic field scan evaluates the effective B*dl integral of the 
 transverse-to-trajectory field component along the trajectory of a particle, originated 
