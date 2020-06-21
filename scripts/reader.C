@@ -1,11 +1,12 @@
 
 void reader(const char *fname)
 {
-  auto fin = new TFile(fname);
-  dynamic_cast<EicToyModel *>(fin->Get("EicToyModel"));
+  // Import the EicToyModel model singleton class instance;
+  EicToyModel::Import(fname);
 } // reader()
 
 // then: 
-//  auto eic = EicToyModel::Instance();
-//  eic->hdraw();
-//  ...
+//
+//    auto eic = EicToyModel::Instance();
+//    eic->hdraw();
+//    ...

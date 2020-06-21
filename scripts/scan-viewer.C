@@ -1,5 +1,5 @@
 
-void hist(const char *fname)
+void scan_viewer(const char *fname)
 {
   TFile *ff = new TFile(fname);
   auto RL  = (TH2D*)ff->Get("RL");
@@ -18,7 +18,7 @@ void hist(const char *fname)
   gStyle->SetPadRightMargin (hmargin);
   gStyle->SetPadLeftMargin  (hmargin);
 
-  auto c1 = new TCanvas("EicQ", "EicQ", 0, 0, 1500, 500);
+  auto c1 = new TCanvas("ETM", "ETM", 0, 0, 1500, 500);
   c1->Divide(3, 1);
   c1->UseCurrentStyle();
   c1->SetBorderMode(0);
@@ -64,4 +64,4 @@ void hist(const char *fname)
     Bdl->Draw("same colz pol");
     ellipse->Draw();
   }
-} // hist()
+} // scan_viewer()

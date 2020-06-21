@@ -101,6 +101,9 @@ cmake -DCMAKE_INSTALL_PREFIX=. -Wno-dev ..
 #
 # for magnetic field map interface:
 #   -DBFIELD=<BeastMagneticField-installation-directry>
+#
+# Be aware that LD_LIBRARY_PATH should contain the locations of the OpenCascade
+# and BeastMagneticField libraries, if the respective interfaces are compiled in;
 
 make install
 ```
@@ -108,9 +111,9 @@ make install
 Running
 -------
   
-Edit a script like ![example.C](scripts/example.C) in the ../scripts/ directory 
+Edit a script like [example.C](scripts/example.C) in the ../scripts/ directory 
 according to your preferences (see full list of the available commands 
-![here](doc/README.API.md)) and run it:
+[here](doc/README.API.md)) and run it:
 
 ```
 root -l ../scripts/example.C
@@ -124,14 +127,14 @@ Every colored object in this picture is a sub-detector integration volume. Assoc
 between ROOT RGB colors and sub-detector tags is 1:1, and (once the palette is agreed upon
 by the user community) will never change, and will be exported in this color scheme
 to both GEANT and CAD. Current palette is likely not optimal. It is hardcoded 
-in ![EtmPalette.cc](source/EtmPalette.cc).
+in [EtmPalette.cc](source/EtmPalette.cc).
 
 Users can create custom detector (or detector group) tags and tag-to-color 
 associations like "Calorimetry":kSpring dynamically. For the sake of consistency it may 
 make sense to hardcode the "official" Yellow Report color (and detector tag) scheme though, 
 after the initial evaluation and debugging stage.
 
-A limited set of interactive commands (see the full list ![here](doc/README.API.md)) 
+A limited set of interactive commands (see the full list [here](doc/README.API.md)) 
 is available. Try e.g. the following sequence with the self-explaining outcome of the 
 respective commands: 
 
@@ -165,7 +168,7 @@ root -l '../scripts/reader.C("example.root")'
 ```
 
 Beyond this point one can work with the model the same way as if it was created 
-from scratch (see ![example.C](scripts/example.C)). It is strongly recommended to use 
+from scratch (see [example.C](scripts/example.C)). It is strongly recommended to use 
 detector composition changing commands like rm() and insert() only as a quick tuning 
 means, and once a desired configuration is found, put the respective changes
 in a consistent full script, creating a given model from scratch. The reason 
@@ -198,7 +201,7 @@ on the local system. 10.05.p01 works. The line below is for bash shell.
 
 Apart from the eic->ExportVacuumChamber() command shown above, one can create G4 
 detector integration volumes on the fly, either one at a time or all of them at 
-once. See a short example executable ![main.cc](examples/basic/main.cc) as an example. 
+once. See a short example executable [main.cc](examples/basic/main.cc) as an example. 
 
 The library should be configured with the -DGEANT cmake command line key (see above).
 
@@ -210,7 +213,7 @@ Naming convention for these volumes may require some tuning. At present e.g. a s
 from the IP TRD detector volume in the forward endcap will be named as "FWD.TRD.01", 
 and so on, with the stack identifiers "VTX", "MID", "BCK" and "FWD" for the vertex, 
 barrel, e-endcap and h-endcap stacks, respectively, and the detector tags as hardcoded 
-in ![EtmPalette.cc](source/EtmPalette.cc). This may as well be irrelevant, since a user
+in [EtmPalette.cc](source/EtmPalette.cc). This may as well be irrelevant, since a user
 can poll the G4VPhysicalVolume pointer for a particular detector by means of the 
 EtmDetector::GetG4Volume() method.
 
@@ -249,9 +252,9 @@ geometry, therefore avoiding the dependency on either the ETM library described 
 or on the ROOT itself in the GEANT environment alltogether. Providing consistency 
 between different sub-detector systems may be problematic in this case though.
 
-The ![example](examples) directory contains a couple of simple standalone code, 
+The [example](examples) directory contains a couple of simple standalone code, 
 with their own CMakeLists.txt files, which illustrate the usage. See the bare minimum 
-GEANT example source code ![here](examples/basic/main.cc).
+GEANT example source code [here](examples/basic/main.cc).
 
 The following sequence of commands brings up the G4 Qt window with the model, created
 by 'root -l ../scripts/example.C' macro call earlier:
@@ -312,10 +315,55 @@ axis.
 B*dl integral and vacuum chamber material scans
 ----------------------------------------------- 
 
-Implemented. Description will follow soon.
+  One can perform a magnetic field scan, as well as the vacuum chamber material 
+scan at small scattering angles in either e-endcap or h-endcap.
+
+  Magnetic field scan evaluates the effective B*dl integral of the 
+transverse-to-trajectory field component along the trajectory of a particle, originated 
+at the nominal IP and scattered at a given pair of polar and azimuthal angles. Primary 
+vertex smearing along the beam line can be specified.
+
+  The starting point of this scan for a given set of values {z,theta,phi} is the point
+where such a particle would exit the accelerator vacuum chamber.
+
+  The end point is the most distant from the IP location of the last silicon tracker 
+station, which can still be sensibly installed in this detector configuration in a given 
+endcap (like in front of a first detector with a lot of material). Defining this 
+location is at a discretion of the user. It can be given by a EtmDetectorStack::marker() 
+method (see [API description](doc/README.API.md)) when configuring a particular endcap, 
+and is indicated e.g. by small red arrows at -230cm and +115cm in the 2D picture above.
+
+  In order to perform a scan on the detector and the vacuum chamber model contained 
+in the example.root file produced earlier one can run [this script](scripts/scan.C): 
+
+```
+root -l '../scripts/scan.C("example.root")'
+```
+
+  Results of this scan are reprsented as three 2D histograms, which can either 
+be displayed (see an [example](../scripts/scan-viewer.C)) or extracted numerically
+using conventional ROOT GetBinContents() calls:
+
+```
+root -l '../scripts/scan-viewer.C("example.scan.root")'
+```
+  A typical set of pictures will look like this:
+
+![](doc/example.scan.png)
+
+  Horizontal and vertical axes on these example plots have a range of +/-60 mrad.
+The 360 degree azimuthal angle scan is given for a range of pseudo-rapidities 
+between -4.5 and -3.5 (electron-going endcap). A green dashed line corresponds 
+to the pseudo-rapidity of -4.0 . A square outline seen in the pictures corresponds
+to the profile of the aluminum portion of the beam pipe (has to be changed in the 
+next iteration of the design).
+
+  If somebody knows a way how to make DrawFrame() and a polar 2D histogram Draw() 
+live together and allow one to use axis lables and proper title fonts, such an 
+advice will be greatly appreciated.
 
 
 ROOT macro options
 ------------------
 
-Full current list of the options is available ![here](doc/README.API.md).
+Full current list of options is available [here](doc/README.API.md).

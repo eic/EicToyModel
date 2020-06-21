@@ -59,7 +59,7 @@ int main(int argc, char** argv)
   } //if
 
   // Import the ROOT file with an "EicToyModel" singleton class instance; 
-  if (EicToyModel::Import(argv[1])) return -1;
+  if (!EicToyModel::Import(argv[1])) return -1;
 
   // The rest is a usual GEANT stuff;
   G4RunManager *runManager = new G4RunManager;

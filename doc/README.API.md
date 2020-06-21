@@ -428,3 +428,63 @@ of the available space to the container volume as other boundary conditions allo
 
   Shortcuts to the above trim(min,max,preserve_modified) method.
 ```
+
+EtmAzimuthalScan class methods
+------------------------------
+
+```
+  EtmAzimuthalScan(double etamin, double etamax, unsigned ntheta = 25, unsigned nphi = 120);
+
+  Constructor. [etamin .. etamax] defines pseudo-rapidity range (etamin < etamax).
+
+  ntheta      : number of bins in polar angle
+  nphi        : number of bins in azimuthal angle
+```
+
+```
+  EtmAzimuthalScan *SetVertexSigma(double sigma);
+
+  Allows one to evaluate the effect of the finite size primary vertex distribution.
+
+  sigma       : beam vertex smearing along the beam line in [cm] (gaussian sigma)
+```
+
+```
+  EtmAzimuthalScan *SetStat(unsigned stat);
+
+  If beam vertex smearing is requested, set trial statistics for each of the [theta,phi]
+points in the azimuthal scan histograms. Otherwise 1 trial per point obviously suffices.
+
+  stat        : statistics per point; default: 100
+```
+
+```
+  EtmAzimuthalScan *SetBfield(double field);
+  EtmAzimuthalScan *SetBfield(const char *fname);
+
+  Either a constant field (in [T]) or a path to a BeAST-like magnetic field map. 
+
+  BUG: BeAST field map is currently centered at (0,0,0) of the IR coordinate system, 
+namely in the middle of the +/-4.5m region allocated for the EIC central detector. 
+In other words, it does not move together with the nominal IP, which does not make 
+much sense. 
+
+  The new field maps produced for the greenfield detector solenoid will be always 
+given in the "IR coordinate system" though, since they are coupled to a particular 
+locations of the endcap flux return elements (Fe/Sci sandwich hadronic calorimeters).
+```
+
+```
+  EtmAzimuthalScan *SetBfieldScanStep(double step);
+
+  step        : integration step in [cm], default is 1cm
+```
+
+```
+  void DoIt(const char *fout);
+
+  Perform the actual scan. This call will generate three azimuthal histograms described
+in the [main README.md file](../README.md).
+
+  fout        : output ROOT file name
+```

@@ -43,6 +43,7 @@ class EicToyModel: public TObject {
   EicToyModel *acceptance(double eta0, double eta1, double eta2, double eta3, 
 			  bool reset_stacks = false, bool redraw = true);
   EicToyModel *DefineVacuumChamber(EtmVacuumChamber *vc);
+  //EicToyModel *DefineVacuumChamber(const char *fname);
   //
   // Nominal IP along the beam line direction; negative values correspond to the e-endcap direction;
   EicToyModel *ip(double offset,                bool redraw = true);
@@ -134,7 +135,13 @@ class EicToyModel: public TObject {
   void ExportVacuumChamber(const char *fname = 0);
   G4VPhysicalVolume *ConstructG4World( void );
 
-  static int Import(const char *fname);
+  static EicToyModel *Import(const char *fname);
+  // There is no good reason to Get() the TGeoManager instance sitting in the same 
+  // .root file -> re-create it from scratch;
+  void BuildVacuumChamber( void ) { if (mVacuumChamber) mVacuumChamber->CheckGeometry(true); };
+
+  //const TString &GetName( void ) const { return mName; };
+  //const char *GetName( void )    const { return mName.Data(); };
 
  private:
   ~EicToyModel() {}; 

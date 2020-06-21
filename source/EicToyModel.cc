@@ -92,12 +92,12 @@ EicToyModel::EicToyModel(double length, double radius):
 
 // ---------------------------------------------------------------------------------------
 
-int EicToyModel::Import(const char *fname)
+EicToyModel *EicToyModel::Import(const char *fname)
 {
   // Sanity check;
   if (mInstance) {
     printf("\n\n  EicToyModel::Import() -> Singleton instance already exists!\n\n");
-    return -1;
+    return 0;//-1;
   } //if
 
   // Import the ROOT file with an "EicToyModel" singleton class instance; 
@@ -106,13 +106,15 @@ int EicToyModel::Import(const char *fname)
 
     if (!dynamic_cast<EicToyModel *>(fin.Get("EicToyModel"))) {
       printf("Wrong file format (%s): no EicToyModel instance found!\n\n\n", fname);
-      return -1;
+      return 0;//-1;
     } //if
     
+    //mVacuumChamber->mTGeoModel = 0;
+
     fin.Close();
   }
 
-  return 0;
+  return mInstance;//0;
 } // EicToyModel:Import()
 
 // ---------------------------------------------------------------------------------------
@@ -124,6 +126,14 @@ EicToyModel *EicToyModel::DefineVacuumChamber(EtmVacuumChamber *vc)
 
   return this; 
 } // EicToyModel::DefineVacuumChamber()
+
+// ---------------------------------------------------------------------------------------
+
+//EicToyModel *EicToyModel::DefineVacuumChamber(const char *fname)
+//{
+//  
+//return this; 
+//} // EicToyModel::DefineVacuumChamber()
 
 // ---------------------------------------------------------------------------------------
 

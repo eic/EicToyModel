@@ -11,7 +11,7 @@ class EtmAzimuthalScan: public TObject {
  public:
   // FIXME: default binning hardcoded; ok;
   EtmAzimuthalScan(double etamin = 0.0, double etamax = 0.0, 
-		unsigned ntheta = 25, unsigned nphi = 120);
+		   unsigned ntheta = 25, unsigned nphi = 120);
   ~EtmAzimuthalScan() {};
 
   EtmAzimuthalScan *SetVertexSigma(double sigma) { mVertexSigma = sigma; return this; };

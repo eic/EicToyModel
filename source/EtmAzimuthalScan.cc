@@ -102,6 +102,9 @@ void EtmAzimuthalScan::DoIt(const char *fout)
   mZL  = new TH2D("ZL",  "ZL",  mPhiBinCount, -M_PI, M_PI, mThetaBinCount, thetamin*1000, thetamax*1000);
   mBdl = new TH2D("Bdl", "Bdl", mPhiBinCount, -M_PI, M_PI, mThetaBinCount, thetamin*1000, thetamax*1000);
 
+  // If vertex smearing is not required, scan is deterministic -> stat=1;
+  unsigned qstat = mVertexSigma ? mStat : 1;
+
   for(unsigned itheta=0; itheta<mThetaBinCount; itheta++) {
     double theta = thetamin + (itheta+0.5)*thetastep;
 
@@ -122,7 +125,7 @@ void EtmAzimuthalScan::DoIt(const char *fout)
 
       double accu = 0.0, thicku = 0.0, zair = 0.0, bdl = 0.0;
 
-      for(unsigned ev=0; ev<mStat; ev++) {
+      for(unsigned ev=0; ev<qstat; ev++) {
 	TVector3 curr;
 	double xx[3] = {0.0, 0.0, eic->GetIpLocation().X() + gRandom->Gaus(0.0, mVertexSigma)};
 
@@ -173,7 +176,7 @@ void EtmAzimuthalScan::DoIt(const char *fout)
 	}
       } //for ev
 
-      accu /= mStat; thicku /= mStat; zair /= mStat; bdl /= mStat;
+      accu /= qstat; thicku /= qstat; zair /= qstat; bdl /= qstat;
 
       if (marker) {
 	double zbudget = sign*(zmarker - zair); if (zbudget < 0.0) zbudget = 0.0;
@@ -187,11 +190,11 @@ void EtmAzimuthalScan::DoIt(const char *fout)
   } //for itheta
 
   {
-    auto hfile = new TFile(fout, "RECREATE"); 
+    TFile hfile(fout ? fout : (TString(eic->GetName()) + ".scan.root").Data(), "RECREATE"); 
     
     mRL->Write(); mZL->Write(); mBdl->Write();
     
-    hfile->Close();
+    hfile.Close();
   }
 } // EtmAzimuthalScan::DoIt()
 
