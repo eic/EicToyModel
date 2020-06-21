@@ -10,7 +10,7 @@ EicToyModel::ForwardEndcap() one, and so on).
 
 Only a small subset of methods is of interest for basic configuration work. It may 
 therefore make sense to focus on the commands, which are used e.g. in the
-![example script](../scripts/example.C).
+[example script](../scripts/example.C).
 
 EicToyModel class methods
 -------------------------
@@ -153,8 +153,8 @@ world volume. See scripts/viewer.C example script how to extract it.
   world       : GEANT world logical volume 
 ```
 
-  See also ![reader.C](../scripts/reader.C), ![main.cc](../source/main.cc) and
-![viewer.C](../scripts/viewer.C) files.
+  See also [reader.C](../scripts/reader.C), [main.cc](../source/main.cc) and
+[viewer.C](../scripts/viewer.C) files.
 
 
 #### Detector stack access
@@ -484,7 +484,7 @@ locations of the endcap flux return elements (Fe/Sci sandwich hadronic calorimet
   void DoIt(const char *fout);
 
   Perform the actual scan. This call will generate three azimuthal histograms described
-in the [main README.md file](../README.md).
+in the main README.md file.
 
   fout        : output ROOT file name
 ```

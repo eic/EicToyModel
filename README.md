@@ -343,7 +343,7 @@ root -l '../scripts/scan.C("example.root")'
 ```
 
   Results of this scan are reprsented as three 2D histograms, which can either 
-be displayed (see an [example](../scripts/scan-viewer.C)) or extracted numerically
+be displayed (see an [example](scripts/scan-viewer.C)) or extracted numerically
 using conventional ROOT GetBinContents() calls:
 
 ```
