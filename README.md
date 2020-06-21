@@ -1,4 +1,7 @@
 
+EIC Toy Model (ETM)
+=================== 
+
   EicToyModel (ETM) is a C++ ROOT-based software suite for EIC Central Detector 
 configuration purposes.  
 
@@ -6,6 +9,15 @@ configuration purposes.
 
  * [Introduction](#introduction)
  * [Other features](#other-features)
+ * [Model limitations](#model-limitations)
+ * [Pre-requisites](#pre-requisites)
+ * [Downloading](#downloading)
+ * [Compiling](#compiling)
+ * [Running](#running)
+ * [GEANT interface](#geant-interface)
+ * [CAD interface](#cad-interface)
+ * [Magnetic field interface](#magnetic-field-interface)
+ * [ROOT macros options](#root-macro-options)
 
 
 Introduction
@@ -71,7 +83,6 @@ monotonous functions in both R(Z) and Z(R) representations. "Crack" shape howeve
 be configured in a rather flexible way, see examples below.
 
    
-
 Pre-requisites
 --------------
 
