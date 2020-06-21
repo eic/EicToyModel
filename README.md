@@ -17,7 +17,7 @@ configuration purposes.
  * [GEANT interface](#geant-interface)
  * [CAD interface](#cad-interface)
  * [Magnetic field interface](#magnetic-field-interface)
- * [B*dl integral and vacuum chamber material scans](#material-scans)
+ * [B*dl integral and vacuum chamber material scans](#B*dl-integral-and-vacuum-chamber-material-scans)
  * [ROOT macros options](#root-macro-options)
 
 
