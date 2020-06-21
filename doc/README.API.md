@@ -153,7 +153,7 @@ world volume. See scripts/viewer.C example script how to extract it.
   world       : GEANT world logical volume 
 ```
 
-  See also [reader.C](../scripts/reader.C), [main.cc](../source/main.cc) and
+  See also [reader.C](../scripts/reader.C), [main.cc](../examples/basic/main.cc) and
 [viewer.C](../scripts/viewer.C) files.
 
 
