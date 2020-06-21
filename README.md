@@ -2,6 +2,15 @@
   EicToyModel (ETM) is a C++ ROOT-based software suite for EIC Central Detector 
 configuration purposes.  
 
+ Content:
+
+ * [Introduction](#introduction)
+ * [Other features](#other-features)
+
+
+Introduction
+------------
+
   The main objective of this software was providing the EIC community users
 with a tool, which would allow them to easily (whatever easy means) create possible 
 EIC detector configuration *templates* (namely, the self-consistent collections of 
@@ -286,7 +295,7 @@ _Standard_API int    _Printf  (const char* theFormat, ...);
 ```
 
 in the Standard_CString.hxx file should be commented out in the installation area, in order 
-to a void an apparent conflict with the ROOT Printf() call declaration.
+to avoid an apparent conflict with the ROOT Printf() call declaration.
 
 One can either export a CAD model with all of the integration volumes at once by using 
 EicToyModel::Export() method, or with a single detector volume by using EtmDetector::Export() 
