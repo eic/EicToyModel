@@ -17,7 +17,7 @@ configuration purposes.
  * [GEANT interface](#geant-interface)
  * [CAD interface](#cad-interface)
  * [Magnetic field interface](#magnetic-field-interface)
- * [B*dl integral and vacuum chamber material scans](#B-dl-integral-and-vacuum-chamber-material-scans)
+ * [B*dl integral and vacuum chamber material scans](#magnetic-field-and-vacuum-chamber-material-scans)
  * [ROOT macros options](#root-macro-options)
 
 
@@ -338,8 +338,8 @@ perform the B*dl integral scans, assuming constant field, parallel to the electr
 axis.
 
 
-B*dl integral and vacuum chamber material scans
------------------------------------------------ 
+Magnetic field and vacuum chamber material scans
+------------------------------------------------ 
 
   One can perform a magnetic field scan, as well as the vacuum chamber material 
 scan at small scattering angles in either e-endcap or h-endcap. This allows one to 
