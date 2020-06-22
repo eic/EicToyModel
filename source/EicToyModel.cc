@@ -432,6 +432,7 @@ void EicToyModel::ExportVacuumChamber(const char *fname)
 
 void EicToyModel::ExportCADmodel(const char *fname)
 {
+#ifdef _OPENCASCADE_
   // Create XCAF document;
   Handle(TDocStd_Document) outDoc;
   Handle(XCAFApp_Application) outApp = XCAFApp_Application::GetApplication(); 
@@ -495,6 +496,7 @@ void EicToyModel::ExportCADmodel(const char *fname)
     //cWriter.Transfer(outDoc, STEPControl_AsIs);
     cWriter.Write(fname);
   }
+#endif
 } // EicToyModel::ExportCADmodel()
 
 // ---------------------------------------------------------------------------------------
@@ -516,6 +518,8 @@ void EicToyModel::Export(const char *fname, bool everything, bool lock)
       if (everything) {
 	if (mVacuumChamber) {
 	  // Save vacuum chamber TGeo tree in the same file;
+	  mVacuumChamber->GetWorld()->CloseGeometry();
+	  mVacuumChamber->GetWorld()->CheckOverlaps(0.0001);
 	  mVacuumChamber->GetWorld()->Write();
 	  
 	  // And also store GDML dump as a separate TObjString; this is kind of redundant

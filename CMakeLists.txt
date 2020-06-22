@@ -10,6 +10,8 @@
 # . <geant-installation-directory>/bin/geant4.sh
 # -DGEANT=YES
 #
+# -DVGM=<VGM-installation-directory>
+#
 # -DOPENCASCADE=<OpenCascade-installation-directory> 
 #    1) Edit Standard_CString.hxx (in the installation area): Printf() -> _Printf();
 #    2) do not forget to append LD_LIBRARY_PATH accordingly;
@@ -42,7 +44,7 @@ if(DEFINED GEANT)
   find_package(Geant4 REQUIRED ui_all vis_all)
   include(${Geant4_USE_FILE})
 endif()
-SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic" )
+SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic -std=c++11" )
 if(DEFINED GEANT)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_ETM2GEANT_")
 endif()
@@ -57,6 +59,11 @@ if(DEFINED BFIELD)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_BFIELD_")
 
   include_directories( ${BFIELD}/include )
+endif()
+if(DEFINED VGM)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_VGM_")
+
+  include_directories( ${VGM}/include )
 endif()
 
 SET(LIBNAME etm)
@@ -99,10 +106,13 @@ if(DEFINED BFIELD)
   TARGET_LINK_LIBRARIES( ${LIBNAME} ${BFIELD}/lib/libbmf.so)
 endif()
 if(DEFINED OPENCASCADE)
-  TARGET_LINK_LIBRARIES( ${LIBNAME} -L${OPENCASCADE}/lib -lTKSTEP -lTKIGES -lTKXDEIGES -lTKXDESTEP -lTKSTL -lTKPrim)
+  TARGET_LINK_LIBRARIES( ${LIBNAME} -L${OPENCASCADE}/lib -lTKSTEP -lTKIGES -lTKXDEIGES -lTKXDESTEP -lTKSTL -lTKPrim )
 endif()
 if(DEFINED GEANT)
   TARGET_LINK_LIBRARIES( ${LIBNAME} ${Geant4_LIBRARIES} )
+endif()
+if(DEFINED GEANT)
+  TARGET_LINK_LIBRARIES( ${LIBNAME} -L${VGM}/lib64 -lRootGM -lGeant4GM )
 endif()
 
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include/etm PATTERN "e*.h" EXCLUDE)
