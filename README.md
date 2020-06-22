@@ -17,7 +17,7 @@ configuration purposes.
  * [GEANT interface](#geant-interface)
  * [CAD interface](#cad-interface)
  * [Magnetic field interface](#magnetic-field-interface)
- * [B*dl integral and vacuum chamber material scans](#magnetic-field-and-vacuum-chamber-material-scans)
+ * [Vacuum chamber material and B*dl integral scans](#vacuum-chamber-material-and-magnetic-field-scans)
  * [ROOT macros options](#root-macro-options)
 
 
@@ -105,14 +105,19 @@ git clone https://github.com/eic/EicToyModel.git
 Compiling
 ---------
 
-A library has to be installed locally. 
+The library has to be installed locally. 
 
 ```
 cd EicToyModel && mkdir build && cd build
-# Installation in the current "build" directory is assumed;
-cmake -DCMAKE_INSTALL_PREFIX=. -Wno-dev ..
+cmake -Wno-dev ..
 
 # additional cmake options:
+#
+# if executable(s) from the 'examples' directory will be compiled (be aware, "." works):
+#   -DCMAKE_INSTALL_PREFIX=<EicToyModel-installation-directory>
+#
+# if your local ROOT installation was compiled with -std=c++17:
+#   -DCMAKE_CXX_STANDARD=17
 #
 # if GEANT4 interface is required:
 #   -DGEANT=YES
@@ -123,9 +128,12 @@ cmake -DCMAKE_INSTALL_PREFIX=. -Wno-dev ..
 # for magnetic field map interface:
 #   -DBFIELD=<BeastMagneticField-installation-directry>
 #
-# Be aware that LD_LIBRARY_PATH should contain the locations of the OpenCascade
-# and BeastMagneticField libraries, if the respective interfaces are compiled in;
+# Be aware that LD_LIBRARY_PATH should contain the locations of the OpenCascade,
+# BeastMagneticField and VGM libraries, if the respective interfaces are compiled in;
 
+make
+
+# Needed only if executable(s) from the 'examples' directory will be compiled;
 make install
 ```
 
@@ -338,7 +346,7 @@ perform the B*dl integral scans, assuming constant field, parallel to the electr
 axis.
 
 
-Magnetic field and vacuum chamber material scans
+Vacuum chamber material and magnetic field scans
 ------------------------------------------------ 
 
   One can perform a magnetic field scan, as well as the vacuum chamber material 
