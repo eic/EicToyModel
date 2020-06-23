@@ -102,7 +102,7 @@ endif()
 if(DEFINED GEANT)
   TARGET_LINK_LIBRARIES( ${LIBNAME} ${Geant4_LIBRARIES} )
 endif()
-if(DEFINED GEANT)
+if(DEFINED VGM)
   TARGET_LINK_LIBRARIES( ${LIBNAME} -L${VGM}/lib64 -lRootGM -lGeant4GM )
 endif()
 
