@@ -121,6 +121,9 @@ cmake -Wno-dev ..
 #
 # if GEANT4 interface is required:
 #   -DGEANT=YES
+# if the IR vacuum chamber shape boolean cut through the integration volumes is required:
+#   -DVGM=<VGM-installation-directory>
+# A BUG: at present both are required to have G4 interface functional.
 #
 # for CAD export functionality:
 #   -DOPENCASCADE=<OpenCascade-installation-directory>
@@ -171,17 +174,23 @@ respective commands:
 root [] eic->width(1200); 
 root [] eic->mirror();
 root [] eic->mirror(false);
+
+# Move the IP to the center of the +/-4.5m area; depending on the actual example.C contents, 
+# HCal in the forward endcap may disappear; move it back to some intermediate value;
 root [] eic->ip(0);
-root [] eic->ip(-50 * etm::cm);
+root [] eic->ip(-30 * etm::cm);
+
 # Vertical and horizontal plane cross cut; in the latter case the 25mrad crossing 
 # angle is taken into account; 
 root [] eic->vdraw();
 root [] eic->hdraw();
+
 # Remove e/m calorimeter from the backward (electron-going) endcap;
 root [] eic->bck()->rm("EmCal");
-# Install a 20cm long MPGD "detector" in front of the high-momentum RICH in 
+# Install a 20cm deep MPGD "detector" in front of the high-momentum RICH in 
 # the hadron-going endcap;
 root [] eic->fwd()->insert("MPGD", 20 * etm::cm, "HM RICH");
+
 # Save the current configuration;
 root [] eic->write();
 # Save example.vc.gdml file with the vacuum chamber layout; a BUG: this command 
@@ -289,15 +298,21 @@ The following sequence of commands brings up the G4 Qt window with the model, cr
 by 'root -l ../scripts/example.C' macro call earlier:
 
 ```
+# Assuming "cmake -DGEANT=YES -DCMAKE_INSTALL_PREFIX=<EicToyModel-installation-directory> \
+# -DVGM=<VGM-installation-directory>" was used during installation;
+make install
+
 cd ../examples/basic
+mkdir build && cd build
 
 # <EicToyModel-installation-directory> here is an absolute path to the ../../build 
-# directory; csh users should use 'setenv' syntax instead;
+# directory; csh users should use 'setenv' syntax instead; BUG: 64?;
 export LD_LIBRARY_PATH=<EicToyModel-installation-directory>/lib:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=<VGM-installation-directory>/lib64:${LD_LIBRARY_PATH}
 
 cmake -Wno-dev -DETM=<EicToyModel-installation-directory> ..
 make
-./basic ../../build/example.root
+./basic ../../../build/example.root
 ```
 
 CAD interface
