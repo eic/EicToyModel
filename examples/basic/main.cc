@@ -25,7 +25,7 @@ public:
     printf("\n\nIR box size: Z +/- %.2f [cm], R ~ %.2f [cm]\n\n", 
 	   eic->GetIrRegionLength()/2, eic->GetIrRegionRadius());
 
-    // The easiest: ask the model to build its IR world;
+    // The easiest: ask the model to build its own IR world;
     auto expHall_phys = eic->ConstructG4World();
     expHall_phys->GetLogicalVolume()->SetVisAttributes(G4VisAttributes::Invisible);
 
@@ -76,7 +76,8 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/vis/open OGL 600x600-0+0");
   // Define a 3D cutaway view; 
   UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 60. 20.");
-  UImanager->ApplyCommand("/vis/drawVolume ! ! ! -box m 0 10 0 10 -10 10");
+  //UImanager->ApplyCommand("/vis/drawVolume ! ! ! -box m 0 10 0 10 -10 10");
+  UImanager->ApplyCommand("/vis/drawVolume ! ! ! -box m -10 10 0 10 -10 10");
   //--UImanager->ApplyCommand("/vis/drawVolume");
   UImanager->ApplyCommand("/vis/scene/add/axes 0 0 0 1 m");
   UImanager->ApplyCommand("/vis/viewer/set/background white");

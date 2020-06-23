@@ -341,9 +341,6 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
   if (!Polygons().size()) return 0;
 
 #ifdef _ETM2GEANT_
-  // Air, what else can it be?;
-  auto air = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
-
   auto polygon = Polygons()[0];
   unsigned dim = polygon.size();
   double cff = cm/etm::cm, z[dim], r[dim];
@@ -355,7 +352,8 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
   double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
     (ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
   // FIXME: make it optional;
-  //z0 = 0.0;
+  z0 = 0.0;
+  //printf("  %f\n", z0);
   
   for(unsigned ivtx=0; ivtx<dim; ivtx++) {
     auto &pt = polygon[ivtx]; 
@@ -366,65 +364,72 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
     //printf("%7.2f %7.2f\n", pt.X(), pt.Y());
   } //for vtx
 
-  // FIXME: take order (like TRD 0/1/2) into account as well;
-  //TString label = name ? TString(name) : (mStack->GetLabel() + "." + *GetLabel());
+  // NB: take order (like TRD 0/1/2) into account as well;
   TString label;
   if (name) 
     label = TString(name);
   else
     label.Form("%s.%s.%02d", mStack->GetLabel().Data(), GetLabel()->Data(), GetOrder());
   
-  // For now just a generic polycone; FIXME: implement G4BREPSolidPolyhedra later;
-  //if (mStack == eic->bck())
-  auto vpol = new G4GenericPolycone(label.Data(), 0., 360.*deg, dim, r, z);
-  //auto vpol = new G4Polyhedra(label.Data(), 0., 360.*deg, 12, dim, r, z);
-  //G4VSolid *vpol = 0;
-  //if (mStack == eic->bck())
-  //vpol = new G4GenericPolycone(label.Data(), 0., 360.*deg, dim, r, z);
-  //else
-  //vpol = new G4Polyhedra(label.Data(), 0., 360.*deg, 12, dim, r, z);
-  
-  // Extract ROOT color attributes and assign them to GEANT volumes;
-  auto rcolor = gROOT->GetColor(GetFillColor());
-  G4VisAttributes* visAtt = new G4VisAttributes();
-  //new G4VisAttributes(G4Colour(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue()));
-  visAtt->SetColor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue());//, 0.3);
-  visAtt->SetVisibility(true);
-  visAtt->SetForceWireframe(false);
-  visAtt->SetForceSolid(true);
+  // Either a G4GenericPolycone or a G4Polyhedra; FIXME: for now can not mix them;
+  unsigned segmentation = eic->GetAzimuthalSegmentation();
 
+  G4VSolid *vpol;
+  if (segmentation)
+    vpol = new G4Polyhedra(label.Data(), 0., 360.*deg, segmentation, dim, r, z);
+  else
+    vpol = new G4GenericPolycone(label.Data(), 0., 360.*deg, dim, r, z);
+  //auto vpol = new G4Polyhedra(label.Data(), 0., 360.*deg, 12, dim, r, z);
+  
   {
     auto vc = eic->GetVacuumChamber();
     bool vc_cut_required = vc;
 
     // Figure out whether a cut is needed at all; these are mutually exclusive of 
     // course; fine, no staggered elseif's;
+#if _LATER_
     if (mStack == eic->vtx() && eic->vtx()->GetDetector(0) != this) vc_cut_required = false;
     if (mStack == eic->mid() && 
 	// Either vertex stack is populated or this is not the first central stack 
 	// detector -> under no sane configuration it can sit next to the beam pipe;
 	(eic->vtx()->DetectorCount() || (eic->mid()->GetDetector(0) != this)))
       vc_cut_required = false;
+#else
+    // FIXME: keep it simple for the time being;
+    if (mStack == eic->vtx() || mStack == eic->mid()) vc_cut_required = false;
+#endif
+    //vc_cut_required = false;
 
-    // Vacuum chamber defined -> carve a hole in the original poly-shape;
-    auto vcut = vc && vc_cut_required ? vc->CutThisSolid(vpol, polygon) : 0;
+    // Check whether a vacuum chamber boolean cut is possible (and required); 
+    // NB: CutThisSolid() may still return the same pointer if VGM is not compiled in;
+    // FIXME: a memory leak;
+    auto vout = vc && vc_cut_required ? vc->CutThisSolid(vpol) : vpol;
 
-    if (vcut) {
-      auto lcut = new G4LogicalVolume(vcut, air, label.Data(), 0, 0, 0);
-      lcut->SetVisAttributes(visAtt);
+    // Air, what else can it be?;
+    {
+      auto air = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
 
-      mG4PhysicalVolume =
-	new G4PVPlacement(0, G4ThreeVector(0, 0, z0*cff), lcut, label.Data(), world, false, 0);
-    } else {
-      // No vacuum chamber defined -> a simple volume export;
-      auto lpol = new G4LogicalVolume(vpol, air, label.Data(), 0, 0, 0);
-      lpol->SetVisAttributes(visAtt);
+      auto lout = new G4LogicalVolume(vout, air, label.Data(), 0, 0, 0);
+      
+      {
+	// Extract ROOT color attributes and assign them to GEANT volumes;
+	auto rcolor = gROOT->GetColor(GetFillColor());
+	
+	G4VisAttributes* visAtt = //new G4VisAttributes();
+	  new G4VisAttributes(G4Colour(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue()));
+	//visAtt->SetColor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue());//, 0.3);
+	visAtt->SetVisibility(true);
+	visAtt->SetForceWireframe(false);
+	visAtt->SetForceSolid(true);
+	
+	lout->SetVisAttributes(visAtt);
+      }
       
       mG4PhysicalVolume =
-	new G4PVPlacement(0, G4ThreeVector(0, 0, z0*cff), lpol, label.Data(), world, false, 0);
-    } //if
-
-    return mG4PhysicalVolume;
+	new G4PVPlacement(0, G4ThreeVector(0, 0, z0*cff), lout, label.Data(), world, false, 0);
+      
+      return mG4PhysicalVolume;
+    }
   }
 #else
   return 0;
@@ -447,6 +452,12 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4VPhysicalVolume *world, const ch
 
 void EtmDetector::Export(const char *fname)
 {
+  auto eic = EicToyModel::Instance();
+  if (eic->GetAzimuthalSegmentation()) {
+    printf("\n\nCan not (yet) export azimuthally-segmented CAD model!\n\n");
+    return;
+  } //if
+
 #ifdef _OPENCASCADE_
   // Can be a GAP or a MARKER detector;
   if (!Polygons().size()) return;
@@ -455,7 +466,6 @@ void EtmDetector::Export(const char *fname)
   unsigned dim = polygon.size();
   double cff = 1.0;//cm/etm::cm;
 
-  //auto eic = EicToyModel::Instance();
 
   // Treat Z-offsets differently for central/vertex and endcap detectors;
   //TVector2 ip = eic->GetIpLocation();

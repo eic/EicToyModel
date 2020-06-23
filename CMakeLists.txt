@@ -1,20 +1,5 @@
 #
-# . <root-installation-directory>/bin/thisroot.sh
-#
-# mkdir build && mkdir build
-# cmake -Wno-dev -DCMAKE_INSTALL_PREFIX=. ..
-# make 
-#
-# -DBFIELD=<BeastMagneticField-installation-directry>
-#
-# . <geant-installation-directory>/bin/geant4.sh
-# -DGEANT=YES
-#
-# -DVGM=<VGM-installation-directory>
-#
-# -DOPENCASCADE=<OpenCascade-installation-directory> 
-#    1) Edit Standard_CString.hxx (in the installation area): Printf() -> _Printf();
-#    2) do not forget to append LD_LIBRARY_PATH accordingly;
+#  See README.md;
 #
 
 PROJECT(ETM)
@@ -35,6 +20,10 @@ cmake_minimum_required(VERSION 2.8.10)
 # Assume ROOTSYS was set up in the environment;
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+endif()
+
 # Find ROOT;
 FIND_PACKAGE(ROOT 6.0.0 REQUIRED COMPONENTS RIO Tree Hist)
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
@@ -45,7 +34,8 @@ if(DEFINED GEANT)
   find_package(Geant4 REQUIRED ui_all vis_all)
   include(${Geant4_USE_FILE})
 endif()
-SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic -std=c++11" )
+#SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic -std=c++11" )
+SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic" )
 if(DEFINED GEANT)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_ETM2GEANT_")
 endif()
@@ -94,8 +84,8 @@ INCLUDE_DIRECTORIES (
 
 # This will include all other ones; fine;
 SET( HEADERS 
-  include/EicToyModel.h 
-  include/vc2020_03_20.h
+  ${CMAKE_SOURCE_DIR}/include/EicToyModel.h 
+  ${CMAKE_SOURCE_DIR}/include/vc2020_03_20.h
 )
 
 ROOT_GENERATE_DICTIONARY(G__${LIBNAME} ${HEADERS} LINKDEF include/etmLinkDef.h)

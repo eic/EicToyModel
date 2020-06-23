@@ -13,8 +13,6 @@ class vc2020_03_20: public EtmVacuumChamber {
   bool ConfigurableCrossingAngle( void ) const { return true; };//false; };
   //double FixedCrossingAngle     ( void ) const;
 
-  G4VSolid *CutThisSolid(G4VSolid *solid, const std::vector<TVector2> &polygon);
-
   ClassDef(vc2020_03_20, 1)
 };
 

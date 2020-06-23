@@ -138,14 +138,20 @@ void EtmAzimuthalScan::DoIt(const char *fout)
 	  model->FindNextBoundary();
 	  double thickness = model->GetStep();
 	  double radlen = material->GetRadLen();
-	  if (material != model->GetMaterial("Vacuum")) {
+	  //if (material != model->GetMaterial("Vacuum")) {
+	  if (material != model->GetMaterial(_ACCELERATOR_VACUUM_) && 
+	      material != model->GetMaterial(_UNIVERSE_VACUUM_)) {
 	    thicku += thickness;
 	    accu   += thickness / radlen;
 	  } //if	    
 	  // Switch to next node along {xx, nn[]} 3D line;
 	  node = model->Step();
 
-	  if (material != model->GetMaterial("Vacuum"))
+	  //if (material != model->GetMaterial("Vacuum"))
+	  //curr = model->GetCurrentPoint();
+	  // FIXME: do it better later;
+	  if (material == model->GetMaterial("Be") ||
+	      material == model->GetMaterial("Al"))
 	    curr = model->GetCurrentPoint();
 
 	  //assert(model->IsEntering());

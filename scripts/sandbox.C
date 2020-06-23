@@ -4,12 +4,13 @@
   // Shift IP if needed; define canvas width; request eta=0 line in the drawing; set name;
   eic->ip(-50.0)->width(1500)->AddEtaLine(0.0)->SetName("sandbox");
   // Define acceptance ranges and the vacuum chamber design;
-  eic->acceptance(-4.2, -1.0, 1.2, 4.2);
+  eic->acceptance(-7.2, -1.0, 1.2, 4.2);
   eic->DefineVacuumChamber(new vc2020_03_20());
+  //eic->SetAzimuthalSegmentation(16);
 
   // Vertex tracker;
   {
-    auto vtx = eic->vtx(); vtx->offset(  3 * etm::cm);
+    auto vtx = eic->vtx(); vtx->offset(  3.2 * etm::cm);
 
     vtx->add("Si Tracker",17 * etm::cm);
   }
@@ -31,6 +32,7 @@
   // Hadron-going endcap;
   {
     auto fwd = eic->fwd(); fwd->offset(150 * etm::cm);
+    //auto fwd = eic->fwd(); fwd->offset(20 * etm::cm);
 
     for(unsigned nn=0; nn<3; nn++)
       fwd->add("MPGD",     5 * etm::cm)->brick();
@@ -62,7 +64,7 @@
   }
 
   // Declare eta boundary configuration;
-#if 0
+#if 1
   {
     eic->vtx()->get("Si Tracker")->stretch(eic->bck()->get("TOF"));
     eic->vtx()->get("Si Tracker")->stretch(eic->fwd()->get("HM RICH"));
@@ -82,7 +84,7 @@
 
   // 
   eic->hdraw();
-  eic->write();//true);
+  eic->write(true);
   //eic->Export("sandbox.stp");
-  eic->ExportVacuumChamber();
+  //eic->ExportVacuumChamber();
 } 

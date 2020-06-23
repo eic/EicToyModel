@@ -140,6 +140,11 @@ class EicToyModel: public TObject {
   // .root file -> re-create it from scratch;
   void BuildVacuumChamber( void ) { if (mVacuumChamber) mVacuumChamber->CheckGeometry(true); };
 
+  void SetAzimuthalSegmentation(unsigned value)   { 
+    if (!mGeometryLocked) mAzimuthalSegmentation = value; 
+  };
+  unsigned GetAzimuthalSegmentation( void ) const { return mAzimuthalSegmentation; };
+  
   //const TString &GetName( void ) const { return mName; };
   //const char *GetName( void )    const { return mName.Data(); };
 
@@ -158,7 +163,7 @@ class EicToyModel: public TObject {
 
   EtmVacuumChamber *GetVacuumChamber( void )   { return mVacuumChamber; };
 
-  void ExportCADmodel(const char *fname);
+  int ExportCADmodel(const char *fname);
 
   //double SafetyClearance( void )       const { return mSafetyClearance; };
   //double VisualClearance( void )       const { return mVisualClearance; };
@@ -226,6 +231,8 @@ class EicToyModel: public TObject {
   TString mName;
 
   double mIrRegionLength, mIrRegionRadius;
+
+  unsigned mAzimuthalSegmentation;
 
   // Nominal IP offset; in order to avoid any further complications, certain assumptions are made 
   // about the coordinate system and axis orietation:

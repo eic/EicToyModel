@@ -2,7 +2,22 @@
 #include <iostream>
 #include <fstream>
 
+#include <unistd.h>
+
 #include <TObjString.h>
+
+#ifdef _VGM_
+#include "Geant4GM/volumes/Factory.h"
+#include "RootGM/volumes/Factory.h"
+#endif
+
+#ifdef _ETM2GEANT_
+#include "G4SystemOfUnits.hh"
+#include "G4Tubs.hh"
+#include "G4LogicalVolume.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4SubtractionSolid.hh"
+#endif
 
 #include <EtmVacuumChamber.h>
 #include <EicToyModel.h>
@@ -12,11 +27,21 @@
 
 EtmVacuumChamber::EtmVacuumChamber( void ): 
   mTGeoModel(0), mHadronBeamPipeOpening(0.0), mActualCrossingAngle(0.0),
-  mStandaloneMode(false)
+  mStandaloneMode(false), g4Factory(0)
 {
 } // EtmVacuumChamber::EtmVacuumChamber()
 
 // ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+
+void EtmVacuumChamber::CreateMedium(const char *name, double A, double Z, double density)
+{
+  // FIXME: do it better;
+  static unsigned counter;
+
+  new TGeoMedium (name, ++counter, new TGeoMaterial(name, A, Z, density));
+} // EtmVacuumChamber::CreateMedium()
+
 // ---------------------------------------------------------------------------------------
 
 void EtmVacuumChamber::CreateWorld( void )
@@ -35,26 +60,25 @@ void EtmVacuumChamber::CreateWorld( void )
     // Create a standalone instance otherwise;
     mTGeoModel = new TGeoManager("VC.ROOT", "Simplified IR vacuum chamber geometry");
 
-    // Vacuum (low density hydrogen), beryllium, aluminum; nothing else is needed;
-    auto matVacuum = new TGeoMaterial("Vacuum", 1.008,  1, 1E-10);
-    auto matBe     = new TGeoMaterial("Be",     9.01,   4, 1.85);
-    auto matAl     = new TGeoMaterial("Al",    26.98,  13, 2.70);
-    // Fake material; want to mark particles, which do not leave the vacuum chamber;
-    auto matEdge   = new TGeoMaterial("Edge",   1.0,    1, 1E-10);
-    
-    new TGeoMedium  ("Vacuum", 1, matVacuum);
-    new TGeoMedium  ("Be",     2, matBe);
-    new TGeoMedium  ("Al",     3, matAl);
-    new TGeoMedium  ("Edge",   4, matEdge);
-    
+    // ROOT media database is rather lousy compared to GEANT; just create everything
+    // from scratch by hand;
+    CreateMedium(_ACCELERATOR_VACUUM_,  1.008,  1, 1E-10);
+    CreateMedium(   _UNIVERSE_VACUUM_,  1.008,  1, 1E-10);
+    CreateMedium(                "Be",  9.01,   4,  1.85);
+    CreateMedium(                "Al", 26.98,  13,  2.70);
+
     // FIXME: could do this better of course;
     //printf("GetIrRegionLength(): %f\n", GetIrRegionLength());
-    auto world = mTGeoModel->MakeBox("World", mTGeoModel->GetMedium("Vacuum"), 
+#if 1//_OLD_
+    auto world = mTGeoModel->MakeBox("World", mTGeoModel->GetMedium(_UNIVERSE_VACUUM_),
 				     // FIXME: GetIrRegionLength() here returns default value
 				     // rather than the one encoded in the .root dump;
 				     200., 200., eic->GetIrRegionLength() + 100.);
+    mTGeoModel->SetTopVolume(world); 
+#else
+    auto world = new TGeoVolumeAssembly("World");
     mTGeoModel->SetTopVolume(world);   
-
+#endif
     world->SetVisibility(kFALSE);
 
     mStandaloneMode = true;
@@ -80,7 +104,7 @@ void EtmVacuumChamber::CheckGeometry(bool force)
 {
   double crossing_angle = EicToyModel::Instance()->GetCrossingAngle();
     
-  //printf("%f\n", crossing_angle);
+  //printf("EtmVacuumChamber::CheckGeometry(): %f\n", crossing_angle);
   // Rebuild only if the crossing angle changed; FIXME: it is assumed of course that 
   // EicToyModel ctor sets mCrossingAngle to 25mrad;
   if (mActualCrossingAngle != crossing_angle || force) {
@@ -193,7 +217,9 @@ double EtmVacuumChamber::GetRadialSize(double z, double phi) //const
     node = mTGeoModel->Step();
 
     // If it was NOT a vacuum volume, record the radius at the boundary;
-    if (material != mTGeoModel->GetMaterial("Vacuum")) {
+    //if (material != mTGeoModel->GetMaterial("Vacuum")) {
+    if (material != mTGeoModel->GetMaterial(_ACCELERATOR_VACUUM_) && 
+	material != mTGeoModel->GetMaterial(_UNIVERSE_VACUUM_)) {
       const double *pt = mTGeoModel->GetCurrentPoint();
       outerR = sqrt(pt[0]*pt[0] + pt[1]*pt[1]);
     } //if	    
@@ -208,7 +234,49 @@ double EtmVacuumChamber::GetRadialSize(double z, double phi) //const
 } // EtmVacuumChamber::GetRadialSize()
 
 // ---------------------------------------------------------------------------------------
+
+G4VSolid *EtmVacuumChamber::CutThisSolid(G4VSolid *solid)
+{
+#if defined(_ETM2GEANT_) && defined(_VGM_)
+  // Do this once upon startup: switch TGeoManager pointer -> calculate vacuum chamber 
+  // TGeo geometry dynamically -> convert to G4 geometry -> switch TGeoManager pointer back;
+  if (!g4Factory) {
+    g4Factory = new Geant4GM::Factory();
+
+    // Switch TGeoManager pointer;
+    TGeoManager *saveGeoManager = gGeoManager; gGeoManager = 0;
+    CheckGeometry();
+    
+    RootGM::Factory rtFactory;
+    rtFactory.Import(gGeoManager->GetTopNode());
+    
+    //++g4Factory.SetDebug(1);
+    rtFactory.Export((Geant4GM::Factory*)g4Factory);
+    
+    // Return TGeoManager pointer back;
+    delete gGeoManager; gGeoManager = saveGeoManager;
+  } //if
+    
+  {
+    G4VSolid *ptr = solid;
+    G4VPhysicalVolume *gcut = ((Geant4GM::Factory*)g4Factory)->World();
+    auto glog = gcut->GetLogicalVolume();
+    
+    for(int iq=0; iq<glog->GetNoDaughters(); iq++) {
+      auto daughter = glog->GetDaughter(iq);
+      
+      // FIXME: name; FIXME: memory leak;
+      ptr = new G4SubtractionSolid(ptr->GetName(), ptr, daughter->GetLogicalVolume()->GetSolid(),
+				   daughter->GetRotation(), daughter->GetTranslation());
+    } //for iq
+    return ptr;
+  }
+#else
+  return solid;
+#endif
+} // EtmVacuumChamber::CutThisSolid()
+
+// ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
 ClassImp(EtmVacuumChamber)
-//ClassImp(XString)

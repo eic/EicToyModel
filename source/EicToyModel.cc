@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <unistd.h>
+
 #include <TObjString.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -71,7 +73,7 @@ EicToyModel *EicToyModel::mInstance = 0;
 EicToyModel::EicToyModel(double length, double radius): 
   mName("EicToyModel"),
   mIrRegionLength(length), 
-  mIrRegionRadius(radius), mIpOffset(0.0), 
+  mIrRegionRadius(radius), mAzimuthalSegmentation(0), mIpOffset(0.0), 
   mXdim(_CANVAS_WIDTH_DEFAULT_), mYdim(0),
   mXsize(0.0), mYsize(0.0), mX0(0.0), mY0(0.0), 
   mColorLegendEnabled(true), mZoomedView(false), mCanvas(0), 
@@ -430,8 +432,13 @@ void EicToyModel::ExportVacuumChamber(const char *fname)
 
 // ---------------------------------------------------------------------------------------
 
-void EicToyModel::ExportCADmodel(const char *fname)
+int EicToyModel::ExportCADmodel(const char *fname)
 {
+  if (GetAzimuthalSegmentation()) {
+    printf("\n\nCan not (yet) export azimuthally-segmented CAD model!\n\n");
+    return -1;
+  } //if
+
 #ifdef _OPENCASCADE_
   // Create XCAF document;
   Handle(TDocStd_Document) outDoc;
@@ -496,6 +503,10 @@ void EicToyModel::ExportCADmodel(const char *fname)
     //cWriter.Transfer(outDoc, STEPControl_AsIs);
     cWriter.Write(fname);
   }
+
+  return 0;
+#else
+  return -1;
 #endif
 } // EicToyModel::ExportCADmodel()
 
@@ -536,18 +547,19 @@ void EicToyModel::Export(const char *fname, bool everything, bool lock)
 	  // FIXME: unify with EtmVacuumChamber::StoreGDMLdump();
 	  const char *qfname = "/tmp/tmp.stp";
 
-	  ExportCADmodel(qfname);
-	  std::ifstream fin(qfname);
-
-	  TString str;
-	  str.ReadFile(fin);
-
-	  TObjString ostr; ostr.SetString(str);
-	  // FIXME: hardcoded (Central Detector);
-	  ostr.Write("CD.STEP");
-    
-	  // Remove the temporary file;
-	  unlink(qfname);
+	  if (!ExportCADmodel(qfname)) {
+	    std::ifstream fin(qfname);
+	    
+	    TString str;
+	    str.ReadFile(fin);
+	    
+	    TObjString ostr; ostr.SetString(str);
+	    // FIXME: hardcoded (Central Detector);
+	    ostr.Write("CD.STEP");
+	    
+	    // Remove the temporary file;
+	    unlink(qfname);
+	  } //if
 	}
 #endif
       } //if

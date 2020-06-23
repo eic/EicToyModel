@@ -11,6 +11,9 @@
 class G4VSolid;
 class EicToyModel;
 
+#define _ACCELERATOR_VACUUM_ ("AcceleratorVacuum")
+#define _UNIVERSE_VACUUM_    ("UhiverseVacuum")
+
 class EtmVacuumChamber: public TObject {
  public:
   EtmVacuumChamber( void );
@@ -34,7 +37,7 @@ class EtmVacuumChamber: public TObject {
   virtual double FixedCrossingAngle( void )      const { return 0.0; };
   bool CrossingAngleResetPossible(double value)  const;
 
-  virtual G4VSolid *CutThisSolid(G4VSolid *solid, const std::vector<TVector2> &polygon) = 0;
+  G4VSolid *CutThisSolid(G4VSolid *solid/*, const std::vector<TVector2> &polygon*/);
 
   void StoreGDMLdump( void );
 
@@ -51,10 +54,17 @@ class EtmVacuumChamber: public TObject {
 
   double mActualCrossingAngle; //!
 
+  //std::vector<std::pair<TGeoShape*, TGeoMatrix*> > mCuttingSolids; //!
+
  private: 
   void CreateWorld( void ); 
+  void CreateMedium(const char *name, double A, double Z, double density);
 
   bool mStandaloneMode; //!
+
+  //Geant4GM::Factory *g4Factory;
+  // FIXME: void* here is not good, but suffices; Geant4GM::Factory*?;
+  void *g4Factory; //!
 
   //TString mGDMLdump;
 
