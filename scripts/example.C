@@ -80,4 +80,8 @@
 
   // Draw horizontal cross cut view;
   eic->hdraw();
+
+  // Prefer to save the original configuration, no matter user calls write() 
+  // afterwards or not;
+  eic->write();
 } 
