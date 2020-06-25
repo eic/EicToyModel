@@ -12,6 +12,7 @@
 #define _GAP_WIDTH_         (  1.0)
 
 #ifdef _OPENCASCADE_
+#define Printf Printf_opencascade
 #include <gp_Pnt.hxx>
 #include <TopoDS_Solid.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
@@ -29,6 +30,7 @@
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
+#undef Printf
 #endif
 
 #ifdef _ETM2GEANT_
