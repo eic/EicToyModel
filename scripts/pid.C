@@ -12,7 +12,8 @@
 
   // Vertex tracker;
   {
-    auto vtx = eic->vtx(); vtx->offset(  3 * etm::cm);
+    // BUG: G4 event display does not work well for <3.2cm; 
+    auto vtx = eic->vtx(); vtx->offset(3.2 * etm::cm);
 
     vtx->add("Si Tracker",17 * etm::cm);
   }
