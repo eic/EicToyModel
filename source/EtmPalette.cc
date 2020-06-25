@@ -24,6 +24,7 @@ EtmPalette::EtmPalette()
   AddEntry(_MARKER_,     kPink-8);
 
   AddEntry("PID",        kPink-9);
+  AddEntry("TRACKER",    kCyan-10);
 
 
   // This stuff has to do with the "magnet element" look -> don't touch;

@@ -15,14 +15,25 @@
     // BUG: G4 event display does not work well for <3.2cm; 
     auto vtx = eic->vtx(); vtx->offset(3.2 * etm::cm);
 
+#ifdef _SPLIT_
     vtx->add("Si Tracker",17 * etm::cm);
+#else
+    vtx->add("TRACKER",   17 * etm::cm);
+#endif
   }
 
   // Barrel;
   {
     auto mid = eic->mid(); mid->offset( 20 * etm::cm);
       
-    mid->add("Si Tracker",75 * etm::cm);
+#ifdef _SPLIT_
+    for(unsigned nn=0; nn<5; nn++) {
+      mid->add("MPGD",     5 * etm::cm)->brick();
+      mid->gap(           10 * etm::cm);
+    } //for nn
+#else
+    mid->add("TRACKER",   75 * etm::cm);
+#endif
 
     mid->add("Cherenkov", 10 * etm::cm)->brick();
     mid->add("MPGD",       5 * etm::cm)->brick();
@@ -42,7 +53,7 @@
     for(unsigned nn=0; nn<3; nn++)
       fwd->add("MPGD",     5 * etm::cm)->brick();
 #else
-    fwd->add("MPGD",      15 * etm::cm)->trim(0.8, 1.0);
+    fwd->add("TRACKER",   15 * etm::cm)->trim(0.8, 1.0);
 #endif
     fwd->marker();
 
@@ -67,7 +78,7 @@
     for(unsigned nn=0; nn<3; nn++)
       bck->add("TRD",     15 * etm::cm)->brick();
 #else
-    bck->add("MPGD",      60 * etm::cm)->trim(1.0, 1.0);
+    bck->add("TRACKER",   60 * etm::cm)->trim(1.0, 1.0);
 #endif
     bck->marker();
 
@@ -79,11 +90,23 @@
 
   // Declare eta boundary configuration;
   {
-    eic->vtx()->get("Si Tracker")->stretch(eic->bck()->get("Cherenkov"));
-    eic->vtx()->get("Si Tracker")->stretch(eic->fwd()->get("HM RICH"));
+#ifdef _SPLIT_
+    const char *si = "Si Tracker", *mpgd = "MPGD";
+#else
+    const char *si = "TRACKER", *mpgd = si;
+#endif
+    eic->vtx()->get(si)          ->stretch(eic->bck()->get("Cherenkov"));
+    eic->vtx()->get(si)          ->stretch(eic->fwd()->get("HM RICH"));
 
-    eic->mid()->get("Si Tracker")->stretch(eic->bck()->get("MPGD"));
-    eic->mid()->get("Si Tracker")->stretch(eic->fwd()->get("MPGD"));
+#ifdef _SPLIT_
+    for(unsigned nn=0; nn<5; nn++) {
+      eic->mid()->get(mpgd, nn)  ->stretch(eic->bck()->get(mpgd), -20.*(4-nn) * etm::cm);
+      eic->mid()->get(mpgd, nn)  ->stretch(eic->fwd()->get(mpgd), -20.*(4-nn) * etm::cm);
+    } //for nn
+#else
+    eic->mid()->get(mpgd)        ->stretch(eic->bck()->get(mpgd));
+    eic->mid()->get(mpgd)        ->stretch(eic->fwd()->get(mpgd));
+#endif
 
     eic->mid()->get("HCal")      ->stretch(eic->bck()->get("HCal"));
     eic->mid()->get("HCal")      ->stretch(eic->fwd()->get("HCal"));
@@ -98,4 +121,5 @@
   // Draw horizontal cross cut view; write the .root file out;
   eic->hdraw();
   eic->write();
+  eic->Export("tracking-example.stp");
 } 
