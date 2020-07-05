@@ -48,6 +48,7 @@ EicToyModel *EicToyModel::mInstance = 0;
 #define _CROSSING_ANGLE_DEFAULT_               ( 0.025)
 
 #ifdef _OPENCASCADE_
+#define Printf Printf_opencascade
 #include <gp_Pnt.hxx>
 #include <TopoDS_Solid.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
@@ -65,6 +66,7 @@ EicToyModel *EicToyModel::mInstance = 0;
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
+#undef Printf
 #endif
 
 // ---------------------------------------------------------------------------------------
