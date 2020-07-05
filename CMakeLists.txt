@@ -25,7 +25,7 @@ if(NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 
 # Find ROOT;
-FIND_PACKAGE(ROOT 6.18.0 REQUIRED COMPONENTS Core Graf Graf3d)
+FIND_PACKAGE(ROOT 6.14.0 REQUIRED COMPONENTS Core Graf Graf3d)
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
 include(${ROOT_USE_FILE})
 #include("${ROOT_DIR}/modules/RootNewMacros.cmake")

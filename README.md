@@ -30,9 +30,8 @@ EIC detector configuration *templates* (namely, the self-consistent collections 
 3D sub-detector intergation volumes) and make use of them in the GEANT simulation 
 environment.
 
-  The integration volumes are guaranteed to not overlap either with each other (*done*)
-or with the IR vacuum chamber volume (*TODO list*) within the same EIC detector 
-configuration.
+  The integration volumes are guaranteed to not overlap either with each other
+or with the IR vacuum chamber volume within the same EIC detector configuration.
 
   They move synchronously under generic changes to the IR layout (e.g. by the 
 nominal IP shift along the beam line direction and/or by a change in the acceptance
@@ -73,12 +72,10 @@ regions (vertex, barrel, and two endcaps).
 * Sub-detector integration volumes in a 2D view of a given region are flat
 objects, stacked along the electron beam line axis for the two endcaps and the normal to 
 the electron beam line axis for the vertex and barrel stacks. See the picture below. 
-* Far-forward "stack" (and B0 magnet in particular) can probably be added with minor
-complications, but this is not considered in the present implementation.
+* Far-forward "stack" (and B0 magnet in particular) can be added to the model with minor
+complications.
 * All stacks are organized in a "projective" geometry, which should represent a typical 
-layout of a 4pi EIC Central Detector well enough at this stage. In this sense the only 
-reason why a separate vertex stack exists is that its "silicon tracker volume" can 
-occupy a physical area wider along the beam line than a "TPC volume" of a barrel stack.
+layout of a 4pi EIC Central Detector well enough at this stage. 
 * A "crack" between the barrel and the endcap stacks in a 2D {Z,R} view is represented by
 monotonous functions in both R(Z) and Z(R) representations. "Crack" shape however can 
 be configured in a rather flexible way, see examples below.
@@ -88,8 +85,8 @@ Pre-requisites
 --------------
 
 It is assumed that a more or less modern ROOT 6 version is installed and configured 
-on the local system. 6.14.00 works. The line below is for bash shell. Replace .sh
-by .csh if your shell is csh.
+on the local system. 6.14.00 and 6.18.02 work. The line below is for bash shell. 
+Replace .sh by .csh if your shell is csh.
 
 ```
 . <root-installation-directory>/bin/thisroot.sh
@@ -123,7 +120,6 @@ cmake -Wno-dev ..
 #   -DGEANT=YES
 # if the IR vacuum chamber shape boolean cut through the integration volumes is required:
 #   -DVGM=<VGM-installation-directory>
-# A BUG: at present both are required to have G4 interface functional.
 #
 # for CAD export functionality:
 #   -DOPENCASCADE=<OpenCascade-installation-directory>
@@ -243,9 +239,8 @@ once. See a short example executable [main.cc](examples/basic/main.cc) as an exa
 
 The library should be configured with the -DGEANT cmake command line key (see above).
 
-The integration volumes are currently represented as G4GenericPolycone shapes.
-G4Polyhedra option will follow soon. The interface producing an asymmetric
-boolean cut by the vacuum chamber shape is in the debugging stage now.
+The integration volumes are represented by either G4GenericPolycone or G4Polyhedra 
+shapes. An azimuthally asymmetric boolean cut by the vacuum chamber shape is applied.
 
 Naming convention for these volumes may require some tuning. At present e.g. a second
 from the IP TRD detector volume in the forward endcap will be named as "FWD.TRD.01", 
@@ -281,8 +276,8 @@ calorimeter behind it will be re-located to a proper place in the world volume).
 
 It seems to be wise to check the integration volume actual location by means of the 
 available library calls, and *tune* the sub-detector geometry accordingly if needed.
-For instance, populate the endcap HCal integration volume by towers depending on which 
-radial space is actually available (*radial size: TODO list*).
+For instance, populate the endcap HCal integration volume by towers depending on the
+actually available radial space (*radial size: TODO list*).
 
 Apparently the community may want to decide exporting *individual* GDML objects
 describing the sub-detector integration volumes for a given version of the full EIC detector
@@ -290,7 +285,7 @@ geometry, therefore avoiding the dependency on either the ETM library described 
 or on the ROOT itself in the GEANT environment alltogether. Providing consistency 
 between different sub-detector systems may be problematic in this case though.
 
-The [example](examples) directory contains a couple of simple standalone code, 
+The [example](examples) directory contains a couple of simple standalone codes, 
 with their own CMakeLists.txt files, which illustrate the usage. See the bare minimum 
 GEANT example source code [here](examples/basic/main.cc).
 
@@ -306,7 +301,7 @@ cd ../examples/basic
 mkdir build && cd build
 
 # <EicToyModel-installation-directory> here is an absolute path to the ../../build 
-# directory; csh users should use 'setenv' syntax instead; BUG: 64?;
+# directory; csh users should use 'setenv' syntax instead; BUG: lib64?;
 export LD_LIBRARY_PATH=<EicToyModel-installation-directory>/lib:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=<VGM-installation-directory>/lib64:${LD_LIBRARY_PATH}
 
@@ -320,17 +315,10 @@ CAD interface
 
 This interface may be useful to export the created models in a STEP format.
 
-The code has to be compiled with a -DOPENCASCADE=\<OpenCascade-installation-dir\> cmake
+The library has to be compiled with a -DOPENCASCADE=\<OpenCascade-installation-dir\> cmake
 flag (and obviously OpenCascade libraries must be installed on a local system). 
 
-  7.2.0 is known to work, but the following line 
-
-```
-_Standard_API int    _Printf  (const char* theFormat, ...);
-```
-
-in the Standard_CString.hxx file should be commented out in the installation area, in order 
-to avoid an apparent conflict with the ROOT Printf() call declaration.
+7.2.0 is known to work.
 
 One can either export a CAD model with all of the integration volumes at once by using 
 EicToyModel::Export() method, or with a single detector volume by using EtmDetector::Export() 
@@ -379,7 +367,7 @@ where such a particle would exit the accelerator vacuum chamber.
 
   The end point is the most distant from the IP location of the last silicon tracker 
 station, which can still be sensibly installed in this detector configuration in a given 
-endcap (like in front of a first detector with a lot of material). Defining this 
+endcap (like in front of the first detector with a lot of material). Defining this 
 location is at a discretion of the user. It can be given by a EtmDetectorStack::marker() 
 method (see [API description](doc/README.API.md)) when configuring a particular endcap, 
 and is indicated e.g. by small red arrows at -230cm and +115cm in the 2D picture above.
