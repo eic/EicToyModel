@@ -12,7 +12,7 @@ class G4VSolid;
 class EicToyModel;
 
 #define _ACCELERATOR_VACUUM_ ("AcceleratorVacuum")
-#define _UNIVERSE_VACUUM_    ("UhiverseVacuum")
+#define _UNIVERSE_VACUUM_    ("UniverseVacuum")
 
 class EtmVacuumChamber: public TObject {
  public:
@@ -37,7 +37,7 @@ class EtmVacuumChamber: public TObject {
   virtual double FixedCrossingAngle( void )      const { return 0.0; };
   bool CrossingAngleResetPossible(double value)  const;
 
-  G4VSolid *CutThisSolid(G4VSolid *solid/*, const std::vector<TVector2> &polygon*/);
+  G4VSolid *CutThisSolid(G4VSolid *solid, double dz);///*, const std::vector<TVector2> &polygon*/);
 
   void StoreGDMLdump( void );
 

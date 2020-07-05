@@ -2,14 +2,10 @@
 #include <set>
 #include <map>
 
-#include <TString.h>
 #include <TCanvas.h>
 
 #ifndef _EIC_TOY_MODEL_
 #define _EIC_TOY_MODEL_
-
-class G4LogicalVolume;
-class G4VPhysicalVolume;
 
 #include <EtmPalette.h>
 #include <EtmAzimuthalScan.h>
@@ -163,7 +159,9 @@ class EicToyModel: public TObject {
 
   EtmVacuumChamber *GetVacuumChamber( void )   { return mVacuumChamber; };
 
-  int ExportCADmodel(const char *fname);
+  void ExportCADmodel(const char *fname);
+  void ExportCADmodelCore(std::vector<std::pair<const TColor*, const TopoDS_Shape*> > shapes, 
+			  const char *fname);
 
   //double SafetyClearance( void )       const { return mSafetyClearance; };
   //double VisualClearance( void )       const { return mVisualClearance; };

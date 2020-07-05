@@ -32,7 +32,7 @@ include(${ROOT_USE_FILE})
 find_package(Geant4 REQUIRED ui_all vis_all)
 include(${Geant4_USE_FILE})
 
-SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic" )
+SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic -std=c++11" )
 
 SET(EXENAME basic)
 

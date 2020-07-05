@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <TString.h>
+#include <TColor.h>
 
 #ifndef _ETM_DETECTOR_
 #define _ETM_DETECTOR_
@@ -10,6 +11,7 @@
 class EtmDetectorStack;
 class G4VPhysicalVolume;
 class G4LogicalVolume;
+class TopoDS_Shape;
 
 #include <EtmPalette.h> 
 #include <EtmPolygonGroup.h>
@@ -80,6 +82,7 @@ class EtmDetector: public EtmPolygonGroup {
   void RegisterFillColor(std::map<TString, int> &legend);
 
   void Build( void );
+  std::vector<std::pair<const TColor*, const TopoDS_Shape*> > BuildCADmodel( void );
 
   unsigned GetOrder( void ) const;
 

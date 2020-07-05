@@ -432,13 +432,9 @@ void EicToyModel::ExportVacuumChamber(const char *fname)
 
 // ---------------------------------------------------------------------------------------
 
-int EicToyModel::ExportCADmodel(const char *fname)
+void EicToyModel::ExportCADmodelCore(std::vector<std::pair<const TColor*, const TopoDS_Shape*> > shapes, 
+				    const char *fname)
 {
-  if (GetAzimuthalSegmentation()) {
-    printf("\n\nCan not (yet) export azimuthally-segmented CAD model!\n\n");
-    return -1;
-  } //if
-
 #ifdef _OPENCASCADE_
   // Create XCAF document;
   Handle(TDocStd_Document) outDoc;
@@ -448,54 +444,18 @@ int EicToyModel::ExportCADmodel(const char *fname)
   Handle (XCAFDoc_ShapeTool) outAssembly = XCAFDoc_DocumentTool::ShapeTool (outDoc->Main()); 
   
   Handle(XCAFDoc_ColorTool) outColors = XCAFDoc_DocumentTool::ColorTool(outDoc->Main()); 
-  
-  for(auto stack: mStacks)
-    for(auto det: stack->mDetectors) {
-      // Can be a GAP or a MARKER detector;
-      if (!det->Polygons().size()) continue;
-      
-      auto polygon = det->Polygons()[0];
-      unsigned dim = polygon.size();
-      double cff = 1.0;//cm/etm::cm;
-      
-      //auto eic = EicToyModel::Instance();
-      
-      // Treat Z-offsets differently for central/vertex and endcap detectors;
-      //TVector2 ip = eic->GetIpLocation();
-      //double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
-      //(ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
-      double z0 = 0.0;
-      
-      // Create OpenCascade polygon;
-      auto poly = BRepBuilderAPI_MakePolygon();
-      for(unsigned ivtx=0; ivtx<dim; ivtx++) {
-	auto &pt = polygon[ivtx];
-	
-	poly.Add(gp_Pnt(pt.Y()*cff, 0.0, (pt.X()-z0)*cff));
-	
-	//z[ivtx] = (pt.X() - z0)*cff; 
-	//r[ivtx] = pt.Y()*cff; 
-	
-	//printf("%7.2f %7.2f\n", pt.X(), pt.Y());
-      } //for vtx
-      poly.Close();
-      
-      // Build a 2D face out of it; then create a revolution body;
-      auto face = BRepBuilderAPI_MakeFace(poly);
-      gp_Ax1 axis(gp_Pnt(0,0,0), gp_Dir(0,0,1)); 
-      auto solid = BRepPrimAPI_MakeRevol(face, axis); 
-      
-      // Assign ROOT TGeo color;
-      {
-	auto rcolor = gROOT->GetColor(det->GetFillColor());
-	
-	Quantity_Color ccolor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), Quantity_TOC_RGB);
-	TDF_Label aLabel = outAssembly->AddShape(solid);
-	outColors->SetColor(aLabel, ccolor, XCAFDoc_ColorSurf);
-      }
-    } //for stack .. det
-  
-      // Write the file out;
+
+  // Loop through all shapes;
+  for(auto shape: shapes) {
+    auto rcolor = shape.first;
+
+    // Assign ROOT TGeo color;
+    Quantity_Color ccolor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), Quantity_TOC_RGB);
+    TDF_Label aLabel = outAssembly->AddShape(*shape.second);
+    outColors->SetColor(aLabel, ccolor, XCAFDoc_ColorSurf);
+  } //for shape
+
+  // Write the file out;
   {
     STEPCAFControl_Writer cWriter;
     
@@ -503,17 +463,29 @@ int EicToyModel::ExportCADmodel(const char *fname)
     //cWriter.Transfer(outDoc, STEPControl_AsIs);
     cWriter.Write(fname);
   }
-
-  return 0;
 #else
-  return -1;
+  printf("EicToyModel::Export(\"%s\") -> OpenCascade support is not compiled in!\n", fname);
 #endif
+} // EicToyModel::ExportCADmodelCore()
+
+// ---------------------------------------------------------------------------------------
+
+void EicToyModel::ExportCADmodel(const char *fname)
+{
+  std::vector<std::pair<const TColor*, const TopoDS_Shape*> > shapes;
+  
+  // FIXME: admittedly this scheme with memory accumulation is not the most efficient
+  // one; however models are small, then who cares; FIXME: memory leak, dtor;
+  for(auto stack: mStacks)
+    for(auto det: stack->mDetectors) {
+      auto shape = det->BuildCADmodel();
+      shapes.insert(shapes.end(), shape.begin(), shape.end());
+    } //for stack..det
+  
+  ExportCADmodelCore(shapes, fname);
 } // EicToyModel::ExportCADmodel()
 
 // ---------------------------------------------------------------------------------------
-//
-// FIXME: unify with EtmDetector::Export(); evil OCC handles;
-//
 
 void EicToyModel::Export(const char *fname, bool everything, bool lock)
 {
@@ -542,24 +514,23 @@ void EicToyModel::Export(const char *fname, bool everything, bool lock)
 	  mVacuumChamber->StoreGDMLdump();
 	} //if
 
-#ifdef _OPENCASCADE_
+#if 0//def _OPENCASCADE_
 	{
 	  // FIXME: unify with EtmVacuumChamber::StoreGDMLdump();
 	  const char *qfname = "/tmp/tmp.stp";
 
-	  if (!ExportCADmodel(qfname)) {
-	    std::ifstream fin(qfname);
-	    
-	    TString str;
-	    str.ReadFile(fin);
-	    
-	    TObjString ostr; ostr.SetString(str);
-	    // FIXME: hardcoded (Central Detector);
-	    ostr.Write("CD.STEP");
-	    
-	    // Remove the temporary file;
-	    unlink(qfname);
-	  } //if
+	  ExportCADmodel(qfname);
+	  std::ifstream fin(qfname);
+	  
+	  TString str;
+	  str.ReadFile(fin);
+	  
+	  TObjString ostr; ostr.SetString(str);
+	  // FIXME: hardcoded (Central Detector);
+	  ostr.Write("CD.STEP");
+	  
+	  // Remove the temporary file;
+	  unlink(qfname);
 	}
 #endif
       } //if
@@ -569,11 +540,7 @@ void EicToyModel::Export(const char *fname, bool everything, bool lock)
 
       fout.Close();
     } else if (str.EndsWith(".stp")) {
-#ifdef _OPENCASCADE_
       ExportCADmodel(fname);
-#else
-      printf("EicToyModel::Export(\"%s\") -> OpenCascade support is not compiled in!\n", fname);
-#endif
     } else {
       printf("EicToyModel::Export(\"%s\") -> unknown file name extension!\n", fname);
     } //if

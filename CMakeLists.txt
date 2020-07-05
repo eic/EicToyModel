@@ -15,7 +15,7 @@ IF( NOT CMAKE_BUILD_TYPE )
 ENDIF()
 
 # Should suffice?;
-cmake_minimum_required(VERSION 2.8.10)
+cmake_minimum_required(VERSION 3.0.0)
 
 # Assume ROOTSYS was set up in the environment;
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
@@ -25,9 +25,10 @@ if(NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 
 # Find ROOT;
-FIND_PACKAGE(ROOT 6.0.0 REQUIRED COMPONENTS RIO Tree Hist)
+FIND_PACKAGE(ROOT 6.18.0 REQUIRED COMPONENTS Core Graf Graf3d)
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
 include(${ROOT_USE_FILE})
+#include("${ROOT_DIR}/modules/RootNewMacros.cmake")
 
 SET(ignoreMe "${GEANT}")
 if(DEFINED GEANT)

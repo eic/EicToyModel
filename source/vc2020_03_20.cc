@@ -77,6 +77,31 @@ void vc2020_03_20::CreateGeometry( void )
   auto model = GetWorld(); assert(model);
   auto world = model->GetTopVolume(); assert(world);
 
+  auto assy = new TGeoVolumeAssembly("VC.ASSEMBLY");
+  world->AddNode(assy, 0, 0);
+
+  //
+  // 1) Visualization of Boolean shapes is implemented in a crappy way in both ROOT and GEANT:
+  //
+  //   - ROOT silently shows weird shapes;
+  //   - in GEANT either G4Polyhedra or G4GenericPolycone shapes do not have GetPolyhedron() method 
+  //     implemented at all, therefore G4PhysicalVolumeModel::DescribeSolid() fails with a "has no 
+  //     polyhedron" message; who the hell needs shapes, which are useable in navigation, but can 
+  //     not be seen in an event display?!;
+  //   - VecGeom (USolids) library does have these methods implemented, but GetPolyhedron() fails
+  //     somewhere deep inside the boolean processor, and I have no time to debug this; a custom 
+  //     GEANT installation is required, which would only complicate usage in either fun4all or 
+  //     escalate;
+  //
+  // 2) Boolean shape TGeo->GEANT conversion through VGM, as well as TGeo export to GDML have more 
+  //    fundamental issues (both just fail if any complicated boolean objects are used);
+  //
+  //    In order to have proper conversion(s), correct boolean cut of the integration volumes 
+  // by the vacuum chamber outer shell, as well as proper visualization of both the vacuum chamber 
+  // and the integration volumes have to resort to using a simplistic implementation. It is still
+  // adequately describes the layout;
+  //
+
   // Central portion of the beryllium pipe;
   {
     double length = _ESIDE_BERYLLIUM_PIPE_LENGTH_ + _HSIDE_BERYLLIUM_PIPE_LENGTH_;
@@ -91,7 +116,7 @@ void vc2020_03_20::CreateGeometry( void )
     auto vocpipe = new TGeoVolume(ocpipe->GetName(), ocpipe, model->GetMedium("Be"));
     // Strangely enough, SetFillColor() plays no role; 
     vocpipe->SetLineColor(yellow);
-    world->AddNode(vocpipe, 0, new TGeoTranslation(0.0, 0.0, zOffset));
+    assy->AddNode(vocpipe, 0, new TGeoTranslation(0.0, 0.0, zOffset));
 
     {
       auto icpipe = new TGeoTube("BE_PIPE_I",
@@ -117,9 +142,8 @@ void vc2020_03_20::CreateGeometry( void )
       double z1 = eic->GetIpLocation().X() - _ESIDE_BERYLLIUM_PIPE_LENGTH_;
       double z2 = eic->GetIpLocation().X() + _HSIDE_BERYLLIUM_PIPE_LENGTH_;
       double z0 = -eic->GetIrRegionLength()/2, dz10 = fabs(z1 - z0);
-      // Do not bother to re-calculate shape precisely; just shift it by the 
-      // edge plate thickness;
-      double zOffset = (z0+z1)/2 -_0_127_, xy[8][2] = {
+      // Do not bother to re-calculate shape precisely; 
+      double zOffset = (z0+z1)/2, xy[8][2] = {
 	// Clock-wise; +X is the vertical direction in the detector view TCanvas;
 	{ y0+dyu, -y0},
 	{-y0-dyd, -y0},
@@ -136,7 +160,7 @@ void vc2020_03_20::CreateGeometry( void )
       auto oearb8 = new TGeoArb8("E_PIPE_O", dz10/2, (double*)xy);
       auto voepipe = new TGeoVolume(oearb8->GetName(), oearb8, model->GetMedium("Al"));
       voepipe->SetLineColor(green);
-      world->AddNode(voepipe, 0, new TGeoTranslation( 0.0, 0.0, zOffset));
+      assy->AddNode(voepipe, 0, new TGeoTranslation( 0.0, 0.0, zOffset));
       
       // This is the inner vacuum volume;
       {
@@ -150,99 +174,52 @@ void vc2020_03_20::CreateGeometry( void )
 	      xy[du*4 + ivtx][ixy] += xy[du*4 + ivtx][ixy] > 0.0 ? -inwards : inwards;
 	} //for ud
 	
-	  // Make the cutting volume a bit longer, in order to be displayed correctly;
-	auto iearb8 = new TGeoArb8("E_PIPE_I", (dz10/*+0.01*/)/2, (double*)xy);
+	auto iearb8 = new TGeoArb8("E_PIPE_I", dz10/2, (double*)xy);
 	auto viepipe = 
 	  new TGeoVolume(iearb8->GetName(), iearb8, model->GetMedium(_ACCELERATOR_VACUUM_));
 	viepipe->SetLineColor(cyan);
 	voepipe->AddNode(viepipe, 0, new TGeoTranslation( 0.0, 0.0, 0.0));
       }
-      
-      // Edge plate inbetween the beryllium and aluminum parts (e-side);
-#if 1//_TODAY_
-      {
-	//auto plate  = new TGeoBBox("E_PIPE_CAP_BODY", y0, y0, _0_127_/2);
-	auto plate = new TGeoTube("E_PIPE_CAP_BODY", 
-				  0.0,
-				  _BERYLLIUM_PIPE_OUTER_DIAMETER_/2,
-				  _0_127_/2);
-	auto vplate = new TGeoVolume(plate->GetName(), plate, model->GetMedium("Al"));
-	vplate->SetLineColor(green);
-	world->AddNode(vplate, 0, new TGeoTranslation( 0.0, 0.0, z1 - _0_127_/2));
-	
-	auto hole = new TGeoTube("E_PIPE_CAP_HOLE", 0.0,
-				 _BERYLLIUM_PIPE_INNER_DIAMETER_/2,
-				 _0_127_/2);
-	auto vhole = new TGeoVolume(hole->GetName(), hole, model->GetMedium(_ACCELERATOR_VACUUM_));
-	vplate->AddNode(vhole, 0, new TGeoTranslation( 0.0, 0.0, 0.0));
-      }
-#endif
-      // Edge plate inbetween the beryllium and aluminum parts (p-side);
-#if 1//_TODAY_
-      {
-	auto washer = new TGeoTube("P_PIPE_CAP_BODY", 
-				   0.0,
-				   _HSIDE_ALUMINUM_PIPE_DIAMETER_/2,
-				   _0_127_/2);
-	auto vwasher = new TGeoVolume(washer->GetName(), washer, model->GetMedium("Al"));
-	vwasher->SetLineColor(green);
-	world->AddNode(vwasher, 0, new TGeoTranslation( 0.0, 0.0, z2 + _0_127_/2));
-
-	auto hole = new TGeoTube("P_PIPE_CAP_HOLE",
-				 0.0,
-				 _BERYLLIUM_PIPE_INNER_DIAMETER_/2,
-				 _0_127_/2);
-	auto vhole = new TGeoVolume(hole->GetName(), hole, model->GetMedium(_ACCELERATOR_VACUUM_));
-	vwasher->AddNode(vhole, 0, new TGeoTranslation( 0.0, 0.0, 0.0));
-      }
-#endif
-      
+            
       // Hadron pipe cone; boolean operations on a pair of cones as well as with 
-      // TGeoHalfSpace may work, but look totally screwed up in TEve; resort to 
-      // define a single hollow cone and cut it by TGeoBBox of appropriate size; 
-#if 1//_TODAY_
+      // TGeoHalfSpace may work, but look totally screwed up in TEve; a single hollow
+      // cone cut at an angle by TGeoBBox fails conversion to GDML; resort to a simple 
+      // alu cone with a vacuum daughter cone volume; 
       {
-	// Besides this, ROOT does not seem to like boolean cut of a cone edge 
-	// by a plane -> make the cone a bit longer (but with the same opening 
-	// angle and wall profile), but cut it at the same z3 location; this muct be correct; 
-	double extra = 5.0;
-	double length = eic->GetIrRegionLength()/2 - eic->GetIpLocation().X() - _HSIDE_BERYLLIUM_PIPE_LENGTH_;
-	// Calculate cone apex distance from z3; 
-	double z3 = z2 + _0_127_, apex2z3 = (_HSIDE_ALUMINUM_PIPE_DIAMETER_/2)/tan(oslope);
-	double rmax = (apex2z3 + length + extra/2)*tan(oslope);
+	// FIXME: need either an additional cut cylinder inbetween the beryllium and conical 
+	// pipes or perhaps just cut beryllium cylinder at an angle; FIXME: calculate both length 
+	// and additional small offset of this rotated cone properly; 
+	double length = eic->GetIrRegionLength()/2 - eic->GetIpLocation().X() - 
+	  _HSIDE_BERYLLIUM_PIPE_LENGTH_ - 1.0;
+	// Calculate cone apex distance from z3;
+	double apex2z3 = (_HSIDE_ALUMINUM_PIPE_DIAMETER_/2)/tan(oslope);
+	double rmax = (apex2z3 + length)*tan(oslope);
 	
-	/*auto ocone =*/ new TGeoCone("H_PIPE_OCONE", (length+extra)/2, 
-				      0.0, //(apex2z3          - extra/2)*tan(islope), 
-				      (apex2z3          - extra/2)*tan(oslope), 
-				      0.0, //(apex2z3 + length + extra/2)*tan(islope), 
+	auto ocone = new TGeoCone("H_PIPE_OCONE", length/2, 
+				      0.0, 
+				      apex2z3*tan(oslope), 
+				      0.0, 
 				      rmax);
 	auto rw = new TGeoRotation();
 	rw->RotateY(qslope*180/M_PI); 
-	auto trq = new TGeoCombiTrans("TRQ", qslope*length/2, 0.0, z3 + length/2, rw);
+	// FIXME: 0.1 hardcoded;
+	auto trq = new TGeoCombiTrans("TRQ", qslope*length/2, 0.0, z2 + 0.1 + length/2, rw);
 	trq->RegisterYourself();
 	
-	// Has just to be big enough, with the edge at z3;
-	new TGeoBBox("HSPACE", 100.0, 100.0, (eic->GetIrRegionLength()/2)/2);
-	(new TGeoTranslation("TR0", 0.0, 0.0, z3 - (eic->GetIrRegionLength()/2)/2))->RegisterYourself();
-	auto comp = new TGeoCompositeShape("H_PIPE_O", "(H_PIPE_OCONE:TRQ)-(HSPACE:TR0)");
-	auto vcone = new TGeoVolume(comp->GetName(), comp, model->GetMedium("Al"));
-	//auto vcone = new TGeoVolume(ocone->GetName(), ocone, model->GetMedium("Al"));
-	vcone->SetLineColor(green);
-	world->AddNode(vcone, 0, new TGeoTranslation( 0.0, 0.0, 0.0));
-	//world->AddNode(vcone, 0, trq);
+	auto vocone = new TGeoVolume(ocone->GetName(), ocone, model->GetMedium("Al"));
+	assy->AddNode(vocone, 0, trq);
+	vocone->SetLineColor(green);
 
 	{
-	  /*auto ocone =*/ new TGeoCone("H_PIPE_ICONE", (length+extra)/2, 
-					0.0, 
-					(apex2z3          - extra/2)*tan(islope), 
-					0.0, 
-					(apex2z3 + length + extra/2)*tan(islope));
-	  auto icomp = new TGeoCompositeShape("H_PIPE_I", "(H_PIPE_ICONE:TRQ)-(HSPACE:TR0)");
-	  auto icone = new TGeoVolume(icomp->GetName(), icomp, model->GetMedium(_ACCELERATOR_VACUUM_));
-	  vcone->AddNode(icone, 0, new TGeoTranslation( 0.0, 0.0, 0.0));
+	  auto icone = new TGeoCone("H_PIPE_ICONE", length/2, 
+				    0.0, 
+				     apex2z3          *tan(islope), 
+				    0.0, 
+				    (apex2z3 + length)*tan(islope));
+	  auto vicone = new TGeoVolume(icone->GetName(), icone, model->GetMedium(_ACCELERATOR_VACUUM_));
+	  vocone->AddNode(vicone, 0, new TGeoTranslation( 0.0, 0.0, 0.0));
 	}
       }
-#endif
     }
   }
 } // vc2020_03_20::CreateGeometry()

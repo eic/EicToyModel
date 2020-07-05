@@ -235,7 +235,7 @@ double EtmVacuumChamber::GetRadialSize(double z, double phi) //const
 
 // ---------------------------------------------------------------------------------------
 
-G4VSolid *EtmVacuumChamber::CutThisSolid(G4VSolid *solid)
+G4VSolid *EtmVacuumChamber::CutThisSolid(G4VSolid *solid, double dz)
 {
 #if defined(_ETM2GEANT_) && defined(_VGM_)
   // Do this once upon startup: switch TGeoManager pointer -> calculate vacuum chamber 
@@ -265,10 +265,14 @@ G4VSolid *EtmVacuumChamber::CutThisSolid(G4VSolid *solid)
     for(int iq=0; iq<glog->GetNoDaughters(); iq++) {
       auto daughter = glog->GetDaughter(iq);
       
-      // FIXME: name; FIXME: memory leak;
+      // Hope the algebra is correct here?;
+      CLHEP::Hep3Vector vv(0, 0, dz);//, uu = daughter->GetRotation() ? (*daughter->GetRotation() * vv) : vv;
+      
+      //ptr->DumpInfo();
       ptr = new G4SubtractionSolid(ptr->GetName(), ptr, daughter->GetLogicalVolume()->GetSolid(),
-				   daughter->GetRotation(), daughter->GetTranslation());
+				   daughter->GetRotation(), daughter->GetTranslation() - vv); 
     } //for iq
+
     return ptr;
   }
 #else

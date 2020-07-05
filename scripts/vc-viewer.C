@@ -7,7 +7,8 @@ void vc_viewer(const char *fname)
 
   TEveGeoTopNode *world = new TEveGeoTopNode(gGeoManager, gGeoManager->GetTopNode());
   // This is essential: want to see the top level objects only;
-  world->SetVisLevel(1);
+  //world->SetVisLevel(1);
+  world->SetVisLevel(2);
   gEve->AddGlobalElement(world);
   
   gEve->FullRedraw3D(kTRUE);

@@ -9,7 +9,7 @@
 #include <EtmDetector.h>
 
 // Some arbitrary number for better visual detector separation; 1cm kind of works;
-#define _GAP_WIDTH_         (  1.0)
+//#define _GAP_WIDTH_         (  1.0)
 
 #ifdef _OPENCASCADE_
 #include <gp_Pnt.hxx>
@@ -29,6 +29,15 @@
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
+#include <BRepBuilderAPI_Sewing.hxx>
+#include <BRepBuilderAPI_MakeSolid.hxx>
+#include <BRepBuilderAPI.hxx>
+#include <BRepLib_MakeEdge.hxx>
+
+#include <gp_Trsf.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
+
+#include <TopExp_Explorer.hxx>
 #endif
 
 #ifdef _ETM2GEANT_
@@ -351,17 +360,12 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
   TVector2 ip = eic->GetIpLocation();
   double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
     (ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
-  // FIXME: make it optional;
-  z0 = 0.0;
-  //printf("  %f\n", z0);
   
   for(unsigned ivtx=0; ivtx<dim; ivtx++) {
     auto &pt = polygon[ivtx]; 
 
     z[ivtx] = (pt.X() - z0)*cff; 
     r[ivtx] = pt.Y()*cff; 
-    
-    //printf("%7.2f %7.2f\n", pt.X(), pt.Y());
   } //for vtx
 
   // NB: take order (like TRD 0/1/2) into account as well;
@@ -376,10 +380,9 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
 
   G4VSolid *vpol;
   if (segmentation)
-    vpol = new G4Polyhedra(label.Data(), 0., 360.*deg, segmentation, dim, r, z);
+    vpol = new G4Polyhedra      (label.Data(), 0., 360.*deg, segmentation, dim, r, z);
   else
-    vpol = new G4GenericPolycone(label.Data(), 0., 360.*deg, dim, r, z);
-  //auto vpol = new G4Polyhedra(label.Data(), 0., 360.*deg, 12, dim, r, z);
+    vpol = new G4GenericPolycone(label.Data(), 0., 360.*deg,               dim, r, z);
   
   {
     auto vc = eic->GetVacuumChamber();
@@ -387,23 +390,23 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
 
     // Figure out whether a cut is needed at all; these are mutually exclusive of 
     // course; fine, no staggered elseif's;
-#if _LATER_
+    //#if 1//_LATER_
     if (mStack == eic->vtx() && eic->vtx()->GetDetector(0) != this) vc_cut_required = false;
     if (mStack == eic->mid() && 
 	// Either vertex stack is populated or this is not the first central stack 
 	// detector -> under no sane configuration it can sit next to the beam pipe;
 	(eic->vtx()->DetectorCount() || (eic->mid()->GetDetector(0) != this)))
       vc_cut_required = false;
-#else
+    //#else
     // FIXME: keep it simple for the time being;
-    if (mStack == eic->vtx() || mStack == eic->mid()) vc_cut_required = false;
-#endif
+    //if (mStack == eic->vtx() || mStack == eic->mid()) vc_cut_required = false;
+    //#endif
     //vc_cut_required = false;
 
     // Check whether a vacuum chamber boolean cut is possible (and required); 
     // NB: CutThisSolid() may still return the same pointer if VGM is not compiled in;
     // FIXME: a memory leak;
-    auto vout = vc && vc_cut_required ? vc->CutThisSolid(vpol) : vpol;
+    auto vout = vc && vc_cut_required ? vc->CutThisSolid(vpol, z0*cff) : vpol;
 
     // Air, what else can it be?;
     {
@@ -415,9 +418,9 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
 	// Extract ROOT color attributes and assign them to GEANT volumes;
 	auto rcolor = gROOT->GetColor(GetFillColor());
 	
-	G4VisAttributes* visAtt = //new G4VisAttributes();
-	  new G4VisAttributes(G4Colour(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue()));
-	//visAtt->SetColor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue());//, 0.3);
+	G4VisAttributes* visAtt = new G4VisAttributes();
+	//new G4VisAttributes(G4Colour(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue()));
+	visAtt->SetColor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue());//, 0.3);
 	visAtt->SetVisibility(true);
 	visAtt->SetForceWireframe(false);
 	visAtt->SetForceSolid(true);
@@ -450,75 +453,107 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4VPhysicalVolume *world, const ch
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
-void EtmDetector::Export(const char *fname)
+std::vector<std::pair<const TColor*, const TopoDS_Shape*> > EtmDetector::BuildCADmodel( void )
 {
-  auto eic = EicToyModel::Instance();
-  if (eic->GetAzimuthalSegmentation()) {
-    printf("\n\nCan not (yet) export azimuthally-segmented CAD model!\n\n");
-    return;
-  } //if
+  std::vector<std::pair<const TColor*, const TopoDS_Shape*> > shape;
 
 #ifdef _OPENCASCADE_
+  auto eic = EicToyModel::Instance();
+
+  auto rcolor = gROOT->GetColor(GetFillColor());
+
   // Can be a GAP or a MARKER detector;
-  if (!Polygons().size()) return;
+  if (!Polygons().size()) return shape;
 
   auto polygon = Polygons()[0];
   unsigned dim = polygon.size();
-  double cff = 1.0;//cm/etm::cm;
-
-
-  // Treat Z-offsets differently for central/vertex and endcap detectors;
-  //TVector2 ip = eic->GetIpLocation();
-  //double z0 = (mStack == eic->bck() || mStack == eic->fwd()) ? 
-  //(ip + mActualDistance*mStack->AlignmentAxis()).X() : ip.X();
-  double z0 = 0.0;
+  // For CAD export there is seemingly no need to play z0 back and forth games; also 
+  // the conversion coefficient is 0.0; keep both for historic reasons;
+  double cff = 1.0, z0 = 0.0;
 
   // Create OpenCascade polygon;
-  auto poly = BRepBuilderAPI_MakePolygon();
-  for(unsigned ivtx=0; ivtx<dim; ivtx++) {
-    auto &pt = polygon[ivtx];
+  auto fpoly = BRepBuilderAPI_MakePolygon();
+  for(auto const &pt: polygon)
+    fpoly.Add(gp_Pnt(pt.Y()*cff, 0.0, (pt.X()-z0)*cff));
+  fpoly.Close();
 
-    poly.Add(gp_Pnt((pt.X()-z0)*cff, 0.0, pt.Y()*cff));
-
-    //z[ivtx] = (pt.X() - z0)*cff; 
-    //r[ivtx] = pt.Y()*cff; 
-    
-    //printf("%7.2f %7.2f\n", pt.X(), pt.Y());
-  } //for vtx
-  poly.Close();
-
-  // Build a 2D face out of it; then create a revolution body;
-  auto face = BRepBuilderAPI_MakeFace(poly);
+  // Build a 2D face out of it; then either create a revolution body or a polyhedra;
+  auto fface = BRepBuilderAPI_MakeFace(fpoly);
   gp_Ax1 axis(gp_Pnt(0,0,0), gp_Dir(0,0,1)); 
-  auto solid = BRepPrimAPI_MakeRevol(face, axis); 
 
-  // Create XCAF document;
-  Handle(TDocStd_Document) outDoc;
-  Handle(XCAFApp_Application) outApp = XCAFApp_Application::GetApplication(); 
-  outApp->NewDocument("ETM", outDoc); 
-  
-  Handle (XCAFDoc_ShapeTool) outAssembly = XCAFDoc_DocumentTool::ShapeTool (outDoc->Main()); 
-  
-  Handle(XCAFDoc_ColorTool) outColors = XCAFDoc_DocumentTool::ColorTool(outDoc->Main()); 
+  //std::vector<TopoDS_Shape> solid;
+  if (eic->GetAzimuthalSegmentation()) {
+    double alfa = 2*M_PI/eic->GetAzimuthalSegmentation();
+    auto rpoly = BRepBuilderAPI_MakePolygon();
+    std::vector<gp_Pnt> front, rear;
+    std::vector<TopoDS_Face> sides;
 
-  // Assign ROOT TGeo color;
-  {
-    auto rcolor = gROOT->GetColor(GetFillColor());
+    for(auto const &pt: polygon) {
+      double xx = pt.Y()*cff, yy = 0.0, zz = (pt.X()-z0)*cff;
+      double xq =  cos(alfa)*xx + sin(alfa)*yy;
+      double yq = -sin(alfa)*xx + cos(alfa)*yy;
+      
+      front.push_back(gp_Pnt(xx, yy, zz));
+      rear .push_back(gp_Pnt(xq, yq, zz));
+
+      rpoly.Add(gp_Pnt(xq, yq, zz));
+    } //for ivtx
+    rpoly.Close();
     
-    Quantity_Color ccolor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), Quantity_TOC_RGB);
-    TDF_Label aLabel = outAssembly->AddShape(solid);
-    outColors->SetColor(aLabel, ccolor, XCAFDoc_ColorSurf);
-  }
+    auto rface = BRepBuilderAPI_MakeFace(rpoly);
 
-  // Write the file out;
-  {
-    STEPCAFControl_Writer cWriter;
-    
-    cWriter.Transfer(outDoc, STEPControl_ManifoldSolidBrep);
-    //cWriter.Transfer(outDoc, STEPControl_AsIs);
-    cWriter.Write(fname);
+    for(unsigned ivtx=0; ivtx<dim; ivtx++) {
+      auto spoly = BRepBuilderAPI_MakePolygon();
+
+      spoly.Add(front[ ivtx       ]);
+      spoly.Add( rear[ ivtx       ]);
+      spoly.Add( rear[(ivtx+1)%dim]);
+      spoly.Add(front[(ivtx+1)%dim]);
+      spoly.Close();
+
+      sides.push_back(BRepBuilderAPI_MakeFace(spoly));
+    } //for ivtx
+
+    BRepBuilderAPI_Sewing *sew = new BRepBuilderAPI_Sewing();
+    sew->Add(fface);
+    sew->Add(rface);
+    for(unsigned ivtx=0; ivtx<dim; ivtx++) 
+      sew->Add(sides[ivtx]);
+
+    sew->Perform();
+    auto result = sew->SewedShape();
+
+    for (TopExp_Explorer itf(result,TopAbs_SHELL); itf.More(); itf.Next()) {
+      TopoDS_Shell &shell = (TopoDS_Shell&)itf.Current();
+      
+      // FIXME: perhaps not the most efficient way, but it works;
+      for(unsigned iq=0; iq<eic->GetAzimuthalSegmentation(); iq++) {
+	gp_Trsf rZ;
+	rZ.SetRotation(axis, alfa*iq);
+	BRepBuilderAPI_Transform rot(rZ);
+
+	auto buffer = BRepBuilderAPI_MakeSolid(shell).Solid();
+	rot.Perform(buffer);
+	//solid.push_back(rot.ModifiedShape(buffer));
+	shape.push_back(std::make_pair(rcolor, new TopoDS_Shape(rot.ModifiedShape(buffer))));
+      } //for iq
+
+      // FIXME: there is of course exactly one shape expected;
+      break;
+    } //for itf
   }
+  else
+    shape.push_back(std::make_pair(rcolor, new TopoDS_Shape(BRepPrimAPI_MakeRevol(fface, axis)))); 
 #endif
+
+  return shape;
+} // EtmDetector::BuildCADmodel()
+
+// ---------------------------------------------------------------------------------------
+
+void EtmDetector::Export(const char *fname)
+{
+  EicToyModel::Instance()->ExportCADmodelCore(BuildCADmodel(), fname);
 } // EtmDetector::Export()
 
 // ---------------------------------------------------------------------------------------

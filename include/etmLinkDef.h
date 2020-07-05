@@ -24,4 +24,7 @@
 
 #pragma link C++ class vc2020_03_20+;
 
+// ROOT 6.18 requires this; was not needed in 6.14;
+#pragma link C++ class std::pair<bool,bool>+;
+
 #endif

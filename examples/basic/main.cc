@@ -6,8 +6,15 @@
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4VModularPhysicsList.hh"
+#include "G4GDMLParser.hh"
+#include "G4GDMLReadStructure.hh"
+#include "G4AssemblyVolume.hh"
+#include "G4PVPlacement.hh"
+#include "G4NistManager.hh"
 
+#include <TROOT.h>
 #include <TFile.h>
+#include <TColor.h>
 
 #include <EicToyModel.h>
 
@@ -36,6 +43,42 @@ public:
     eic->PlaceG4Volumes(expHall_phys);
     // ... or just a single "EmCal" volume of the h-endcap, under "MyEmCal" name; 
     /*auto emcal =*/ //eic->fwd()->get("EmCal")->PlaceG4Volume(expHall_phys, "MyEmCal");
+
+    //eic->mid()->get("TPC")   ->PlaceG4Volume(expHall_phys);
+    //eic->vtx()->get("Si Tracker")->PlaceG4Volume(expHall_phys);
+    //auto trd = eic->bck()->get("TRD", 0)   ->PlaceG4Volume(expHall_phys);
+    //auto trd = eic->bck()->get("Cherenkov")   ->PlaceG4Volume(expHall_phys);
+
+#if _OK_
+    {
+      auto GDMLRS = new G4GDMLReadStructure();
+      G4GDMLParser gdmlParser(GDMLRS);
+      //gdmlParser.SetOverlapCheck(true);
+      // FIXME: may as well import from the same ROOT file ("VC.GDML" TObjString);
+      gdmlParser.Read("../../../build/sandbox.vc.gdml", false);
+      G4AssemblyVolume *avol = GDMLRS->GetAssembly("VC.ASSEMBLY");
+      if (avol) {
+	G4VisAttributes* visAttg = new G4VisAttributes();
+	visAttg->SetColor(.5, .5, .5);
+	visAttg->SetVisibility(true);
+	visAttg->SetForceWireframe(false);
+	visAttg->SetForceSolid(true);
+	
+	std::vector<G4VPhysicalVolume *>::iterator it = avol->GetVolumesIterator();
+	for (unsigned int i = 0; i < avol->TotalImprintedVolumes(); i++) {
+	  //printf("@@@ %30s ... %d\n", (*it)->GetName().data(), (*it)->GetLogicalVolume()->GetNoDaughters());
+	  (*it)->GetLogicalVolume()->SetVisAttributes(visAttg);
+	  //InsertVolumes(*it);
+	  ++it;
+	}
+	
+	//G4RotationMatrix *g4rot = new G4RotationMatrix();
+	G4ThreeVector g4vec;
+	avol->MakeImprint(expHall_phys->GetLogicalVolume(), g4vec,
+			  new G4RotationMatrix(), 0, true);
+      } //if
+    }
+#endif
 
     return expHall_phys;
   };
@@ -75,14 +118,15 @@ int main(int argc, char** argv)
   G4UIExecutive *ui = new G4UIExecutive(argc, argv);
   UImanager->ApplyCommand("/vis/open OGL 600x600-0+0");
   // Define a 3D cutaway view; 
-  UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 60. 20.");
-  //UImanager->ApplyCommand("/vis/drawVolume ! ! ! -box m 0 10 0 10 -10 10");
+  UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 110. 150.");
+  UImanager->ApplyCommand("/vis/viewer/set/lightsThetaPhi    110. 150.");
+  //++UImanager->ApplyCommand("/vis/drawVolume ! ! ! -box m   0 10 0 10 -10 10");
   UImanager->ApplyCommand("/vis/drawVolume ! ! ! -box m -10 10 0 10 -10 10");
-  //--UImanager->ApplyCommand("/vis/drawVolume");
+  //UImanager->ApplyCommand("/vis/drawVolume");
   UImanager->ApplyCommand("/vis/scene/add/axes 0 0 0 1 m");
   UImanager->ApplyCommand("/vis/viewer/set/background white");
   UImanager->ApplyCommand("/vis/viewer/zoom 2.0");
-  //++UImanager->ApplyCommand("/geometry/test/run");
+  //UImanager->ApplyCommand("/geometry/test/run");
   ui->SessionStart();
 
   delete ui; delete visManager; delete runManager;
