@@ -12,6 +12,12 @@ Only a small subset of methods is of interest for basic configuration work. It m
 therefore make sense to focus on the commands, which are used e.g. in the
 [example script](../scripts/example.C).
 
+ * [EicToyModel class methods](#eictoymodel-class-methods)
+ * [EtmDetectorStack class methods](#etmdetectorstack-class-methods)
+ * [EtmDetector class methods](#etmdetector-class-methods)
+ * [EtmAzimuthalScan class methods](#etmazimuthalscan-class-methods)
+
+
 EicToyModel class methods
 -------------------------
 
