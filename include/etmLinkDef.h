@@ -5,7 +5,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-//#pragma link C++ namespace eic;
+#pragma link C++ namespace qeic;
 
 #pragma link C++ class EicDetName+;
 
