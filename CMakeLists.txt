@@ -35,8 +35,8 @@ if(DEFINED GEANT)
   find_package(Geant4 REQUIRED ui_all vis_all)
   include(${Geant4_USE_FILE})
 endif()
-#SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic -Wno-format-security -Wno-misleading-indentation -std=c++11" )
-SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic -Wno-format-security -Wno-misleading-indentation" )
+SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic -Wno-format-security \
+                      -Wno-reorder -Wno-sign-compare -Wno-narrowing" )
 if(DEFINED GEANT)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_ETM2GEANT_")
 endif()
@@ -62,6 +62,15 @@ SET(LIBNAME etm)
 SET(EXENAME exe)
 
 SET( LIBSRC 
+  source/EicDetName.cxx 
+  source/EicGeoMap.cxx 
+  source/EicNamePatternHub.cxx 
+  source/EicGeoParData.cxx 
+  source/GemGeoParData.cxx 
+  source/MuMegasGeoParData.cxx 
+  source/MapsGeoParData.cxx 
+  source/MapsMimosaAssembly.cxx 
+
   source/EtmOrphans.cc 
   source/EtmLine2D.cc 
   source/EtmEtaBoundary.cc 
