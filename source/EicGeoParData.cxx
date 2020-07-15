@@ -14,6 +14,7 @@
 #endif
 
 #include <TROOT.h>
+#include <TClass.h>
 #include <TRealData.h>
 #include <TDataMember.h>
 
