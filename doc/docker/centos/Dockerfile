@@ -4,7 +4,7 @@
 
 FROM centos:7
 
-# NB: user is ROOT here; now install the missing packages;
+# Install the missing packages;
 RUN yum -y install gcc-c++ gcc-gfortran curl curl-devel nano git make libXft-devel libXpm-devel giflib libtiff && \
     yum -y clean all
 

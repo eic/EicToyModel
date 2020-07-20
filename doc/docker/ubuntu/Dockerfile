@@ -4,7 +4,7 @@
 
 FROM ubuntu:eoan
 
-# NB: user is ROOT here; now install the missing packages;
+# Install the missing packages;
 RUN apt-get update && \
   apt-get -y install curl nano git cmake make libxft-dev libxpm-dev libtiff5 && \
   apt-get clean && \

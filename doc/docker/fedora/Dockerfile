@@ -4,7 +4,7 @@
 
 FROM fedora:30
 
-# NB: user is ROOT here; now install the missing packages;
+# Install the missing packages;
 RUN yum -y install gcc-c++ gcc-gfortran curl nano git cmake make libXft-devel libXpm-devel giflib libtiff && \
     yum -y clean all
 
