@@ -1,26 +1,6 @@
 #
-# Supposed to work under Linux and Mac OS with docker and X11 installed;
+# See README.md for building and running instructions;
 #
-# Create scratch directory (if want to preserve session results); 
-#   mkdir <my-scratch-dir>
-#
-# Linux:
-#   sudo docker build -t fedora-eictoymodel .
-#   sudo docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY --user $(id -u) -v <my-scratch-dir>:/scratch fedora-eictoymodel
-#
-# Mac OS:   1) XQuartz: Preferences -> Security -> enable "Allow connections from network clients"; restart XQuartz;
-#           2) execute 'xhost +localhost' in a terminal;
-#        docker build -t fedora-eictoymodel .
-#        docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=host.docker.internal:0   -v <my-scratch-dir>:/scratch fedora-eictoymodel
-#
-# . /opt/root/bin/thisroot.sh
-# cd /scratch 
-# git clone https://github.com/eic/EicToyModel.git
-# cd EicToyModel && mkdir build && cd build
-# cmake ..
-# make -j4
-# root -l ../scripts/example.C
-#  
 
 FROM fedora:30
 

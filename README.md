@@ -48,7 +48,84 @@ distance from the nominal IP (*partly implemented*).
 
   It is assumed that the basic part of functionality (2D model creation, modification, 
 visualization, saving to disk, import) should be available on *any* modern Mac OS, 
-Linux or Windows system, see [Quick start](#quick-start). The bar *to have something
+Linux or Windows system, see [Quick start](#quick-start-and-basic-functionality)
+ * &nbsp; &nbsp; &nbsp; [Mac OS](#mac-os)
+ * &nbsp; &nbsp; &nbsp; [Linux](#linux)
+ * &nbsp; &nbsp; &nbsp; [Docker environment](#docker-environment)
+ * &nbsp; &nbsp; &nbsp; [Running the scripts](#running-the-scripts)
+ * &nbsp; &nbsp; &nbsp; [Vacuum chamber material and B*dl integral scans](#vacuum-chamber-material-and-magnetic-field-scans)
+ * [Extended functionaly](#extended-functionality)
+ * &nbsp; &nbsp; &nbsp; [GEANT interface](#geant-interface)
+ * &nbsp; &nbsp; &nbsp; [CAD interface](#cad-interface)
+ * &nbsp; &nbsp; &nbsp; [Magnetic field interface](#magnetic-field-interface)
+ * [ROOT macros options](#root-macro-options)
+
+<br/>
+
+Introduction
+------------
+
+  The main objective of this software was providing the EIC community users
+with a tool, which would allow them to easily (whatever easy means) create possible 
+EIC detector configuration *templates* (namely, the self-consistent collections of 
+3D sub-detector intergation volumes) and make use of them in the GEANT simulation 
+environment.
+
+  The integration volumes are guaranteed to not overlap either with each other
+or with the IR vacuum chamber volume within the same EIC detector configuration.
+
+  They move synchronously under generic changes to the IR layout (e.g. by the 
+nominal IP shift along the beam line direction and/or by a change in the acceptance
+boundaries separating barrel and endap regions).
+
+  Technically, a user has access to the parameters characterizing the shape and 
+location of the integration volume to where his/her sub-detector component belongs, 
+and can build the sub-detector dynamically in the respective GEANT
+G4VUserDetectorConstruction::Construct() method, depending e.g. on the sub-detector 
+distance from the nominal IP (*partly implemented*).
+
+  It is assumed that the basic part of functionality (2D model creation, modification, 
+visualization, saving to disk, import) should be available on *any* modern Mac OS, 
+Linux or Windows system, see [Quick start](#quick-start-and-basic-functionality)
+ * &nbsp; &nbsp; &nbsp; [Mac OS](#mac-os)
+ * &nbsp; &nbsp; &nbsp; [Linux](#linux)
+ * &nbsp; &nbsp; &nbsp; [Docker environment](#docker-environment)
+ * &nbsp; &nbsp; &nbsp; [Running the scripts](#running-the-scripts)
+ * &nbsp; &nbsp; &nbsp; [Vacuum chamber material and B*dl integral scans](#vacuum-chamber-material-and-magnetic-field-scans)
+ * [Extended functionaly](#extended-functionality)
+ * &nbsp; &nbsp; &nbsp; [GEANT interface](#geant-interface)
+ * &nbsp; &nbsp; &nbsp; [CAD interface](#cad-interface)
+ * &nbsp; &nbsp; &nbsp; [Magnetic field interface](#magnetic-field-interface)
+ * [ROOT macros options](#root-macro-options)
+
+<br/>
+
+Introduction
+------------
+
+  The main objective of this software was providing the EIC community users
+with a tool, which would allow them to easily (whatever easy means) create possible 
+EIC detector configuration *templates* (namely, the self-consistent collections of 
+3D sub-detector intergation volumes) and make use of them in the GEANT simulation 
+environment.
+
+  The integration volumes are guaranteed to not overlap either with each other
+or with the IR vacuum chamber volume within the same EIC detector configuration.
+
+  They move synchronously under generic changes to the IR layout (e.g. by the 
+nominal IP shift along the beam line direction and/or by a change in the acceptance
+boundaries separating barrel and endap regions).
+
+  Technically, a user has access to the parameters characterizing the shape and 
+location of the integration volume to where his/her sub-detector component belongs, 
+and can build the sub-detector dynamically in the respective GEANT
+G4VUserDetectorConstruction::Construct() method, depending e.g. on the sub-detector 
+distance from the nominal IP (*partly implemented*).
+
+  It is assumed that the basic part of functionality (2D model creation, modification, 
+visualization, saving to disk, import) should be available on *any* modern Mac OS, 
+Linux or Windows system, see [Quick start](#quick-start-and-basic-functionality). 
+The bar *to have something
 running* is intentionally very low, in order to give as many EIC users as possible 
 an opportunity to familiarize themselves with the anticipated EIC Central Detector
 layout, acknowledge the limitations, imposed by the accelerator Interaction Region design, 
@@ -158,6 +235,7 @@ xcode-select --install
 # Add cmake to your PATH;
 export PATH=/Applications/CMake.app/Contents/bin:${PATH}
 
+# Move to the scratch directory;
 cd <my-scratch-directory>
 ```
 
@@ -173,6 +251,7 @@ Make sure git, cmake, make and your favorite ROOT version are installed. Assumin
 ```
 source <root-installation-directory>/bin/thisroot.sh
 
+# Move to the scratch directory;
 cd <my-scratch-directory>
 ```
 
