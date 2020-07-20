@@ -10,16 +10,19 @@ configuration purposes.
  * [Introduction](#introduction)
  * [Other features](#other-features)
  * [Model limitations](#model-limitations)
- * [Pre-requisites](#pre-requisites)
- * [Downloading](#downloading)
- * [Compiling](#compiling)
- * [Running](#running)
- * [GEANT interface](#geant-interface)
- * [CAD interface](#cad-interface)
- * [Magnetic field interface](#magnetic-field-interface)
- * [Vacuum chamber material and B*dl integral scans](#vacuum-chamber-material-and-magnetic-field-scans)
+ * [Quick start and basic functionality](#quick-start-and-basic-functionality)
+ * &nbsp; &nbsp; &nbsp; [Mac OS](#mac-os)
+ * &nbsp; &nbsp; &nbsp; [Linux](#linux)
+ * &nbsp; &nbsp; &nbsp; [Docker environment](#docker-environment)
+ * &nbsp; &nbsp; &nbsp; [Running the scripts](#running-the-scripts)
+ * &nbsp; &nbsp; &nbsp; [Vacuum chamber material and B*dl integral scans](#vacuum-chamber-material-and-magnetic-field-scans)
+ * [Extended functionaly](#extended-functionality)
+ * &nbsp; &nbsp; &nbsp; [GEANT interface](#geant-interface)
+ * &nbsp; &nbsp; &nbsp; [CAD interface](#cad-interface)
+ * &nbsp; &nbsp; &nbsp; [Magnetic field interface](#magnetic-field-interface)
  * [ROOT macros options](#root-macro-options)
 
+<br/>
 
 Introduction
 ------------
@@ -43,6 +46,30 @@ and can build the sub-detector dynamically in the respective GEANT
 G4VUserDetectorConstruction::Construct() method, depending e.g. on the sub-detector 
 distance from the nominal IP (*partly implemented*).
 
+  It is assumed that the basic part of functionality (2D model creation, modification, 
+visualization, saving to disk, import) should be available on *any* modern Mac OS, 
+Linux or Windows system, see [Quick start](#quick-start). The bar *to have something
+running* is intentionally very low, in order to give as many EIC users as possible 
+an opportunity to familiarize themselves with the anticipated EIC Central Detector
+layout, acknowledge the limitations, imposed by the accelerator Interaction Region design, 
+and contribute to the pre-selection of the EIC Yellow Report detector configuration(s).
+
+  Only basic ROOT scripting knowledge is required for this part. GEANT is not involved. 
+Validation tools to estimate very forward and very backward acceptance boundaries
+are provided.
+
+  In some sense the provided installation materials may also serve as a concise quick 
+start tutorial on how to have ROOT-aware libraries installed and running on your laptop.  
+Indeed there is not much specifics about EicToyModel per se in the technical details.
+
+  The [Extended functionaly](#extended-functionality) (interface to GEANT and OpenCascade, 
+EicRoot tracker geometry import, VGM interface, etc) requires *controlled environment*, 
+and is presented for escalate Docker container and for fun4all singularity container cases. 
+Of course, nothing prevents a qualified user to install everything locally, but only a 
+limited support can be provided. That said, a local installation procedure (to first 
+order it only involves compiling of VGM and GEANT) is very straightforward. 
+
+<br/>
 
 Other features
 --------------
@@ -63,6 +90,7 @@ material scan.
 * Export of the integration volumes as a STEP file, for the support structure and 
 services engineering design purposes. 
 
+<br/>
 
 Model limitations
 -----------------
@@ -80,70 +108,136 @@ layout of a 4pi EIC Central Detector well enough at this stage.
 monotonous functions in both R(Z) and Z(R) representations. "Crack" shape however can 
 be configured in a rather flexible way, see examples below.
 
-   
-Pre-requisites
---------------
+<br/>
 
-It is assumed that a more or less modern ROOT 6 version is installed and configured 
-on the local system. 6.14.00 and 6.18.02 work. The line below is for bash shell. 
-Replace .sh by .csh if your shell is csh.
+Quick start and basic functionality
+-----------------------------------
+
+The installation instructions in this section are to a large extent a gist of the materials 
+provided in [FairRoot build pre-requisites](https://fairroot.gsi.de/?q=node/63) and 
+[EIC container README](https://gitlab.com/eic/containers), and many more details are 
+given there.
+
+Instructions for Windows are not available at this moment (volunteers welcome!), but one should
+be able to build the functional bootstrap Docker images for either Centos, or Ubuntu or Fedora (see
+the Linux section below) and run the codes in a container environment.
+
+It is indeed not possible to cover any Linux or MacOS installation in a short README. The 
+codes were tested on MacOS Catalina (natively), and on Centos 7, Fedora 3.0 and Ubuntu eoan 
+(in a Docker container). A number of ROOT versions from 6.14.04 to 6.20.04 were tried out. 
+Compilers: from gcc 4.8.5 to gcc 9.3.1, as well as clang 11.0.3 . Various versions of cmake 3.
+
+The instructions below assume the codes will be installed in some newly created user scratch 
+directory *\<my-scratch-directory\>* of your choice (like *\$\{HOME\}\/scratch*):
 
 ```
-. <root-installation-directory>/bin/thisroot.sh
+mkdir -p <my-scratch-directory>
 ```
 
-Downloading
------------
+Sounds obvious, yet: replace all instances of *\<my-scratch-directory\>* by the name of your 
+actual scratch directory in all the respective commands below.
+
+
+#### Mac OS
+
+Test environment: MacOS Catalina, Xcode 11.6 (clang 11.0), XQuartz 2.7.7, cmake 3.12.2, binary 
+distribution of ROOT 6.20.04 . 
+
+Install the above components using App Store, as well as XQuartz, Kitware and CERN download sites.
+
+There are reasons to believe that any combination of modern MacOS and ROOT should work. Give your
+feedback if it does not.
 
 ```
+# Configure Xcode; this is essential!
+xcode-select --install
+
+# Configure ROOT;
+. /Applications/root_v6.20.04/bin/thisroot.sh 
+
+# Add cmake to your PATH;
+export PATH=/Applications/CMake.app/Contents/bin:${PATH}
+
+cd <my-scratch-directory>
+```
+
+From this point on follow the [running](#running-the-scripts) instructions.
+
+
+#### Linux
+
+Chances are high enough you will be able to run the codes natively on your local host.
+Make sure git, cmake, make and your favorite ROOT version are installed. Assuming 
+*\<root-installation-directory\>* is where ROOT is installed, configure it:
+
+```
+source <root-installation-directory>/bin/thisroot.sh
+
+cd <my-scratch-directory>
+```
+
+C-shell users: replace *.sh* by *.csh* in the above command.
+
+From this point on follow the [running](#running-the-scripts) instructions. If this step fails, 
+consider to install any missing packages. If uncertain, check *yum* or *apt-get* command lines, 
+matching your Linux flavor in a particular Dockerfile [here](doc/docker). Notice that Centos 7
+(and consequently Scientific Linux 7) requires a more modern *cmake* to be installed.
+
+
+#### Docker environment
+
+This is the last resort. The provided [docker files](doc/docker) allow one to build a Docker 
+container from scratch, using either Centos 7 or Fedora 3.0 or Ubuntu eoan base images. The 
+latter two are preferred (more modern). *sudo* prefix in the commands below is optional, depending 
+on the details of your host OS installation.
+
+Obviously only a particular *Dockerfile* in an empty directory is required to build the docker
+image. Let's assume one of the three provided Dockerfile's (Centos, Fedore, Ubuntu) was chosen and saved as 
+*/tmp/docker/Dockerfile*, either using a text editor, or by cloning the EicToyModel repository
+in some temporary area (*git clone https://github.com/eic/EicToyModel.git*) and copying the 
+respective file over, or elsewise):
+
+```
+# Build the bootstrap image;
+sudo docker build -t pre-eictoymodel /tmp/docker
+
+# Run (if your host system is Linux):
+sudo docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY --user $(id -u) -v <my-scratch-directory>:/scratch pre-eictoymodel
+#
+# Run (if your host system is Mac OS):
+#   XQuartz configuration: go to "Preferences -> Security" and enable "Allow connections from network 
+#   clients". Restart XQuartz. Execute 'xhost +localhost' in a terminal.
+sudo docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=host.docker.internal:0   -v <my-scratch-directory>:/scratch pre-eictoymodel
+
+# (On the container prompt): configure ROOT, move to the /scratch directory:
+. /opt/root/bin/thisroot.sh
+cd /scratch
+```
+
+From this point on follow the [running](#running-the-scripts) instructions.
+
+
+#### Running the scripts
+
+To this moment we are either in a \<my-scratch-directory\> on a host system (native mode) or in this same 
+directory seen as a */scratch* volume in the Docker container. Either way, the remaining sequence of 
+commands is the same in all cases:
+
+```
+# Download and compile EicToyModel;
 git clone https://github.com/eic/EicToyModel.git
-```
-
-Compiling
----------
-
-The library has to be installed locally. 
-
-```
 cd EicToyModel && mkdir build && cd build
-cmake -Wno-dev ..
-
-# additional cmake options:
-#
-# if executable(s) from the 'examples' directory will be compiled (be aware, "." works):
-#   -DCMAKE_INSTALL_PREFIX=<EicToyModel-installation-directory>
-#
-# if your local ROOT installation was compiled with -std=c++17:
+# ! Add the following flag if your local ROOT installation was compiled with -std=c++17:
 #   -DCMAKE_CXX_STANDARD=17
-#
-# if GEANT4 interface is required:
-#   -DGEANT=YES
-# if the IR vacuum chamber shape boolean cut through the integration volumes is required:
-#   -DVGM=<VGM-installation-directory>
-#
-# for CAD export functionality:
-#   -DOPENCASCADE=<OpenCascade-installation-directory>
-#
-# for magnetic field map interface:
-#   -DBFIELD=<BeastMagneticField-installation-directry>
-#
-# Be aware that LD_LIBRARY_PATH should contain the locations of the OpenCascade,
-# BeastMagneticField and VGM libraries, if the respective interfaces are compiled in;
-
-make
-
-# Needed only if executable(s) from the 'examples' directory will be compiled;
-make install
+cmake -Wno-dev ..
+make -j4
 ```
 
-Running
--------
-  
-Edit a script like [example.C](scripts/example.C) in the ../scripts/ directory 
-according to your preferences (see full list of the available commands 
-[here](doc/README.API.md)) and run it:
+Edit a script like [example.C](scripts/example.C) in the ../scripts/ directory according to your preferences (see full 
+list of the available commands [here](doc/README.API.md)) and run it:
 
 ```
+# Run the example script;
 root -l ../scripts/example.C
 ```
 
@@ -222,8 +316,94 @@ to avoid introducing changes into the selected set of the officially distributed
 YR detector configuration files by mistake).
 
 
-GEANT interface
----------------
+#### Vacuum chamber material and magnetic field scans
+
+  One can perform a magnetic field scan, as well as the vacuum chamber material 
+scan at small scattering angles in either e-endcap or h-endcap. This allows one to 
+evaluate the potential reach in pseudo-rapidity in both endcaps, as well as to get 
+an idea about the azimuthal acceptance asymmetry.
+
+  Magnetic field scan evaluates the effective B*dl integral of the 
+transverse-to-trajectory field component along the trajectory of a particle, originated 
+at the nominal IP and scattered at a given pair of polar and azimuthal angles. Primary 
+vertex smearing along the beam line can be specified.
+
+  The starting point of this scan for a given set of values {z,theta,phi} is the point
+where such a particle would exit the accelerator vacuum chamber.
+
+  The end point is the most distant from the IP location of the last silicon tracker 
+station, which can still be sensibly installed in this detector configuration in a given 
+endcap (like in front of the first detector with a lot of material). Defining this 
+location is at a discretion of the user. It can be given by a EtmDetectorStack::marker() 
+method (see [API description](doc/README.API.md)) when configuring a particular endcap, 
+and is indicated e.g. by small red arrows at -230cm and +115cm in the 2D picture above.
+
+  In order to perform a scan on the detector and the vacuum chamber model contained 
+in the example.root file produced earlier one can run [this script](scripts/scan.C): 
+
+```
+root -l '../scripts/scan.C("example.root")'
+```
+
+  Results of this scan are reprsented as three 2D histograms, which can either 
+be displayed (see an [example](scripts/scan-viewer.C)) or extracted numerically
+using conventional ROOT GetBinContents() calls:
+
+```
+root -l '../scripts/scan-viewer.C("example.scan.root")'
+```
+  A typical set of pictures will look like this:
+
+![](doc/example.scan.png)
+
+  Horizontal and vertical axes on these example plots have a range of +/-60 mrad.
+The 360 degree azimuthal angle scan is given for a range of pseudo-rapidities 
+between -4.5 and -3.5 (electron-going endcap). A green dashed line corresponds 
+to the pseudo-rapidity of -4.0 . A square outline seen in the pictures corresponds
+to the profile of the aluminum portion of the beam pipe (has to be changed in the 
+next iteration of the design).
+
+  If somebody knows a way how to make DrawFrame() and a polar 2D histogram Draw() 
+live together and allow one to use axis lables and proper title fonts, such an 
+advice will be greatly appreciated.
+
+<br/>
+
+Extended functionality
+----------------------
+
+Typically one would only use these features in a well-defined (and maintained!) environment, 
+like an escalate Docker container, a fun4all singularity container, or a RACF farm at BNL.
+
+A full list of additional cmake command line keys is provided below:
+
+```
+#
+# if executable(s) from the 'examples' directory will be compiled (be aware, "." works):
+#   -DCMAKE_INSTALL_PREFIX=<EicToyModel-installation-directory>
+#
+# if GEANT4 interface is required:
+#   -DGEANT=YES
+# if the IR vacuum chamber shape boolean cut through the integration volumes is required:
+#   -DVGM=<VGM-installation-directory>
+#
+# for CAD export functionality:
+#   -DOPENCASCADE=<OpenCascade-installation-directory>
+#
+# for magnetic field map interface:
+#   -DBFIELD=<BeastMagneticField-installation-directry>
+#
+# Be aware that LD_LIBRARY_PATH should contain the locations of the OpenCascade,
+# BeastMagneticField and VGM libraries, if the respective interfaces are compiled in;
+
+make -j4
+
+# Needed only if executable(s) from the 'examples' directory will be compiled;
+make install
+```
+
+
+#### GEANT interface
 
 If GEANT part of the functionality is required, it has to be installed and configured
 on the local system. 10.05.p01 works. The line below is for bash shell. 
@@ -310,8 +490,8 @@ make
 ./basic ../../../build/example.root
 ```
 
-CAD interface
--------------
+
+#### CAD interface
 
 This interface may be useful to export the created models in a STEP format.
 
@@ -330,8 +510,7 @@ by a separate [script](scripts/extract-cd-step.C) *without a need to have OpenCa
 libraries installed on a local system*.
 
 
-Magnetic field interface
-------------------------
+#### Magnetic field interface
 
 A small [BeastMagneticField](https://eic.github.io/software/beast_magnetic_field.html) library 
 is used to import BeAST model detector magnetic field map. The library has to be installed locally. 
@@ -348,59 +527,7 @@ If the EicToyModel library is configured *without* BeastMagneticField interface,
 perform the B*dl integral scans, assuming constant field, parallel to the electron beam line
 axis.
 
-
-Vacuum chamber material and magnetic field scans
------------------------------------------------- 
-
-  One can perform a magnetic field scan, as well as the vacuum chamber material 
-scan at small scattering angles in either e-endcap or h-endcap. This allows one to 
-evaluate the potential reach in pseudo-rapidity in both endcaps, as well as to get 
-an idea about the azimuthal acceptance asymmetry.
-
-  Magnetic field scan evaluates the effective B*dl integral of the 
-transverse-to-trajectory field component along the trajectory of a particle, originated 
-at the nominal IP and scattered at a given pair of polar and azimuthal angles. Primary 
-vertex smearing along the beam line can be specified.
-
-  The starting point of this scan for a given set of values {z,theta,phi} is the point
-where such a particle would exit the accelerator vacuum chamber.
-
-  The end point is the most distant from the IP location of the last silicon tracker 
-station, which can still be sensibly installed in this detector configuration in a given 
-endcap (like in front of the first detector with a lot of material). Defining this 
-location is at a discretion of the user. It can be given by a EtmDetectorStack::marker() 
-method (see [API description](doc/README.API.md)) when configuring a particular endcap, 
-and is indicated e.g. by small red arrows at -230cm and +115cm in the 2D picture above.
-
-  In order to perform a scan on the detector and the vacuum chamber model contained 
-in the example.root file produced earlier one can run [this script](scripts/scan.C): 
-
-```
-root -l '../scripts/scan.C("example.root")'
-```
-
-  Results of this scan are reprsented as three 2D histograms, which can either 
-be displayed (see an [example](scripts/scan-viewer.C)) or extracted numerically
-using conventional ROOT GetBinContents() calls:
-
-```
-root -l '../scripts/scan-viewer.C("example.scan.root")'
-```
-  A typical set of pictures will look like this:
-
-![](doc/example.scan.png)
-
-  Horizontal and vertical axes on these example plots have a range of +/-60 mrad.
-The 360 degree azimuthal angle scan is given for a range of pseudo-rapidities 
-between -4.5 and -3.5 (electron-going endcap). A green dashed line corresponds 
-to the pseudo-rapidity of -4.0 . A square outline seen in the pictures corresponds
-to the profile of the aluminum portion of the beam pipe (has to be changed in the 
-next iteration of the design).
-
-  If somebody knows a way how to make DrawFrame() and a polar 2D histogram Draw() 
-live together and allow one to use axis lables and proper title fonts, such an 
-advice will be greatly appreciated.
-
+<br/>
 
 ROOT macro options
 ------------------
