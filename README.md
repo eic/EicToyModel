@@ -60,13 +60,13 @@ Validation tools to estimate very forward and very backward acceptance boundarie
 are provided.
 
   In some sense the provided installation materials may also serve as a concise quick 
-start tutorial on how to have ROOT-aware libraries installed and running on your laptop.  
+start tutorial on how to have ROOT-aware libraries installed and running on your laptop. 
 Indeed there is not much specifics about EicToyModel per se in the technical details.
 
   The [Extended functionaly](#extended-functionality) (interface to GEANT and OpenCascade, 
 EicRoot tracker geometry import, VGM interface, etc) requires *controlled environment*, 
 and is presented for escalate Docker container and for fun4all singularity container cases. 
-Of course, nothing prevents a qualified user to install everything locally, but only a 
+Of course, nothing prevents a qualified user from installing everything locally, but only a 
 limited support can be provided. That said, a local installation procedure (to first 
 order it only involves compiling of VGM and GEANT) is very straightforward. 
 
@@ -86,8 +86,6 @@ engineering drawings are not available as of yet.
 * Interface to the BeastMagneticField library (BeAST field map import, as well as
 import of the soon-to-become-available magnetic field maps produced by the EIC 
 greenfield solenoid design team).
-* Tools for the magnetic field B*dl integral evaluation and the IR vacuum chamber 
-material scan.
 * Export of the integration volumes as a STEP file, for the support structure and 
 services engineering design purposes. 
 
@@ -123,7 +121,7 @@ Instructions for Windows are not available at this moment (volunteers welcome!),
 be able to build the functional bootstrap Docker images for either Centos, or Ubuntu or Fedora (see
 the Linux section below) and run the codes in a container environment.
 
-It is indeed not possible to cover any Linux or MacOS installation in a short README. The 
+It is indeed not possible to cover every Linux or MacOS installation in a short README. The 
 codes were tested on MacOS Catalina (natively), and on Centos 7, Fedora 3.0 and Ubuntu eoan 
 (in a Docker container). A number of ROOT versions from 6.14.04 to 6.20.04 were tried out. 
 Compilers: from gcc 4.8.5 to gcc 9.3.1, as well as clang 11.0.3 . Various versions of cmake 3.
@@ -198,7 +196,7 @@ Obviously only a particular *Dockerfile* in an empty directory is required to bu
 image. Let's assume one of the three provided Dockerfile's (Centos, Fedore, Ubuntu) was chosen and saved as 
 */tmp/docker/Dockerfile*, either using a text editor, or by cloning the EicToyModel repository
 in some temporary area (*git clone https://github.com/eic/EicToyModel.git*) and copying the 
-respective file over, or elsewise):
+respective file over, or elsewise:
 
 ```
 # Build the bootstrap image;
@@ -222,7 +220,7 @@ From this point on follow the [running](#running-the-scripts) instructions.
 
 #### Running the scripts
 
-To this moment we are either in a \<my-scratch-directory\> on a host system (native mode) or in this same 
+To this moment we are either in the \<my-scratch-directory\> on a host system (native mode) or in this same 
 directory seen as a */scratch* volume in the Docker container. Either way, the remaining sequence of 
 commands is the same in all cases:
 
@@ -332,7 +330,9 @@ at the nominal IP and scattered at a given pair of polar and azimuthal angles. P
 vertex smearing along the beam line can be specified.
 
   The starting point of this scan for a given set of values {z,theta,phi} is the point
-where such a particle would exit the accelerator vacuum chamber.
+where such a particle would exit the accelerator vacuum chamber. Remember, the code knows
+the (simplified) IR vacuum chamber layout (actually creates a ROOT TGeo implementation 
+dynamically).
 
   The end point is the most distant from the IP location of the last silicon tracker 
 station, which can still be sensibly installed in this detector configuration in a given 
@@ -365,6 +365,16 @@ between -4.5 and -3.5 (electron-going endcap). A green dashed line corresponds
 to the pseudo-rapidity of -4.0 . A square outline seen in the pictures corresponds
 to the profile of the aluminum portion of the beam pipe (has to be changed in the 
 next iteration of the design).
+
+  Assuming a single-coil solenoid with its axis aligned with the electron beam line, 
+it is not unreasonable to assume that the magnetic field will be shaped up in a way 
+the lines are parallel to the axis in the whole volume of the forward and backward 
+silicon trackers, in order to maximize the average B*dl integral. Therefore the 
+constant field approximation should give one a pretty good idea about the overall 
+bending power (and consequently, together with the linear space available for the 
+tracker, the momentum resolutions), since the optimal tracker configuration is a set 
+of N equidistant disks in this case. To first order one does not even need to run 
+a full GEANT simulation + reconstruction chain to obtain a reasonable estimate.
 
   If somebody knows a way how to make DrawFrame() and a polar 2D histogram Draw() 
 live together and allow one to use axis lables and proper title fonts, such an 
