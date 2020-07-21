@@ -10,14 +10,15 @@ configuration purposes.
  * [Introduction](#introduction)
  * [Other features](#other-features)
  * [Model limitations](#model-limitations)
- * [Quick start and basic functionality](#quick-start-and-basic-functionality)
+ * [Quick start and basic ROOT functionality](#quick-start-and-basic-functionality)
  * &nbsp; &nbsp; &nbsp; [Mac OS](#mac-os)
  * &nbsp; &nbsp; &nbsp; [Linux](#linux)
  * &nbsp; &nbsp; &nbsp; [Docker environment](#docker-environment)
- * &nbsp; &nbsp; &nbsp; [Running the scripts](#running-the-scripts)
  * &nbsp; &nbsp; &nbsp; [Vacuum chamber material and B*dl integral scans](#vacuum-chamber-material-and-magnetic-field-scans)
+ * [GEANT interface](#geant-interface)
+ * &nbsp; &nbsp; &nbsp; [*escalate* Docker container](#escalate-docker-container)
+ * &nbsp; &nbsp; &nbsp; [*fun4all* singularity container](#fun4all-singularity-container)
  * [Extended functionaly](#extended-functionality)
- * &nbsp; &nbsp; &nbsp; [GEANT interface](#geant-interface)
  * &nbsp; &nbsp; &nbsp; [CAD interface](#cad-interface)
  * &nbsp; &nbsp; &nbsp; [Magnetic field interface](#magnetic-field-interface)
  * [ROOT macros options](#root-macro-options)
@@ -380,50 +381,46 @@ a full GEANT simulation + reconstruction chain to obtain a reasonable estimate.
 live together and allow one to use axis lables and proper title fonts, such an 
 advice will be greatly appreciated.
 
+
 <br/>
 
-Extended functionality
-----------------------
+GEANT interface
+---------------
 
-Typically one would only use these features in a well-defined (and maintained!) environment, 
-like an escalate Docker container, a fun4all singularity container, or a RACF farm at BNL.
+Typically one would only use GEANT interface and other extended features in a well-defined 
+(and maintained!) environment, like an escalate Docker container, a fun4all singularity 
+container, or a RACF farm at BNL.
 
-A full list of additional cmake command line keys is provided below:
+GEANT has to be installed (either on the local system or in a container environment) and 
+its configuration file must be sourced, like 
+
+```
+source <geant4-installation-directory>/bin/geant4.sh
+```
+
+C-shell users will have to replace *.sh* by *.csh* in the above command. Be aware that 
+this command is executed in both escalate and fun4all container environment setup scripts, 
+see below.
+
+GEANT-related cmake command line keys are:
 
 ```
 #
-# if executable(s) from the 'examples' directory will be compiled (be aware, "." works):
+# if GEANT executable(s) from the 'examples' directory will be compiled (be aware, "." works):
 #   -DCMAKE_INSTALL_PREFIX=<EicToyModel-installation-directory>
 #
 # if GEANT4 interface is required:
 #   -DGEANT=YES
+#
 # if the IR vacuum chamber shape boolean cut through the integration volumes is required:
 #   -DVGM=<VGM-installation-directory>
 #
-# for CAD export functionality:
-#   -DOPENCASCADE=<OpenCascade-installation-directory>
-#
-# for magnetic field map interface:
-#   -DBFIELD=<BeastMagneticField-installation-directry>
-#
-# Be aware that LD_LIBRARY_PATH should contain the locations of the OpenCascade,
-# BeastMagneticField and VGM libraries, if the respective interfaces are compiled in;
+# Be aware that LD_LIBRARY_PATH should contain the location of the VGM libraries, if the 
+# respective interface is compiled in;
 
-make -j4
-
-# Needed only if executable(s) from the 'examples' directory will be compiled;
+# Help standalone executables (g4e, fun4all root.exe, codes provides in 'examples' directory)
+# find respective include and library files;
 make install
-```
-
-
-#### GEANT interface
-
-If GEANT part of the functionality is required, it has to be installed and configured
-on the local system. 10.05.p01 works. The line below is for bash shell. 
-
-
-```
-. <geant4-installation-directory>/bin/geant4.sh
 ```
 
 Apart from the eic->ExportVacuumChamber() command shown above, one can create G4 
@@ -461,8 +458,7 @@ the IP rather than around their (Zmax+Zmin)/2 geometric center. In other words, 
 placed at (0,0,0) in their local coordinate system, will be physically placed at (IP,0,0)
 in the world volume.
 
- This way, to 
-first order, whatever daughter objects are placed inside the integration volumes, 
+ This way, to first order, whatever daughter objects are placed inside the integration volumes, 
 the geometry will be consistent after moderate re-shuffling of a particular detector 
 stack (say, after removing one of the TRD volumes in the hadron-going endcap, the e/m 
 calorimeter behind it will be re-located to a proper place in the world volume). 
@@ -480,29 +476,104 @@ between different sub-detector systems may be problematic in this case though.
 
 The [example](examples) directory contains a couple of simple standalone codes, 
 with their own CMakeLists.txt files, which illustrate the usage. See the bare minimum 
-GEANT example source code [here](examples/basic/main.cc).
+GEANT example source code [here](examples/basic/main.cc). 
 
-The following sequence of commands brings up the G4 Qt window with the model, created
-by 'root -l ../scripts/example.C' macro call earlier:
+A full sequence of actions required to have this basic GEANT example running in both 
+*excalate* and *fun4all* container environments is shown below.
+
+
+#### *escalate* Docker container
+
+See [Docker environment hints](#docker-environment) in the previous section if the sequence 
+outlined below does not work for you. It is assumed that a local *\<my-scratch-directory\>*
+was created already. 
+
+As of 2020/07/21 the container has gcc 9.2.1, ROOT 6.20.04 and GEANT 10.6.01 .
 
 ```
-# Assuming "cmake -DGEANT=YES -DCMAKE_INSTALL_PREFIX=<EicToyModel-installation-directory> \
-# -DVGM=<VGM-installation-directory>" was used during installation;
-make install
+# Run (if your host system is Linux):
+sudo docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY --user $(id -u) -v <my-scratch-directory>:/scratch electronioncollider/escalate /bin/bash
+#
+# Run (if your host system is Mac OS):
+sudo docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=host.docker.internal:0   -v <my-scratch-directory>:/scratch electronioncollider/escalate /bin/bash
 
+# The rest happens inside the running container:
+cd /scratch
+
+# Download the EicToyModel codes, compile, run example.C (the latter will create example.root file 
+# with the intergation volume configuration);
+git clone https://github.com/eic/EicToyModel.git
+cd EicToyModel && mkdir build && cd build
+# ! modify according to the current escalate container contents;
+cmake -DCMAKE_INSTALL_PREFIX=. -DGEANT=YES -DVGM=/container/app/vgm/vgm-v4-5 -Wno-dev ..
+```
+Beyond that point there is no difference between escalate and fun4all environment, [follow the instructions here](#common-part).
+
+
+#### *fun4all* singularity container
+
+It is assumed of course that cvmfs support is configured and singularity executable is installed
+on the local host. 
+
+As of 2020/07/21 the container has gcc 4.8.5, ROOT 6.16.00 and GEANT 10.2.02, and also does not have VGM 
+installed (so the integration volumes in this example will not have a boolean cutaway by the vacuum chamber 
+volume).
+
+```
+singularity shell -B /cvmfs:/cvmfs -B <my-scratch-directory>:/scratch /cvmfs/sphenix.opensciencegrid.org/singularity/rhic_sl7_ext.simg
+
+source /cvmfs/sphenix.opensciencegrid.org/x8664_sl7/opt/sphenix/core/bin/sphenix_setup.sh
+
+cd /scratch
+git clone https://github.com/eic/EicToyModel.git
+cd EicToyModel && mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=. -DGEANT=YES -Wno-dev ..
+```
+
+Beyond that point there is no difference between escalate and fun4all environment, [follow the instructions here](#common-part).
+
+#### Common part
+
+```
+make -j4 install
+root -l ../scripts/example.C
+
+export LD_LIBRARY_PATH=/scratch/EicToyModel/build/lib:${LD_LIBRARY_PATH}
+
+# Compile a standalone GEANT executable and run it (import example.root file, create the 
+# 3D integration volumes on the fly and place them into the "IR world" volume); 
 cd ../examples/basic
 mkdir build && cd build
-
-# <EicToyModel-installation-directory> here is an absolute path to the ../../build 
-# directory; csh users should use 'setenv' syntax instead; BUG: lib64?;
-export LD_LIBRARY_PATH=<EicToyModel-installation-directory>/lib:${LD_LIBRARY_PATH}
-export LD_LIBRARY_PATH=<VGM-installation-directory>/lib64:${LD_LIBRARY_PATH}
-
-cmake -Wno-dev -DETM=<EicToyModel-installation-directory> ..
-make
+cmake -DETM=/scratch/EicToyModel/build -Wno-dev ..
+make -j4
 ./basic ../../../build/example.root
 ```
 
+This sequence brings up a GEANT4 Qt event display with the 3D integration volume configuration 
+described by the created earlier 2D cartoon. A BUG: in the fun4all case click on "Useful tips" 
+first, then click back on "viewer-0".
+
+Working examples of the toy model integration volumes usage in the actual escalate and fun4all
+EIC detector geometry description will follow shortly.
+
+<br/>
+
+Extended functionality
+----------------------
+
+The additional cmake command line keys are provided below:
+
+```
+#
+# for CAD export functionality:
+#   -DOPENCASCADE=<OpenCascade-installation-directory>
+#
+# for magnetic field map interface:
+#   -DBFIELD=<BeastMagneticField-installation-directry>
+#
+# Be aware that LD_LIBRARY_PATH should contain the locations of the OpenCascade,
+# BeastMagneticField, if the respective interfaces are compiled in;
+```
 
 #### CAD interface
 
