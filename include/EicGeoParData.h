@@ -112,7 +112,7 @@ class LogicalVolumeGroup: public TObject
   ClassDef(LogicalVolumeGroup,4);
 };
 
-class SourceFile {
+class SourceFile: public TObject {
  public:
   SourceFile(const char *fileName = 0);
   ~SourceFile() {};

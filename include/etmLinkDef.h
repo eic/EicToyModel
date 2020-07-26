@@ -41,10 +41,10 @@
 #pragma link C++ class MuMegasBarrel+;
 #pragma link C++ class MuMegasGeoParData+;
 #pragma link C++ class MapsGeoParData+;
-//#pragma link C++ class VstGeoParData+;
-//#pragma link C++ class FstGeoParData+;
-//#pragma link C++ class FstDisc+;
-//#pragma link C++ class VstBarrelLayer+;
+#pragma link C++ class VstGeoParData+;
+#pragma link C++ class FstGeoParData+;
+#pragma link C++ class FstDisc+;
+#pragma link C++ class VstBarrelLayer+;
 #pragma link C++ class MapsStave+;
 #pragma link C++ class MapsMimosaAssembly+;
 

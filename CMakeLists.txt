@@ -67,10 +67,13 @@ SET( LIBSRC
   source/EicGeoMap.cxx 
   source/EicNamePatternHub.cxx 
   source/EicGeoParData.cxx 
-  source/GemGeoParData.cxx 
-  source/MuMegasGeoParData.cxx 
-  source/MapsGeoParData.cxx 
-  source/MapsMimosaAssembly.cxx 
+
+  source/detectors/GemGeoParData.cxx 
+  source/detectors/MuMegasGeoParData.cxx 
+  source/detectors/MapsGeoParData.cxx 
+  source/detectors/MapsMimosaAssembly.cxx 
+  source/detectors/FstGeoParData.cxx 
+  source/detectors/VstGeoParData.cxx 
 
   source/EtmOrphans.cc 
   source/EtmLine2D.cc 
@@ -93,8 +96,8 @@ INCLUDE_DIRECTORIES (
   ${CMAKE_SOURCE_DIR}/include
 )
 
-# This will include all other ones; fine;
 SET( HEADERS 
+  # This will include all other ones; fine;
   ${CMAKE_SOURCE_DIR}/include/EicToyModel.h 
   ${CMAKE_SOURCE_DIR}/include/vc2020_03_20.h
 
@@ -108,6 +111,8 @@ SET( HEADERS
   ${CMAKE_SOURCE_DIR}/include/MuMegasGeoParData.h
   ${CMAKE_SOURCE_DIR}/include/MapsGeoParData.h
   ${CMAKE_SOURCE_DIR}/include/MapsMimosaAssembly.h
+  ${CMAKE_SOURCE_DIR}/include/VstGeoParData.h
+  ${CMAKE_SOURCE_DIR}/include/FstGeoParData.h
 )
 
 ROOT_GENERATE_DICTIONARY(G__${LIBNAME} ${HEADERS} LINKDEF include/etmLinkDef.h)
