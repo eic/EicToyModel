@@ -49,7 +49,7 @@ void EicGeoParData::ResetVars()
   
   mTopVolumeTransformation = 0;
   
-  mDetName = 0; mRootGeoManager = 0; mWrapperVolume = mTopVolume = 0; 
+  mDetName = 0; mRootGeoManager = /*mSavedGeoManager =*/ 0; mWrapperVolume = mTopVolume = 0; 
   mGeoLoad = 0; mGeoFace = 0; mFairMedia = 0; mGeobuild = 0; 
 
   mColorRequests = 0; mTransparencyRequests = 0;

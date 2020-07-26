@@ -62,6 +62,7 @@ SET(LIBNAME etm)
 SET(EXENAME exe)
 
 SET( LIBSRC 
+  source/EicPOD.cc
   source/EicDetName.cxx 
   source/EicGeoMap.cxx 
   source/EicNamePatternHub.cxx 
@@ -98,6 +99,7 @@ SET( HEADERS
   ${CMAKE_SOURCE_DIR}/include/vc2020_03_20.h
 
   # FIXME: do it better later;
+  ${CMAKE_SOURCE_DIR}/include/EicPOD.h
   ${CMAKE_SOURCE_DIR}/include/EicDetName.h
   ${CMAKE_SOURCE_DIR}/include/EicGeoMap.h
   ${CMAKE_SOURCE_DIR}/include/EicNamePatternHub.h
@@ -106,8 +108,6 @@ SET( HEADERS
   ${CMAKE_SOURCE_DIR}/include/MuMegasGeoParData.h
   ${CMAKE_SOURCE_DIR}/include/MapsGeoParData.h
   ${CMAKE_SOURCE_DIR}/include/MapsMimosaAssembly.h
-
-  ${CMAKE_SOURCE_DIR}/include/EicUnits.h
 )
 
 ROOT_GENERATE_DICTIONARY(G__${LIBNAME} ${HEADERS} LINKDEF include/etmLinkDef.h)

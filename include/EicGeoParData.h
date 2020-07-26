@@ -461,6 +461,7 @@ class EicGeoParData: public TObject
   // This stuff is specifically put here (see implementation as well) to hide most 
   // of the FairRoot geometry- and media-related calls in scripts like femc.C;
   TGeoManager* mRootGeoManager;            //!
+  //TGeoManager* mSavedGeoManager;           //!
   TGeoVolume *mWrapperVolume;              //!
   TGeoVolume *mTopVolume;                  //!
 

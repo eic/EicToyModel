@@ -6,6 +6,8 @@
 
 #include <TMath.h>
 
+#include <EicPOD.h>
+#include <EtmOrphans.h>
 #include <EicGeoParData.h>
 
 #ifndef _MUMEGAS_GEO_PAR_DATA_
@@ -13,19 +15,20 @@
 
 // FIXME: unify with the other codes later;
 #define _AIR_      ("air")
-//#define _ALUMINUM_ ("aluminum")
-//#define _COPPER_   ("copper")
 
-class MuMegasLayer: public TObject {
+class MuMegasLayer: public EicPOD {
+  friend class MuMegasGeoParData;
+
  public:
-  MuMegasLayer() { ResetVars(); };
+  MuMegasLayer();
   MuMegasLayer(const MuMegasLayer *sample) { *this = *sample; };
   ~MuMegasLayer() {};
 
   //
-  // POD public access;
+  // POD; access through EicPOD methods only;
   //
 
+ private:
   // FIXME: need FR4 here; 200um thick;
   TString mReadoutPcbMaterial;         // readout PCB material; should be FR4? 
   Double_t mReadoutPcbThickness;       // PCB thickness                       -> eventually should be FR4?
@@ -35,7 +38,7 @@ class MuMegasLayer: public TObject {
 
   // Let's say, Ar(70)/CO2(30), see Maxence' muMegas.C; 120um amplification region;
   TString mGasMixture;                 // gas mixture
-  Double_t mAmplificationRegionLength; // short amplification region length   -> gas mixture
+  double mAmplificationRegionLength; // short amplification region length   -> gas mixture
 
   // FIXME: will need 'steel' in media.geo;
   Double_t mSteelMeshThickness;        // effective steel mesh thickness      -> steel
@@ -52,15 +55,6 @@ class MuMegasLayer: public TObject {
   Double_t mInnerFrameThickness;       // inner frame thickness
   Double_t mOuterFrameWidth;           // outer frame width in beam direction
   Double_t mOuterFrameThickness;       // outer frame thickness
-
- private:
-  void ResetVars() {
-    mReadoutPcbThickness = mCopperStripThickness = mAmplificationRegionLength = 0.0;
-
-    mSteelMeshThickness = mConversionRegionLength = mExitWindowThickness = 0.0;
-
-    mInnerFrameWidth = mInnerFrameThickness = mOuterFrameWidth = mOuterFrameThickness;
-  };
 
   ClassDef(MuMegasLayer,2);
 };
@@ -82,7 +76,7 @@ class MuMegasBarrel: public TObject {
     TGeoRotation *rw = beamLineRotation ? new TGeoRotation() : 0;   
     if (beamLineRotation) rw->RotateZ(beamLineRotation);
 
-    mTransformation = new TGeoCombiTrans(0.0, 0.0, 0.1 * beamLineOffset, rw);
+    mTransformation = new TGeoCombiTrans(0.0, 0.0, beamLineOffset, rw);
   };
   ~MuMegasBarrel() {};
 
@@ -121,7 +115,7 @@ class MuMegasGeoParData: public EicGeoParData
  //   - radius;
  //   - segmentation in phi;
  //   - Z offset from 0.0 (default);
- //   - asimuthat offset from 0.0 (default);
+ //   - azimuthal offset from 0.0 (default);
  void AddBarrel(MuMegasLayer *layer, double length, unsigned beamLineSectionNum, 
  		double radius, unsigned sectorNum, 
 		double beamLineOffset = 0.0, double beamLineRotation = 0.0) {
@@ -137,6 +131,7 @@ class MuMegasGeoParData: public EicGeoParData
 
   int ConstructGeometry(bool root = true, bool gdml = false, bool check = false);
 
+ private:
   void PlaceMaterialLayer(const char *detName, const char *namePrefix, unsigned barrelID, 
 			  TGeoVolume *sectorContainer, const char *material, 
 			  double length, double angle,

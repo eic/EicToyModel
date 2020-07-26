@@ -14,6 +14,44 @@ using namespace std;
 
 // ---------------------------------------------------------------------------------------
 
+//
+// #define's are for newbies :-)
+//
+
+MuMegasLayer::MuMegasLayer(): 
+  // FIXME: need FR4 here; 320um thick (e-mail from Maxence 2015/01/23);
+  mReadoutPcbMaterial       ("MuMegasG10"),
+  mReadoutPcbThickness      (0.320 * etm::mm),
+  // FIXME: this is effective thickness I guess?; 
+  mCopperStripThickness     (0.010 * etm::mm),
+  
+  // Let's say, Ar(70)/CO2(30), see Maxence' muMegas.C; 130um amplification region;
+  mGasMixture               ("arco27030mmg"),
+  mAmplificationRegionLength(0.130 * etm::mm),
+  
+  // FIXME: will need 'steel' in media.geo;
+  mSteelMeshThickness       (0.300 * etm::mm * (19./50.) * (19./50.)),
+  
+  // 3mm conversion gap for now;
+  mConversionRegionLength   (3.000 * etm::mm),
+  
+  // Basically a placeholder for now; assume 25um kapton as entrance window;
+  mExitWindowMaterial       ("MuMegasKapton"),
+  mExitWindowThickness      (0.100 * etm::mm),
+  
+  // FIXME: these parameters need to be checked and made real; the problem is 
+  // that they will be sitting in the clear acceptance, so handle with care;
+  // for instance PandaRoot tracker clearly gets confused (provides a bit 
+  // biased momentum estimates when these frames are thick;
+  mInnerFrameWidth          (4.00 * etm::mm),
+  mInnerFrameThickness      (4.00 * etm::mm),
+  mOuterFrameWidth          (4.00 * etm::mm),
+  mOuterFrameThickness      (4.00 * etm::mm) 
+{ 
+} // MuMegasLayer::MuMegasLayer()
+
+// ---------------------------------------------------------------------------------------
+
 int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 {
   const char *detName = mDetName->Name().Data();
@@ -39,9 +77,9 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
     snprintf(barrelContainerVolumeName, 128-1, "%sBarrelContainerVolume%02d", detName, bl);
       
     TGeoTube *bcontainer = new TGeoTube(barrelContainerVolumeName,
-					0.1 *  barrel->mRadius,
-					0.1 * (barrel->mRadius + airContainerThickness),
-					0.1 *  barrel->mLength/2);
+					barrel->mRadius,
+					barrel->mRadius + airContainerThickness,
+					barrel->mLength/2);
     TGeoVolume *vbcontainer = new TGeoVolume(barrelContainerVolumeName, bcontainer, GetMedium(_AIR_));
 		  
     GetTopVolume()->AddNode(vbcontainer, 0, barrel->mTransformation);
@@ -51,13 +89,13 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
     snprintf(outerFrameVolumeName, 128-1, "%sOuterFrameVolume%02d", detName, bl);
       
     TGeoTube *oframe = new TGeoTube(outerFrameVolumeName,
-				    0.1 * barrel->mRadius,
-				    0.1 * (barrel->mRadius + layer->mOuterFrameThickness),
-				    0.1 * layer->mOuterFrameWidth/2);
+				    barrel->mRadius,
+				    barrel->mRadius + layer->mOuterFrameThickness,
+				    layer->mOuterFrameWidth/2);
     TGeoVolume *voframe = new TGeoVolume(outerFrameVolumeName, oframe, GetMedium("MuMegasCarbonFiber"));
     double zOffset = (barrel->mLength - layer->mOuterFrameWidth)/2;
     for(unsigned fb=0; fb<2; fb++)
-      vbcontainer->AddNode(voframe, fb, new TGeoCombiTrans(0.0, 0.0, 0.1 * (fb ? -1.0 : 1.0)*zOffset, 0));
+      vbcontainer->AddNode(voframe, fb, new TGeoCombiTrans(0.0, 0.0, (fb ? -1.0 : 1.0)*zOffset, 0));
 
     // Figure out sector length;
     double singleSectorLength = 
@@ -71,15 +109,15 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
       snprintf(innerFrameVolumeName, 128-1, "%sInnerFrameVolume%02d", detName, bl);
       
       TGeoTube *iframe = new TGeoTube(innerFrameVolumeName,
-				      0.1 * barrel->mRadius,
-				      0.1 * (barrel->mRadius + layer->mInnerFrameThickness),
-				      0.1 * layer->mInnerFrameWidth/2);
+				      barrel->mRadius,
+				      barrel->mRadius + layer->mInnerFrameThickness,
+				      layer->mInnerFrameWidth/2);
       TGeoVolume *viframe = new TGeoVolume(innerFrameVolumeName, iframe, GetMedium("MuMegasCarbonFiber"));
 
       for(unsigned iz=0; iz<barrel->mBeamLineSectionNum-1; iz++) {
 	double zOffset = singleSectorZspacing*(iz - (barrel->mBeamLineSectionNum-2)/2.);
 
-	vbcontainer->AddNode(viframe, iz, new TGeoCombiTrans(0.0, 0.0, 0.1*zOffset, 0));
+	vbcontainer->AddNode(viframe, iz, new TGeoCombiTrans(0.0, 0.0, zOffset, 0));
       } //for iz
     } 
 
@@ -96,9 +134,9 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
       // Funny enough, it looks like TGeoTubs has a bug in the navigation methods; but 
       // TGeoCtub, which is more generic, works; see also MuMegasGeoParData::PlaceMaterialLayer();
       TGeoCtub *sector = new TGeoCtub(sectorContainerVolumeName,
-				      0.1 * barrel->mRadius,
-				      0.1 * (barrel->mRadius + gasSectorThickness),
-				      0.1 * singleSectorLength/2, 
+				      barrel->mRadius,
+				      barrel->mRadius + gasSectorThickness,
+				      singleSectorLength/2, 
 				      0.0, singleSectorAngle,
 				      0, 0, -1, 0, 0, 1);
       TGeoVolume *vsector = new TGeoVolume(sectorContainerVolumeName, sector, GetMedium(layer->mGasMixture));
@@ -115,7 +153,7 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	  double zOffset = singleSectorZspacing*(iz - (barrel->mBeamLineSectionNum-1)/2.);
 	  
 	  vbcontainer->AddNode(vsector, ir*barrel->mBeamLineSectionNum+iz, 
-			       new TGeoCombiTrans(0.0, 0.0, 0.1 * zOffset, rw));
+			       new TGeoCombiTrans(0.0, 0.0, zOffset, rw));
 	} //for iz
       } //for ir
 
@@ -149,6 +187,7 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 
 	PlaceMaterialLayer(detName, "ConversionRegion", bl, vsector, 
 			   layer->mGasMixture.Data(),
+			   // FIXME: WTH is this?!;
 			   singleSectorLength, singleSectorAngle - 1.0,
 			   layer->mConversionRegionLength,
 			   &rOffset);
@@ -167,9 +206,9 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
       snprintf(sectorFrameVolumeName, 128-1, "%sSectorFrameVolume%02d", detName, bl);
       double singleSectorFrameAngle = 360./barrel->mAsimuthalSectorNum - singleSectorAngle;
       TGeoCtub *sframe = new TGeoCtub(sectorFrameVolumeName,
-				      0.1 * barrel->mRadius,
-				      0.1 * (barrel->mRadius + layer->mInnerFrameThickness),
-				      0.1 * singleSectorLength/2, 
+				      barrel->mRadius,
+				      barrel->mRadius + layer->mInnerFrameThickness,
+				      singleSectorLength/2, 
 				      0.0, 
 				      singleSectorFrameAngle,
 				      0, 0, -1, 0, 0, 1);
@@ -183,7 +222,7 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	  double zOffset = singleSectorZspacing*(iz - (barrel->mBeamLineSectionNum-1)/2.);
 	  
 	  vbcontainer->AddNode(vsframe, ir*barrel->mBeamLineSectionNum+iz, 
-			       new TGeoCombiTrans(0.0, 0.0, 0.1 * zOffset, rw));
+			       new TGeoCombiTrans(0.0, 0.0, zOffset, rw));
 	} //for iz
       } //for ir
     }
@@ -233,9 +272,9 @@ void MuMegasGeoParData::PlaceMaterialLayer(const char *detName, const char *volu
 
   snprintf(volumeName, 128-1, "%s%s%02d", detName, volumeNamePrefix, barrelID);
   TGeoCtub *shape = new TGeoCtub(volumeName,
-				 0.1 * (*rOffset),
-				 0.1 * (*rOffset + thickness),
-				 0.1 * length/2, 
+				 *rOffset,
+				 *rOffset + thickness,
+				 length/2, 
 				 0.0, 
 				 angle, 
 				 0, 0, -1, 0, 0, 1);
