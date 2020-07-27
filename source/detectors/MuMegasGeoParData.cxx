@@ -1,5 +1,5 @@
 //
-// AYK (ayk@bnl.gov), 2015/01/28
+// AYK (ayk@bnl.gov), 2015/01/28; July 2020: adapted to EicToyModel environment;
 //
 //  MuMegas geometry description file;
 //
@@ -10,6 +10,7 @@ using namespace std;
 #include <TGeoTube.h>
 #include <TGeoVolume.h>
 
+#include <EtmOrphans.h>
 #include <MuMegasGeoParData.h>
 
 // ---------------------------------------------------------------------------------------
@@ -22,7 +23,7 @@ MuMegasLayer::MuMegasLayer():
   // FIXME: need FR4 here; 320um thick (e-mail from Maxence 2015/01/23);
   mReadoutPcbMaterial       ("MuMegasG10"),
   mReadoutPcbThickness      (0.320 * etm::mm),
-  // FIXME: this is effective thickness I guess?; 
+  // FIXME: this is effective thickness I guess?; like 1/4 oz copper;
   mCopperStripThickness     (0.010 * etm::mm),
   
   // Let's say, Ar(70)/CO2(30), see Maxence' muMegas.C; 130um amplification region;
@@ -30,23 +31,23 @@ MuMegasLayer::MuMegasLayer():
   mAmplificationRegionLength(0.130 * etm::mm),
   
   // FIXME: will need 'steel' in media.geo;
-  mSteelMeshThickness       (0.300 * etm::mm * (19./50.) * (19./50.)),
+  mSteelMeshThickness       (0.019 * etm::mm * (19./50.) * (19./50.)),
   
   // 3mm conversion gap for now;
   mConversionRegionLength   (3.000 * etm::mm),
   
-  // Basically a placeholder for now; assume 25um kapton as entrance window;
+  // Basically a placeholder for now; assume 50um kapton as entrance window;
   mExitWindowMaterial       ("MuMegasKapton"),
-  mExitWindowThickness      (0.100 * etm::mm),
+  mExitWindowThickness      (0.050 * etm::mm),
   
   // FIXME: these parameters need to be checked and made real; the problem is 
   // that they will be sitting in the clear acceptance, so handle with care;
   // for instance PandaRoot tracker clearly gets confused (provides a bit 
   // biased momentum estimates when these frames are thick;
-  mInnerFrameWidth          (4.00 * etm::mm),
-  mInnerFrameThickness      (4.00 * etm::mm),
-  mOuterFrameWidth          (4.00 * etm::mm),
-  mOuterFrameThickness      (4.00 * etm::mm) 
+  mInnerFrameWidth         (10.000 * etm::mm),
+  mInnerFrameThickness     ( 5.000 * etm::mm),
+  mOuterFrameWidth         (20.000 * etm::mm),
+  mOuterFrameThickness     ( 5.000 * etm::mm) 
 { 
 } // MuMegasLayer::MuMegasLayer()
 
@@ -253,6 +254,15 @@ int MuMegasGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	} //for ir..iz
     }
   } //for bl
+
+  GetColorTable()         ->AddPatternMatch("Frame",      kGray);
+  // Make the rest half transparent;
+  GetColorTable()         ->AddPatternMatch("ReadoutPcb", kGreen+3);
+  if (mTransparency)
+    GetTransparencyTable()->AddPatternMatch("ReadoutPcb", mTransparency);
+  GetColorTable()         ->AddPatternMatch("ExitWindow", kOrange+2);
+  if (mTransparency)
+    GetTransparencyTable()->AddPatternMatch("ExitWindow", mTransparency);
 
   // Place this stuff as a whole into the top volume and write out;
   FinalizeOutput(root, gdml, check);

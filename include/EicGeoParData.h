@@ -8,6 +8,7 @@
 #include <assert.h>
 
 #include <set>
+#include <vector>
 
 #include <TString.h>
 #include <TObject.h>
@@ -15,6 +16,11 @@
 #include <TGeoManager.h>
 #include <TTimeStamp.h>
 #include <TVector3.h>
+class TGeoIdentity;
+
+class G4VPhysicalVolume;
+//class G4RotationMatrix;
+//class G4ThreeVector;
 
 //#include <FairGeoLoader.h>
 //#include <FairGeoInterface.h>
@@ -207,6 +213,8 @@ class EicGeoParData: public TObject
     if (fileNameFormat) mFileNameFormat = fileNameFormat; 
   };
 
+  void SetTransparency(unsigned value) { mTransparency = (value <= 100 ? value : 100); };
+
   void SetComment(const char *comment) { if (comment) mComment = comment; };
 
   int AttachSourceFile(const char *fileName);
@@ -297,7 +305,13 @@ class EicGeoParData: public TObject
 
   ULogicalIndex_t GeantMultiToLogicalIndex(ULong64_t multi) const;
 
+  void PlaceG4Volume(G4VPhysicalVolume *mother, bool check = false, 
+		     //G4RotationMatrix *pRot = 0, G4ThreeVector *tlate = 0);
+		     void *pRot = 0, void *tlate = 0);
+
  private:
+  void AssignG4Colors(G4VPhysicalVolume *pvol);
+
   unsigned GetDimCore(unsigned group, unsigned what) const;
  public:
   unsigned GetDimX   (unsigned group = 0)            const { return GetDimCore(group, IDX); };
@@ -454,14 +468,21 @@ class EicGeoParData: public TObject
   // Detector name class;
   EicDetName *mDetName;                    //!
 
+  // Use this variable to override all of the default transparency settings;
+  unsigned char mTransparency;
+
  private:
   // FIXME: unify with EtmVacuumChamber::CreateMedium();
   void CreateMedium(const char *name, double A, double Z, double density);
 
+  void SwitchGeoManager( void );
+  void RestoreGeoManager( void );
+
   // This stuff is specifically put here (see implementation as well) to hide most 
   // of the FairRoot geometry- and media-related calls in scripts like femc.C;
   TGeoManager* mRootGeoManager;            //!
-  //TGeoManager* mSavedGeoManager;           //!
+  TGeoManager* mSavedGeoManager;           //!
+  TGeoIdentity* mSavedGeoIdentity;         //!
   TGeoVolume *mWrapperVolume;              //!
   TGeoVolume *mTopVolume;                  //!
 
@@ -481,7 +502,15 @@ class EicGeoParData: public TObject
   EicNamePatternHub<Color_t> *mColorRequests; //!
   EicNamePatternHub<Char_t>  *mTransparencyRequests; //!
 
-  ClassDef(EicGeoParData,48);
+  std::set<TString> mSensitiveVolumeNames;    //!
+  std::vector<G4VPhysicalVolume*> mG4Volumes; //!
+  std::vector<G4VPhysicalVolume*> mG4SensitiveVolumes; //!
+
+ public:
+  const std::vector<G4VPhysicalVolume*> &GetG4Volumes         ( void ) const { return mG4Volumes; };
+  const std::vector<G4VPhysicalVolume*> &GetG4SensitiveVolumes( void ) const { return mG4SensitiveVolumes; };
+
+  ClassDef(EicGeoParData,49);
 };
 
 #endif

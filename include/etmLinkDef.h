@@ -49,6 +49,7 @@
 #pragma link C++ class MapsMimosaAssembly+;
 
 #pragma link C++ namespace etm;
+#pragma link C++ namespace g4;
 
 #pragma link C++ class EtmLine2D+;
 #pragma link C++ class EtmEtaBoundary+;

@@ -6,6 +6,7 @@
 
 #include <TMath.h>
 
+#include <EicPOD.h>
 #include <EicGeoParData.h>
 
 #ifndef _GEM_GEO_PAR_DATA_
@@ -16,16 +17,17 @@
 #define _ALUMINUM_ ("aluminum")
 #define _COPPER_   ("copper")
 
-class GemModule: public TObject {
+class GemModule: public EicPOD {
+  friend class GemGeoParData;
  public:
-  GemModule() { ResetVars(); };
+  GemModule();
   GemModule(const GemModule *sample) { *this = *sample; };
   ~GemModule() {};
 
   //
-  // POD public access;
+  // POD; access through EicPOD methods only;
   //
-
+ private:
   Double_t mActiveWindowBottomWidth;   // bottom side width of the active window
   Double_t mActiveWindowTopWidth;      // top side width of the active window
   Double_t mActiveWindowHeight;        // height of the active window
@@ -63,25 +65,7 @@ class GemModule: public TObject {
   Double_t mSecondTransferRegionLength;// length of the second transfer region
   Double_t mInductionRegionLength;     // length of induction region
 
- private:
-  void ResetVars() {
-    mActiveWindowBottomWidth = mActiveWindowTopWidth = mActiveWindowHeight = 0.0;
-
-    mFrameThickness = mFrameBottomEdgeWidth = mFrameTopEdgeWidth = mFrameSideEdgeWidth = 0.0;
-
-    mEntranceWindowThickness = mEntranceRegionLength = 0.0;
-
-    mDriftFoilKaptonThickness = mDriftFoilCopperThickness = 0.0; 
-
-    mGemFoilAreaFraction = mGemFoilKaptonThickness = mGemFoilCopperThickness = 0.0; 
-
-    mReadoutCopperThickness = mReadoutKaptonThickness = mReadoutSupportThickness = 0.0;
-
-    mDriftRegionLength = mFirstTransferRegionLength = mSecondTransferRegionLength = 0.0;
-    mInductionRegionLength = 0.0;
-  };
-
-  ClassDef(GemModule,3);
+  ClassDef(GemModule,4);
 };
 
 class GemWheel: public TObject {
@@ -98,7 +82,7 @@ class GemWheel: public TObject {
     TGeoRotation *rw = beamLineRotation ? new TGeoRotation() : 0;   
     if (beamLineRotation) rw->RotateZ(beamLineRotation/**TMath::Pi()/180*/);
 
-    mTransformation = new TGeoCombiTrans(0.0, 0.0, 0.1 * beamLineOffset, rw);
+    mTransformation = new TGeoCombiTrans(0.0, 0.0, beamLineOffset, rw);
   };
   ~GemWheel() {};
 

@@ -15,15 +15,27 @@
 
 #include <TROOT.h>
 #include <TClass.h>
+#include <TColor.h>
 #include <TRealData.h>
 #include <TDataMember.h>
+
+#ifdef _VGM_
+#include "BaseVGM/volumes/VFactory.h"
+#include "VGM/volumes/IPlacement.h"
+#include "Geant4GM/volumes/Factory.h"
+#include "RootGM/volumes/Factory.h"
+#endif
 
 //@@@#include <PndGeoHandling.h>
 
 #include <EicGeoParData.h>
 
-using std::cout;
-using std::endl;
+#ifdef _ETM2GEANT_
+#include "G4PVPlacement.hh"
+#include "G4LogicalVolume.hh"
+#include "G4ThreeVector.hh"
+#include "G4VisAttributes.hh"
+#endif
 
 // =======================================================================================
  
@@ -49,10 +61,12 @@ void EicGeoParData::ResetVars()
   
   mTopVolumeTransformation = 0;
   
-  mDetName = 0; mRootGeoManager = /*mSavedGeoManager =*/ 0; mWrapperVolume = mTopVolume = 0; 
-  mGeoLoad = 0; mGeoFace = 0; mFairMedia = 0; mGeobuild = 0; 
+  mDetName = 0; mRootGeoManager = mSavedGeoManager = 0; mWrapperVolume = mTopVolume = 0; 
+  mGeoLoad = 0; mGeoFace = 0; mFairMedia = 0; mGeobuild = 0; mSavedGeoIdentity = 0;
 
   mColorRequests = 0; mTransparencyRequests = 0;
+
+  mTransparency = 0;
 } // EicGeoParData::ResetVars() 
 
 // ---------------------------------------------------------------------------------------
@@ -74,15 +88,10 @@ EicGeoParData::EicGeoParData(const char *detName, int version, int subVersion):
   // FairRun if it was instantiated (meaning most likely from under the running simulation);
 #if _TODAY_
   if (FairRun::Instance()) return;
-  //#endif
 
   // No ExpnandedFileName() tricks here, please;
   TString mediaFileName  = TString(getenv("VMCWORKDIR")) + "/geometry/media.geo";
 
-  // Create detector name class;
-  //mDetName   = new EicDetName(detName);
-
-  //#if _TODAY_
   mGeoLoad   = FairGeoLoader::Instance() ? FairGeoLoader::Instance() : 
     new FairGeoLoader("TGeo", "FairGeoLoader");
   mGeoFace   = mGeoLoad->getGeoInterface();
@@ -94,6 +103,10 @@ EicGeoParData::EicGeoParData(const char *detName, int version, int subVersion):
   mGeobuild  = mGeoLoad->getGeoBuilder();
 #endif
 
+  // FIXME: for EicRoot geometries, which require construction elements in the 
+  // .C scripts rather than in a library call, will have to switch/restore by hand;
+  //SwitchGeoManager();
+#if _MOVED_
   // Initialize Geo manager and create basic geometry volume structure; 
   mRootGeoManager = new TGeoManager();
 
@@ -102,9 +115,154 @@ EicGeoParData::EicGeoParData(const char *detName, int version, int subVersion):
   mTopVolume     = new TGeoVolumeAssembly(mDetName->NAME());
 
   mRootGeoManager->SetTopVolume(mWrapperVolume);
+#endif
 } // EicGeoParData::EicGeoParData()
 
 // =======================================================================================
+
+void EicGeoParData::SwitchGeoManager( void )
+{
+  // Save the original pointers; this is dumb of course (and assumes that a switch back 
+  // happens in the same call (which I kind of control myself); indeed ROOT is an awkward 
+  // code in terms of using global variables, etc;
+  mSavedGeoManager  = gGeoManager;
+  mSavedGeoIdentity = gGeoIdentity;
+
+  // Initialize Geo manager and create basic geometry volume structure; 
+  mRootGeoManager = new TGeoManager();
+
+  // It looks like 2-level layout (with an extra MASTER volume) is required by FairRoot;
+  mWrapperVolume = new TGeoVolumeAssembly(mDetName->Name() + "GeantGeoWrapper");
+  mTopVolume     = new TGeoVolumeAssembly(mDetName->NAME());
+
+  mRootGeoManager->SetTopVolume(mWrapperVolume);
+} // EicGeoParData::SwitchGeoManager()
+
+// ---------------------------------------------------------------------------------------
+
+void EicGeoParData::RestoreGeoManager( void )
+{
+  // This will remove the pointer from the list of geometries and the list of browsables, 
+  // see TGeoManager::~TGeoManager() code;
+  delete mRootGeoManager;
+
+  gGeoManager  = mSavedGeoManager;
+  gGeoIdentity = mSavedGeoIdentity;
+} // EicGeoParData::RestoreGeoManager()
+
+// ---------------------------------------------------------------------------------------
+
+void EicGeoParData::PlaceG4Volume(G4VPhysicalVolume *mother, bool check, 
+				  //G4RotationMatrix *pRot, G4ThreeVector *tlate)
+				  void *pRot, void *tlate)
+{
+  // Switch() & Restore() calls are generic;
+  SwitchGeoManager();
+
+  // This one is virtual, detector-specific (populates gGeoManager); 
+  // perform TGeo geometry check (optional);
+  ConstructGeometry(false, false, check);
+
+#if defined(_ETM2GEANT_) && defined(_VGM_)
+  // Create std::set of the sensitive volume names;
+  mSensitiveVolumeNames.clear(); 
+  mG4Volumes.clear();
+  mG4SensitiveVolumes.clear();
+  for(int iq=0; iq<GetMapNum(); iq++) {
+    const EicGeoMap *fmap = GetMapPtrViaMapID(iq);
+
+    //printf("@@@ %s\n", fmap->GetInnermostVolumeName()->Data());
+    mSensitiveVolumeNames.insert(*fmap->GetInnermostVolumeName());
+  } //if..for iq
+
+  // This is again generic; assumes FairRoor two-layer assembly on top of everything, 
+  // and then container volumes with the actual stuff inside it;
+  if (gGeoManager && gGeoManager->GetTopNode() && gGeoManager->GetTopNode()->GetVolume()->GetNode(0)) {
+    auto assembly = gGeoManager->GetTopNode()->GetVolume()->GetNode(0)->GetVolume();
+    
+    for(int iq=0; iq<assembly->GetNdaughters(); iq++) {
+      // FIXME: does one really need to create this pair of factories every time new?;
+      RootGM::Factory rtFactory;
+      Geant4GM::Factory g4Factory;
+
+      auto node = assembly->GetNode(iq);
+      //printf("%s\n", node->GetName());
+
+      rtFactory.Import(node);
+      rtFactory.Export(&g4Factory);
+
+      // FIXME: this is a hack (assumes [mm], which seems to be correct; but also will not work with rotations); 
+      auto trans = rtFactory.Top()->Transformation();
+      //for(auto value: trans)
+      //printf("%f\n", value);
+      G4ThreeVector offset(trans[0], trans[1], trans[2]);
+      if (tlate) offset += *(G4ThreeVector*)tlate;
+      
+      // FIXME: this is not good; but 'class G4ThreeVector' followed by '#include "G4ThreeVector.hh"'
+      // fails because of the CLHEP typedef conflict;
+      //printf("@@@ %f\n", g4Factory.World()->GetTranslation()[2]);
+      //auto pvol = new G4PVPlacement(g4Factory.World()->GetRotation(), g4Factory.World()->GetTranslation(), 
+      auto pvol = new G4PVPlacement((G4RotationMatrix*)pRot, offset,
+				    g4Factory.World()->GetLogicalVolume(), 
+				    node->GetName(), mother->GetLogicalVolume(), false, 0);
+      AssignG4Colors(pvol);
+    } //for iq
+  }
+
+  //printf("%d %d\n", GetG4Volumes().size(), GetG4SensitiveVolumes().size());
+#endif
+  
+  RestoreGeoManager();
+} // EicGeoParData::PlaceG4Volume()
+
+// ---------------------------------------------------------------------------------------
+
+void EicGeoParData::AssignG4Colors(G4VPhysicalVolume *pvol)
+{
+#ifdef _ETM2GEANT_
+  auto lvol = pvol->GetLogicalVolume();
+
+  // Deal with the volume vectors here as well; FIXME: change the method name;
+  mG4Volumes.push_back(pvol);
+  if (mSensitiveVolumeNames.find(lvol->GetName()) != mSensitiveVolumeNames.end())
+    mG4SensitiveVolumes.push_back(pvol);
+  
+  // Follow the logic of EicGeoParData::FinalizeOutput();
+  {
+    // FIXME: memory leak?;
+    G4VisAttributes* visAtt = new G4VisAttributes();
+    // Get volume color; if not defined, volume should be invisible;
+    const std::pair<TString, Color_t> *cpattern = GetColorTable()->AnyMatch(lvol->GetName());
+    
+    if (cpattern) {
+      auto rcolor = gROOT->GetColor(cpattern->second);
+
+      // Get volume transparency value (8-bit character 0..100 in the ROOT world);
+      const std::pair<TString, Char_t> *tpattern = GetTransparencyTable()->AnyMatch(lvol->GetName());
+      double transparency = tpattern ? (100-tpattern->second)/100. : 1.0;
+      visAtt->SetColor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), transparency);
+      visAtt->SetVisibility(true);
+      visAtt->SetForceWireframe(false);
+      visAtt->SetForceSolid(true);
+    }
+    else
+      visAtt->SetVisibility(false);
+    
+    lvol->SetVisAttributes(visAtt);
+  }
+
+  for(int iq=0; iq<lvol->GetNoDaughters(); iq++) {
+    auto daughter = lvol->GetDaughter(iq);
+      
+    //printf("--@@@ %s\n", daughter->GetName().data());
+
+    // Call recursively;
+    AssignG4Colors(daughter);
+  } //for iq  
+#endif
+} // EicGeoParData::AssignG4Colors()
+
+// ---------------------------------------------------------------------------------------
 
 //
 // Mapping file creation part

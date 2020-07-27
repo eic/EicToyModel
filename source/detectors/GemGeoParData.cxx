@@ -14,8 +14,59 @@ using namespace std;
 #include <TGeoArb8.h>
 #include <TGeoPara.h>
 
+#include <EtmOrphans.h>
 #include <GemGeoParData.h>
 
+// ---------------------------------------------------------------------------------------
+
+GemModule::GemModule( void ):
+  //mActiveWindowBottomWidth    (  110.0 - 80.0),
+  mActiveWindowBottomWidth    (   30.0 * etm::mm),
+  //mActiveWindowTopWidth       (  270.0 + 80.0 + 80.0),
+  mActiveWindowTopWidth       (  430.0 * etm::mm),
+  //mActiveWindowHeight         (  300.0 + 2*150.0 + 100.0),
+  mActiveWindowHeight         (  700.0 * etm::mm),
+
+  // Frame parameters accoring to Kondo's sbsCrossSection.pdf file),
+  mFrameThickness             (   18.0 * etm::mm),
+  mFrameBottomEdgeWidth       (   30.0 * etm::mm),
+  mFrameTopEdgeWidth          (   30.0 * etm::mm),
+  mFrameSideEdgeWidth         (    8.0 * etm::mm),
+  
+  // FIXME: put aluminum layer later as well),
+  mEntranceWindowMaterial     ( "GemKapton"),
+  mEntranceWindowThickness    (   50.0 * etm::um),
+  
+  // Use evaristo.pdf p.10 for the foil parameters:
+  //  - drift foil    : 50um kapton + 3um copper)
+  //  - GEM foil      : 30um kapton + 3um copper (80% area fraction))
+  //  - readout foils : 30um kapton + 3um copper total)
+  mDriftFoilKaptonThickness   (   50.0 * etm::um),
+  mDriftFoilCopperThickness   (    3.0 * etm::um),
+  mGemFoilAreaFraction        (   0.80),
+  mGemFoilKaptonThickness     (   30.0 * etm::um),
+  mGemFoilCopperThickness     (    3.0 * etm::um),
+  
+  mReadoutG10Thickness        (    0.0 * etm::mm),
+  mReadoutKaptonThickness     (   30.0 * etm::um), 
+  mReadoutCopperThickness     (    3.0 * etm::um),
+  
+// 3mm thick Nomex honeycomb for SBS GEMs),
+  mReadoutSupportMaterial     ( "GemNomex"),
+  mReadoutSupportThickness    (    3.0 * etm::mm),
+  
+// FIXME: check on that!),
+  mGasMixture                 ( "arco27030"),
+  
+  mEntranceRegionLength       (    3.0 * etm::mm),
+  mDriftRegionLength          (    3.0 * etm::mm),
+// Assume triple GEM layout),
+  mFirstTransferRegionLength  (    2.0 * etm::mm),
+  mSecondTransferRegionLength (    2.0 * etm::mm),
+  mInductionRegionLength      (    2.0 * etm::mm)
+{
+} // GemModule::GemModule()
+  
 // ---------------------------------------------------------------------------------------
 
 int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
@@ -54,9 +105,9 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
       snprintf(wheelContainerVolumeName, 128-1, "%sWheelContainerVolume%02d", detName, wl);
       
       TGeoTube *wcontainer = new TGeoTube(wheelContainerVolumeName,
-					 0.1 * minRadius,
-					 0.1 * maxRadius,
-					 0.1 * thickness/2);
+					  minRadius,
+					  maxRadius,
+					  thickness/2);
       vwcontainer = new TGeoVolume(wheelContainerVolumeName, wcontainer, GetMedium(_AIR_));
 		  
       GetTopVolume()->AddNode(vwcontainer, 0, wheel->mTransformation);
@@ -71,12 +122,12 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	module->mActiveWindowHeight;
 
       TGeoTrd1 *mcontainer = new TGeoTrd1(moduleContainerVolumeName,
-					  0.1 * (module->mActiveWindowBottomWidth/2 + module->mFrameSideEdgeWidth - 
-						 module->mFrameBottomEdgeWidth*tan(sideSlope)),
-					  0.1 * (module->mActiveWindowTopWidth/2 + module->mFrameSideEdgeWidth + 
-						 module->mFrameTopEdgeWidth*tan(sideSlope)),
-					  0.1 *  module->mFrameThickness/2,
-					  0.1 * moduleContainerHeight/2);
+					  module->mActiveWindowBottomWidth/2 + module->mFrameSideEdgeWidth - 
+					  module->mFrameBottomEdgeWidth*tan(sideSlope),
+					  module->mActiveWindowTopWidth/2 + module->mFrameSideEdgeWidth + 
+					  module->mFrameTopEdgeWidth*tan(sideSlope),
+					  module->mFrameThickness/2,
+					  moduleContainerHeight/2);
       vmcontainer = new TGeoVolume(moduleContainerVolumeName, mcontainer, GetMedium(_AIR_));
 
       // Place all the modules into the wheel container volume;
@@ -93,7 +144,7 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	double zOffset = wheel->mModuleNum == 1 ? 0.0 : 
 	  (md%2 ? -1.0 : 1.0)*(module->mFrameThickness + mMountingRingBeamLineThickness)/2;
 	
-	vwcontainer->AddNode(vmcontainer, md, new TGeoCombiTrans(0.1 *xOffset, 0.1 * yOffset, 0.1 * zOffset, rw));
+	vwcontainer->AddNode(vmcontainer, md, new TGeoCombiTrans(xOffset, yOffset, zOffset, rw));
       } //for md
     }
 
@@ -128,36 +179,35 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
       // Bottom edge; here I can indeed use TRD1 volume;
       {
 	TGeoTrd1 *bottom = new TGeoTrd1(bottomFrameEdgeName,
-					0.1 * (module->mActiveWindowBottomWidth/2 - 
-					       module->mFrameBottomEdgeWidth*tan(sideSlope)),
-					0.1 * module->mActiveWindowBottomWidth/2,
-					0.1 * module->mFrameThickness/2,
-					0.1 * module->mFrameBottomEdgeWidth/2);
+					module->mActiveWindowBottomWidth/2 - 
+					module->mFrameBottomEdgeWidth*tan(sideSlope),
+					module->mActiveWindowBottomWidth/2,
+					module->mFrameThickness/2,
+					module->mFrameBottomEdgeWidth/2);
 	TGeoVolume *vbottom = new TGeoVolume(bottomFrameEdgeName, bottom, GetMedium(mG10Material));
 	
 	double zOffset = -(moduleContainerHeight - module->mFrameBottomEdgeWidth)/2;
-	vmcontainer->AddNode(vbottom, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * zOffset, 0));
+	vmcontainer->AddNode(vbottom, 0, new TGeoCombiTrans(0.0, 0.0, zOffset, 0));
       }
-
       // Top edge; the same;
       {
 	TGeoTrd1 *top = new TGeoTrd1(topFrameEdgeName,
-				     0.1 *  module->mActiveWindowTopWidth/2,
-				     0.1 * (module->mActiveWindowTopWidth/2 +
-					    module->mFrameTopEdgeWidth*tan(sideSlope)),
-				     0.1 * module->mFrameThickness/2,
-				     0.1 * module->mFrameTopEdgeWidth/2);
+				     module->mActiveWindowTopWidth/2,
+				     module->mActiveWindowTopWidth/2 +
+				     module->mFrameTopEdgeWidth*tan(sideSlope),
+				     module->mFrameThickness/2,
+				     module->mFrameTopEdgeWidth/2);
 	TGeoVolume *vtop = new TGeoVolume(topFrameEdgeName, top, GetMedium(mG10Material));
 	
 	double zOffset = (moduleContainerHeight - module->mFrameTopEdgeWidth)/2;
-	vmcontainer->AddNode(vtop, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * zOffset, 0));
+	vmcontainer->AddNode(vtop, 0, new TGeoCombiTrans(0.0, 0.0, zOffset, 0));
       }
 
       // A pair of side edges; TGeoPara will do;
       TGeoPara *side = new TGeoPara(sideFrameEdgeName,
-				    0.1 * module->mFrameSideEdgeWidth/2,
-				    0.1 * module->mFrameThickness/2,
-				    0.1 * moduleContainerHeight/2,
+				    module->mFrameSideEdgeWidth/2,
+				    module->mFrameThickness/2,
+				    moduleContainerHeight/2,
 				    0.0, sideSlope*180/TMath::Pi(), 0.0);
       TGeoVolume *vside = new TGeoVolume(sideFrameEdgeName, side, GetMedium(mG10Material));
       for(unsigned lr=0; lr<2; lr++) {
@@ -171,7 +221,7 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	  rw->RotateZ(180.0);
 	} //if
 
-	vmcontainer->AddNode(vside, lr, new TGeoCombiTrans(0.1 * xOffset, 0.0, 0.0, rw));
+	vmcontainer->AddNode(vside, lr, new TGeoCombiTrans(xOffset, 0.0, 0.0, rw));
       } //for lr
 
       // Eventually populate single layers, one by one;
@@ -179,9 +229,11 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	double yOffset = -module->mFrameThickness/2;
 
 	// XY-projection shape does not change; it's only zOffset and thickness;
-	double wdt = 0.1 * module->mActiveWindowTopWidth;
-	double wdb = 0.1 * module->mActiveWindowBottomWidth;
-	double ht  = 0.1 * module->mActiveWindowHeight;
+	// FIXME: something is wrong with the floating point precision somewhere: just 
+	// subtract 1E-6 and be happy; this does not affect anything, obviously;
+	double wdt = module->mActiveWindowTopWidth    - 1E-6;
+	double wdb = module->mActiveWindowBottomWidth - 1E-6;
+	double ht  = module->mActiveWindowHeight      - 1E-6;
 
 	double vert[8][2] = {
 	  {-wdb/2,   -ht/2},
@@ -198,7 +250,6 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	// Proceed in direction opposite to the incident particles; whatever
 	// is left in thickness will remain air in front of the entrance foil;
 	//
-
 	// This readout support stuff is optionally present;
 	if (module->mReadoutSupportThickness)
 	  PlaceMaterialLayer(detName, "ReadoutSupport", wl, vmcontainer, 
@@ -214,7 +265,7 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 			   mKaptonMaterial.Data(), (double*)vert,
 			   module->mReadoutKaptonThickness, &yOffset); 
 
-	// Cooper layers are extremely thin -> put one effective layer;
+	// Copper layers are extremely thin -> put one effective layer;
 	{
 	  double thickness = module->mReadoutCopperThickness +  
 	    // 3x kapton layer, double-sided metallization;
@@ -284,8 +335,6 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 			     module->mEntranceWindowMaterial.Data(), (double*)vert,
 			     module->mEntranceWindowThickness, &yOffset); 
 	}
-
-	printf("-> %f\n", yOffset);
       }
     } //if
 
@@ -312,8 +361,16 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	    exit(0);
 	  } //if
 	} //for md
-	    }
+    }
   } //for wl
+
+  GetColorTable()         ->AddPatternMatch("FrameEdge",      kGray);
+  GetColorTable()         ->AddPatternMatch("EntranceWindow", kOrange);
+  if (mTransparency)
+    GetTransparencyTable()->AddPatternMatch("EntranceWindow", mTransparency);
+  GetColorTable()         ->AddPatternMatch("ReadoutSupport", kOrange);
+  if (mTransparency)
+    GetTransparencyTable()->AddPatternMatch("ReadoutSupport", mTransparency);
 
   // Place this stuff as a whole into the top volume and write out;
   FinalizeOutput(root, gdml, check);
@@ -334,15 +391,15 @@ void GemGeoParData::PlaceMaterialLayer(const char *detName, const char *volumeNa
 
   snprintf(volumeName, 128-1, "%s%s%02d", detName, volumeNamePrefix, wheelID);
 
-  TGeoArb8 *shape = new TGeoArb8(volumeName, 0.1 * thickness/2, vert); 
+  TGeoArb8 *shape = new TGeoArb8(volumeName, thickness/2, vert); 
 
   TGeoVolume *vshape = new TGeoVolume(volumeName, shape, GetMedium(material));
 
   double zOffset = -(module->mFrameTopEdgeWidth - module->mFrameBottomEdgeWidth)/2;
   TGeoRotation *rw = new TGeoRotation();
   rw->RotateX(90.0);
-  moduleContainer->AddNode(vshape, 0, new TGeoCombiTrans(0.0, 0.1 * (*yOffset + thickness/2), 
-							 0.1 * zOffset, rw));
+  moduleContainer->AddNode(vshape, 0, new TGeoCombiTrans(0.0, (*yOffset + thickness/2), 
+							 zOffset, rw));
 
   *yOffset += thickness;
 } // GemGeoParData::PlaceMaterialLayer()
