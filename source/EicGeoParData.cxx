@@ -32,11 +32,14 @@
 #include <EicGeoParData.h>
 
 #ifdef _ETM2GEANT_
+#include "G4Material.hh"
 #include "G4PVPlacement.hh"
 #include "G4LogicalVolume.hh"
 #include "G4ThreeVector.hh"
 #include "G4VisAttributes.hh"
 #endif
+
+EicGeoMedia *EicGeoParData::mEicMedia = 0;
 
 // =======================================================================================
  
@@ -64,7 +67,7 @@ void EicGeoParData::ResetVars()
   
   mDetName = 0; mRootGeoManager = mSavedGeoManager = 0; mWrapperVolume = mTopVolume = 0; 
   //@@@mGeoLoad = 0; mGeoFace = 0; mGeobuild = 0;
-  mEicMedia = 0;  
+  //@@@mEicMedia = 0;  
   mSavedGeoIdentity = 0;
 
   mColorRequests = 0; mTransparencyRequests = 0;
@@ -81,15 +84,6 @@ EicGeoParData::EicGeoParData(const char *detName, int version, int subVersion):
 
   // Create detector name class;
   mDetName   = new EicDetName(detName);
-
-  {
-    std::fstream fin("/sl6_home/SL7.1/YR/EicToyModel/media.geo", std::fstream::in);
-
-    mEicMedia = new EicGeoMedia();
-
-    mEicMedia->read(fin);
-    mEicMedia->print();
-  }
 
   // Well, default constructor of some detectors (like VST) will call VstGeoParData()
   // as EicGeoParData("VST"); so can not just check on detName=0 here in order to see 
@@ -129,6 +123,24 @@ EicGeoParData::EicGeoParData(const char *detName, int version, int subVersion):
   mRootGeoManager->SetTopVolume(mWrapperVolume);
 #endif
 } // EicGeoParData::EicGeoParData()
+
+// =======================================================================================
+
+int EicGeoParData::ImportMediaFile(const char *fname)
+{
+  std::fstream fin(fname, std::fstream::in);
+  if (!fin.is_open()) {
+    printf("Media file '%s' does not exist!\n", fname);
+    return -1;
+  } //if
+
+  mEicMedia = new EicGeoMedia();
+  
+  mEicMedia->read(fin);
+  //mEicMedia->print();
+
+  return 0;
+} // EicGeoParData::ImportMediaFile()
 
 // =======================================================================================
 
@@ -187,6 +199,11 @@ void EicGeoParData::PlaceG4Volume(G4VPhysicalVolume *mother, bool check,
     mSensitiveVolumeNames.insert(*fmap->GetInnermostVolumeName());
   } //if..for iq
 
+  {
+    //auto mtable = G4Material::GetMaterialTable();
+    //printf("mtable: %d\n", mtable->size());
+  }
+
   // This is again generic; assumes FairRoor two-layer assembly on top of everything, 
   // and then container volumes with the actual stuff inside it;
   if (gGeoManager && gGeoManager->GetTopNode() && gGeoManager->GetTopNode()->GetVolume()->GetNode(0)) {
@@ -219,6 +236,13 @@ void EicGeoParData::PlaceG4Volume(G4VPhysicalVolume *mother, bool check,
 				    node->GetName(), mother->GetLogicalVolume(), false, 0);
       AssignG4Colors(pvol);
     } //for iq
+  }
+
+  {
+    //auto mtable = G4Material::GetMaterialTable();
+    //printf("mtable: %d\n", mtable->size());
+
+    //mtable->clear();
   }
 
   //printf("%d %d\n", GetG4Volumes().size(), GetG4SensitiveVolumes().size());
@@ -493,10 +517,10 @@ int EicGeoParData::AttachSourceFile(const char *fileName)
 
 const TGeoMedium *EicGeoParData::GetMedium(const char *medium) 
 {
-  if (!mRootGeoManager) return 0;
+  // FIXME: allow for user-created media;
+  if (!mRootGeoManager || !mEicMedia) return 0;
 
-  if (!mMediaCache.count(medium))
-  {
+  if (!mMediaCache.count(medium)) {
     EicGeoMedium *fmedium = mEicMedia->getMedium(medium);
     mEicMedia->createMedium(fmedium);
 

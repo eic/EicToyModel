@@ -149,13 +149,15 @@ class BasicPhysicsList : public G4VModularPhysicsList {
 
 int main(int argc, char** argv)
 {
-  if (argc != 2) {
-    printf("\n\n   usage: %s <EicToyModel-root-file-name>\n\n\n", argv[0]);
+  if (argc != 3) {
+    printf("\n\n   usage: %s <EicToyModel-root-file-name> <EicRoot-media-file-name\n\n\n", argv[0]);
     return -1;
   } //if
 
   // Import the ROOT file with an "EicToyModel" singleton class instance; 
-  if (!EicToyModel::Import(argv[1])) return -1;
+  if ( !EicToyModel::Import(         argv[1])) return -1;
+  // Import EicRoot media.geo file;
+  if (EicGeoParData::ImportMediaFile(argv[2])) return -1;
 
   // The rest is a usual GEANT stuff;
   G4RunManager *runManager = new G4RunManager;

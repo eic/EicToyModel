@@ -22,6 +22,7 @@
 #include "G4PVPlacement.hh"
 #endif
 
+#include <EicGeoMedia.h>
 #include <EicToyModel.h>
 
 // Side, top & bottom extra space for labels and such;
@@ -83,7 +84,8 @@ EicToyModel::EicToyModel(double length, double radius):
   mCurrentView(EicToyModel::kUndefined), 
   mMirrorImage(false), mOneSideMode(EicToyModel::kOff),
   //mSafetyClearance(_SAFETY_CLEARANCE_DEFAULT_), mVisualClearance(_VISUAL_CLEARANCE_DEFAULT_),
-  mCrossingAngle(_CROSSING_ANGLE_DEFAULT_), mGeometryLocked(false), mNewCanvasRequired(true)
+  mCrossingAngle(_CROSSING_ANGLE_DEFAULT_), mGeometryLocked(false), mNewCanvasRequired(true)//,
+  //mEicMedia(0)
 {
   // Sanity check;
   if (mInstance) {

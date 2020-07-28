@@ -312,6 +312,8 @@ class EicGeoParData: public TObject
     return ((logicalID >> _LOGICAL_XYZ_BIT_NUM_) & _LOGICAL_GROUP_MASK_);
   };
 
+  static int ImportMediaFile(const char *fname);
+
  private:
   unsigned GetLogicalCoordCore(unsigned what, ULogicalIndex_t logicalID) const;
  public:
@@ -472,7 +474,7 @@ class EicGeoParData: public TObject
   TGeoVolume *mWrapperVolume;              //!
   TGeoVolume *mTopVolume;                  //!
 
-  EicGeoMedia *mEicMedia;                  //!
+  static EicGeoMedia *mEicMedia; 
 
   // Just need to store the names in order to make sure, that geobuild->createMedium()
   // was performed for all the media requested by GetMedium() calls;
