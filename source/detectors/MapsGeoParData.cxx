@@ -58,10 +58,10 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
   if (UseTriangularAssemblies()) {
     // This is fine for the VST;
     TGeoTrd1 *trd1 = new TGeoTrd1(mCellAssemblyName,
-				  0.1 * mcell->mAssemblyBaseWidth/2,
+				  mcell->mAssemblyBaseWidth/2,
 				  0.0,
-				  0.1 * mAssemblyLength/2,
-				  0.1 * mAssemblyHeight/2);
+				  mAssemblyLength/2,
+				  mAssemblyHeight/2);
 
     vcell = new TGeoVolume(mCellAssemblyName, trd1, GetMedium(_AIR_));
   }
@@ -97,7 +97,7 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
   double aluThickness = 0.0, kaptonThickness = 0.0, carbonThickness = 0.0, waterThickness = 0.0;
 
   // A running variable (accumulated offset);
-  double zOffset = -mAssemblyHeight/2;
+  double zOffset = -mAssemblyHeight/2;// + 1E-6;
 
   // Create internal chip assembly cell structure;
   {
@@ -112,12 +112,12 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	kaptonThickness += mcell->mFlexCableKaptonThickness;
       else {
 	TGeoBBox *flex = new TGeoBBox(flexName,
-				      0.1 * mcell->mAssemblyDeadMaterialWidth/2,
-				      0.1 * mAssemblyLength/2,
-				      0.1 * mcell->mFlexCableKaptonThickness/2);
+				      mcell->mAssemblyDeadMaterialWidth/2,
+				      mAssemblyLength/2,
+				      mcell->mFlexCableKaptonThickness/2);
 	TGeoVolume *vflex = new TGeoVolume(flexName, flex, GetMedium(mKaptonMaterial));
 	
-	vcell->AddNode(vflex, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * (zOffset + mcell->mFlexCableKaptonThickness/2), 0));
+	vcell->AddNode(vflex, 0, new TGeoCombiTrans(0.0, 0.0, (zOffset + mcell->mFlexCableKaptonThickness/2), 0));
       } //if    
  
       // Yes, want to keep precise track on the silicon chip final offset, so it is the same in 
@@ -125,18 +125,19 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
       zOffset += mcell->mFlexCableKaptonThickness;
     }
     
+#if _TODAY_
     // Alu strips;
     {
       if (GetGeometryType() == MapsGeoParData::NoStructure)
 	aluThickness += mcell->mFlexCableAluThickness;
       else {
 	TGeoBBox *alu = new TGeoBBox(aluStripName,
-				     0.1 * mcell->mAssemblyDeadMaterialWidth/2,
-				     0.1 * mAssemblyLength/2,
-				     0.1 * mcell->mFlexCableAluThickness/2);
+				     mcell->mAssemblyDeadMaterialWidth/2,
+				     mAssemblyLength/2,
+				     mcell->mFlexCableAluThickness/2);
 	TGeoVolume *valu = new TGeoVolume(aluStripName, alu, GetMedium(_ALUMINUM_));
 	
-	vcell->AddNode(valu, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * (zOffset + mcell->mFlexCableAluThickness/2), 0));
+	vcell->AddNode(valu, 0, new TGeoCombiTrans(0.0, 0.0, (zOffset + mcell->mFlexCableAluThickness/2), 0));
       } //if    
  
       zOffset += mcell->mFlexCableAluThickness;
@@ -145,28 +146,28 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
     // Mimosa chips; keep this structure in all theree geometry versions;
     {
       TGeoBBox *mimosa = new TGeoBBox(mMimosaShellName,
-				      0.1 * mcell->mChipWidth/2,
-				      0.1 * mcell->mChipLength/2,
-				      0.1 * mcell->mChipThickness/2);
+				      mcell->mChipWidth/2,
+				      mcell->mChipLength/2,
+				      mcell->mChipThickness/2);
       TGeoVolume *vmimosa = new TGeoVolume(mMimosaShellName, mimosa, GetMedium(_SILICON_));
 
       mMimosaOffset = zOffset;
-      vcell->AddNode(vmimosa, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * (zOffset + mcell->mChipThickness/2), 0));
+      vcell->AddNode(vmimosa, 0, new TGeoCombiTrans(0.0, 0.0, (zOffset + mcell->mChipThickness/2), 0));
       
       zOffset += mcell->mChipThickness;
       
       // Mimosa chips sensitive layer;
       {
 	TGeoBBox *micore = new TGeoBBox(mMimosaCoreName,
-					0.1 * (mcell->mChipWidth - mcell->mChipDeadAreaWidth)/2,
-					0.1 * mcell->mChipLength/2,
-					0.1 * mcell->mChipActiveZoneThickness/2);
+					(mcell->mChipWidth - mcell->mChipDeadAreaWidth)/2,
+					mcell->mChipLength/2,
+					mcell->mChipActiveZoneThickness/2);
 	TGeoVolume *vmicore = new TGeoVolume(mMimosaCoreName, micore, GetMedium(_SILICON_));
 	
 	// NB: shift active area to the side in local X direction; NB: don't change '-' here, 
 	// otherwise will need to modify rotations in FST/BST in order to bring chips more close 
 	// to the beam line;
-	vmimosa->AddNode(vmicore, 0, new TGeoCombiTrans(0.1 * (-mcell->mChipDeadAreaWidth/2), 0.0, 0.0, 0));
+	vmimosa->AddNode(vmicore, 0, new TGeoCombiTrans((-mcell->mChipDeadAreaWidth/2), 0.0, 0.0, 0));
       }
     }
     
@@ -176,12 +177,12 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	carbonThickness += mcell->mColdPlateThickness;
       else {
 	TGeoBBox *cold = new TGeoBBox(coldPlateName,
-				      0.1 * mcell->mAssemblyDeadMaterialWidth/2,
-				      0.1 * mAssemblyLength/2,
-				      0.1 * mcell->mColdPlateThickness/2);
+				      mcell->mAssemblyDeadMaterialWidth/2,
+				      mAssemblyLength/2,
+				      mcell->mColdPlateThickness/2);
 	TGeoVolume *vcold = new TGeoVolume(coldPlateName, cold, GetMedium(mCarbonFiberMaterial));
 	
-	vcell->AddNode(vcold, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * (zOffset + mcell->mColdPlateThickness/2), 0));
+	vcell->AddNode(vcold, 0, new TGeoCombiTrans(0.0, 0.0, (zOffset + mcell->mColdPlateThickness/2), 0));
       } //if     
  
       zOffset += mcell->mColdPlateThickness;
@@ -209,16 +210,16 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
       }
       else {
 	TGeoTube *wpipe = new TGeoTube(waterPipeName,
-				       0.1 * mcell->mWaterPipeInnerDiameter/2,
-				       0.1 * waterPipeOuterDiameter/2,
-				       0.1 * mAssemblyLength/2);
+				       mcell->mWaterPipeInnerDiameter/2,
+				       waterPipeOuterDiameter/2,
+				       mAssemblyLength/2);
 	TGeoVolume *vwpipe = new TGeoVolume(waterPipeName, wpipe, GetMedium(mKaptonMaterial));
 	
 	// Water itself;
 	TGeoTube *water = new TGeoTube(waterName,
 				       0.0,
-				       0.1 * mcell->mWaterPipeInnerDiameter/2,
-				       0.1 * mAssemblyLength/2);
+				       mcell->mWaterPipeInnerDiameter/2,
+				       mAssemblyLength/2);
 	TGeoVolume *vwater = new TGeoVolume(waterName, water, GetMedium(_WATER_));
 	
 	TGeoRotation *rw = new TGeoRotation();
@@ -231,8 +232,8 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	for(unsigned lr=0; lr<2; lr++) {
 	  double xOffset = (lr ? -1.0 : 1.0)*mWaterPipeXoffset;
 	  
-	  vcell->AddNode(vwpipe, lr, new TGeoCombiTrans(0.1 * xOffset, 0.0, 0.1 * mWaterPipeZoffset, rw));
-	  vcell->AddNode(vwater, lr, new TGeoCombiTrans(0.1 * xOffset, 0.0, 0.1 * mWaterPipeZoffset, rw));
+	  vcell->AddNode(vwpipe, lr, new TGeoCombiTrans(xOffset, 0.0, mWaterPipeZoffset, rw));
+	  vcell->AddNode(vwater, lr, new TGeoCombiTrans(xOffset, 0.0, mWaterPipeZoffset, rw));
 	} //for lr
       } //if
     }
@@ -256,8 +257,8 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
       // Apex beam;
       TGeoTube *abeam = new TGeoTube(apexEnforcementBeamName,
 				     0.0,
-				     0.1 * mcell->mApexEnforcementBeamDiameter/2,
-				     0.1 * mAssemblyLength/2);
+				     mcell->mApexEnforcementBeamDiameter/2,
+				     mAssemblyLength/2);
       TGeoVolume *vabeam = new TGeoVolume(apexEnforcementBeamName, abeam, GetMedium(mCarbonFiberMaterial));
       
       TGeoRotation *rw = new TGeoRotation();
@@ -266,12 +267,12 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
       {
 	double hOffset = zOffset + 
 	  (mcell->mAssemblyDeadMaterialWidth/2)*tan(slope) - (mcell->mApexEnforcementBeamDiameter/2)/cos(slope);
-	vcell->AddNode(vabeam, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * hOffset, rw));
+	vcell->AddNode(vabeam, 0, new TGeoCombiTrans(0.0, 0.0, hOffset, rw));
       }
 
       // Base beams; have to resort to Arb8 shape, sorry;
-      double width  = 0.1 * mcell->mBaseEnforcementBeamWidth;
-      double length = 0.1 * mAssemblyLength;
+      double width  = mcell->mBaseEnforcementBeamWidth;
+      double length = mAssemblyLength;
 
       double vert[8][2] = {
 	{-width,   -length/2},
@@ -285,7 +286,7 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
       };
 
       double baseBeamHeight = mcell->mBaseEnforcementBeamWidth*tan(slope);
-      TGeoArb8 *bbeam = new TGeoArb8(baseEnforcementBeamName, 0.1 * baseBeamHeight/2, (double*)vert); 
+      TGeoArb8 *bbeam = new TGeoArb8(baseEnforcementBeamName, baseBeamHeight/2, (double*)vert); 
       TGeoVolume *vbbeam = new TGeoVolume(baseEnforcementBeamName, bbeam, GetMedium(mCarbonFiberMaterial));
       {
 	double hOffset = zOffset + baseBeamHeight/2;
@@ -296,7 +297,7 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	  TGeoRotation *rw = new TGeoRotation();
 	  if (lr) rw->RotateZ(180);
 
-	  vcell->AddNode(vbbeam, lr, new TGeoCombiTrans(0.1 * xOffset, 0.0, 0.1 * hOffset, rw));
+	  vcell->AddNode(vbbeam, lr, new TGeoCombiTrans(xOffset, 0.0, hOffset, rw));
 	} //for lr
       }
     } //if
@@ -333,9 +334,9 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	// Side wall volume; air container in case of full geometry; a single thin carbon layer
 	// in case of beam-line-uniform geometry;
 	TGeoBBox *side = new TGeoBBox(sideWallName,
-				      0.1 * sideWallWidth/2,
-				      0.1 * mAssemblyLength/2,
-				      0.1 * fullThickness/2);
+				      sideWallWidth/2,
+				      mAssemblyLength/2,
+				      fullThickness/2);
 	TGeoVolume *vside;
 	if (GetGeometryType() == MapsGeoParData::SimpleStructure)
 	  vside = new TGeoVolume(sideWallName, side, GetMedium(mCarbonFiberMaterial));
@@ -345,21 +346,21 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	  // Side wall solid thin layer (roof); 
 	  {
 	    TGeoBBox *flat = new TGeoBBox(flatRoofName,
-					  0.1 * sideWallWidth/2,
-					  0.1 * mAssemblyLength/2,
-					  0.1 * mcell->mSideWallThickness/2);
+					  sideWallWidth/2,
+					  mAssemblyLength/2,
+					  mcell->mSideWallThickness/2);
 	    TGeoVolume *vflat = new TGeoVolume(flatRoofName, flat, GetMedium(mCarbonFiberMaterial));
 	    
-	    vside->AddNode(vflat, 2, new TGeoCombiTrans(0.0, 0.0,  0.1 * mcell->mEnforcementStripThickness/2, 0));
+	    vside->AddNode(vflat, 2, new TGeoCombiTrans(0.0, 0.0,  mcell->mEnforcementStripThickness/2, 0));
 	  }
 	  
 	  // 4x roof enforcement beams;
 	  {
 	    
 	    TGeoBBox *beam = new TGeoBBox(roofSideBeamName,
-					  0.1 * beamLength/2,
-					  0.1 * mcell->mEnforcementStripWidth/2,
-					  0.1 * mcell->mEnforcementStripThickness/2);
+					  beamLength/2,
+					  mcell->mEnforcementStripWidth/2,
+					  mcell->mEnforcementStripThickness/2);
 	    TGeoVolume *vbeam = new TGeoVolume(roofSideBeamName, beam, GetMedium(mCarbonFiberMaterial));
 	    
 	    for(unsigned iq=0; iq<4; iq++) {
@@ -368,7 +369,8 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	      TGeoRotation *rw = new TGeoRotation();
 	      rw->RotateZ((iq%2 ? -1. : 1.)*degSlope);
 	      
-	      vside->AddNode(vbeam, iq, new TGeoCombiTrans(0.0, 0.1 * qOffset, -0.1 * mcell->mSideWallThickness/2, rw));
+	      //vside->AddNode(vbeam, iq, new TGeoCombiTrans(0.0, 0.1 * qOffset, -0.1 * mcell->mSideWallThickness/2, rw));
+	      vside->AddNode(vbeam, iq, new TGeoCombiTrans(0.0, qOffset, -mcell->mSideWallThickness/2, rw));
 	    } //for iq
 	  }
 	} //if   
@@ -388,11 +390,12 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	    else
 	      rw->SetAngles(90.0 + mcell->mAssemblySideSlope, 0.0,         90.0, 90.0,          0.0 + mcell->mAssemblySideSlope, 0.0);
 	    
-	    vcell->AddNode(vside, lr, new TGeoCombiTrans(0.1 *xOffset, 0.0, 0.1 * hOffset, rw));
+	    vcell->AddNode(vside, lr, new TGeoCombiTrans(xOffset, 0.0, hOffset, rw));
 	  } //for lr
 	}
       } //if
     }
+#endif
   }
 
   //cout << GetMedium(mCarbonFiberMaterial)->GetMaterial()->GetRadLen() << endl; exit(0);
@@ -406,10 +409,10 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 
     //printf("%f %f %f %f\n", aluThickness, kaptonThickness, carbonThickness, waterThickness);
 
-    aluRadLen    = 0.1 * aluThickness    / GetMedium(_ALUMINUM_)->GetMaterial()->GetRadLen();
-    kaptonRadLen = 0.1 * kaptonThickness / GetMedium(mKaptonMaterial)->GetMaterial()->GetRadLen();
-    carbonRadLen = 0.1 * carbonThickness / GetMedium(mCarbonFiberMaterial)->GetMaterial()->GetRadLen();
-    waterRadLen  = 0.1 * waterThickness  / GetMedium(_WATER_)->GetMaterial()->GetRadLen();
+    aluRadLen    = aluThickness    / GetMedium(_ALUMINUM_)->GetMaterial()->GetRadLen();
+    kaptonRadLen = kaptonThickness / GetMedium(mKaptonMaterial)->GetMaterial()->GetRadLen();
+    carbonRadLen = carbonThickness / GetMedium(mCarbonFiberMaterial)->GetMaterial()->GetRadLen();
+    waterRadLen  = waterThickness  / GetMedium(_WATER_)->GetMaterial()->GetRadLen();
     //printf("%f %f %f %f\n", 100*aluRadLen, 100*kaptonRadLen, 100*carbonRadLen, 100*waterRadLen);
 
     // Effective carbon fiber layer thickness;
@@ -426,26 +429,26 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	equivalentCarbonThickness < offsetFromBottomSide ? equivalentCarbonThickness : offsetFromBottomSide;
 
       TGeoBBox *flex = new TGeoBBox(flexName,
-				    0.1 * mcell->mAssemblyDeadMaterialWidth/2,
-				    0.1 * mAssemblyLength/2,
-				    0.1 * equivalentFlexThickness/2);
+				    mcell->mAssemblyDeadMaterialWidth/2,
+				    mAssemblyLength/2,
+				    equivalentFlexThickness/2);
       TGeoVolume *vflex = new TGeoVolume(flexName, flex, GetMedium(mCarbonFiberMaterial));
       
-      vcell->AddNode(vflex, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * (equivalentFlexThickness - mAssemblyHeight)/2, 0));
+      vcell->AddNode(vflex, 0, new TGeoCombiTrans(0.0, 0.0, (equivalentFlexThickness - mAssemblyHeight)/2, 0));
 
       double equivalentColdThickness = equivalentCarbonThickness - equivalentFlexThickness;
 
       if (equivalentColdThickness > 0.0) {
 	// Let it be called cold plate;
 	TGeoBBox *cold = new TGeoBBox(coldPlateName,
-				      0.1 * mcell->mAssemblyDeadMaterialWidth/2,
-				      0.1 * mAssemblyLength/2,
-				      0.1 * equivalentColdThickness/2);
+				      mcell->mAssemblyDeadMaterialWidth/2,
+				      mAssemblyLength/2,
+				      equivalentColdThickness/2);
 	TGeoVolume *vcold = new TGeoVolume(coldPlateName, cold, GetMedium(mCarbonFiberMaterial));
 	
 	// Yes, zOffset is still a valid current variable here; there will be a gap because of 
 	// missing pipes; ignore;
-	vcell->AddNode(vcold, 0, new TGeoCombiTrans(0.0, 0.0, 0.1 * (zOffset + equivalentColdThickness/2), 0));
+	vcell->AddNode(vcold, 0, new TGeoCombiTrans(0.0, 0.0, (zOffset + equivalentColdThickness/2), 0));
       } //if
     }
   } //if
@@ -488,10 +491,10 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
 
   if (UseTriangularAssemblies()) {
     TGeoTrd1 *qstave = new TGeoTrd1(staveName,
-				    0.1 * mcell->mAssemblyBaseWidth/2,
+				    mcell->mAssemblyBaseWidth/2,
 				    0.0,
-				    0.1 * stave->mLength/2,
-				    0.1 * mAssemblyHeight/2);
+				    stave->mLength/2,
+				    mAssemblyHeight/2);
     stave->mVolume = new TGeoVolume(staveName, qstave, GetMedium(_AIR_));
   }
   else {
@@ -523,22 +526,23 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
   for(unsigned nn=0; nn<chipNum; nn++) {
     double yOffset = (nn - 0.5*(chipNum-1))*mAssemblyLength;
     
-    stave->mVolume->AddNode(vcell, nn, new TGeoCombiTrans(0.0, 0.1 * yOffset, 0.0, 0));
+    stave->mVolume->AddNode(vcell, nn, new TGeoCombiTrans(0.0, yOffset, 0.0, 0));
   } //for nn
 
+#if _TODAY_
   // Place two brackets at the end of assembly; let them be always present, for all geometry types;
   if (WithEnforcementBrackets()) {
     TGeoTrd1 *bracket = new TGeoTrd1(bracketName,
-				     0.1 * mcell->mAssemblyDeadMaterialWidth/2,
+				     mcell->mAssemblyDeadMaterialWidth/2,
 				     0.0,
-				     0.1 * mEnforcementBracketThickness/2,
-				     0.1 * mAssemblyHeight/2);
+				     mEnforcementBracketThickness/2,
+				     mAssemblyHeight/2);
     TGeoVolume *vbracket = new TGeoVolume(bracketName, bracket, GetMedium(mCarbonFiberMaterial));
     
     for(unsigned ud=0; ud<2; ud++) {
       double yOffset = (ud ? -1.0 : 1.0)*(chipNum * mAssemblyLength + mEnforcementBracketThickness)/2;
       
-      stave->mVolume->AddNode(vbracket, ud, new TGeoCombiTrans(0.0, 0.1 * yOffset, 0.0, 0));
+      stave->mVolume->AddNode(vbracket, ud, new TGeoCombiTrans(0.0, yOffset, 0.0, 0));
     } //for ud
   } //if
 
@@ -549,16 +553,16 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
     // Place straight water pipe pieces at the upstream end; FIXME: unify with maps-lib.C later;
     {
       TGeoTube *wpipe = new TGeoTube(waterPipeName,
-				     0.1 * mcell->mWaterPipeInnerDiameter/2,
-				     0.1 * waterPipeOuterDiameter/2,
-				     0.1 * mWaterPipeExtensionLength/2);
+				     mcell->mWaterPipeInnerDiameter/2,
+				     waterPipeOuterDiameter/2,
+				     mWaterPipeExtensionLength/2);
       TGeoVolume *vwpipe = new TGeoVolume(waterPipeName, wpipe, GetMedium(mKaptonMaterial));
       
       // Water itself;
       TGeoTube *water = new TGeoTube(waterName,
 				     0.0,
-				     0.1 * mcell->mWaterPipeInnerDiameter/2,
-				     0.1 * mWaterPipeExtensionLength/2);
+				     mcell->mWaterPipeInnerDiameter/2,
+				     mWaterPipeExtensionLength/2);
       TGeoVolume *vwater = new TGeoVolume(waterName, water, GetMedium(_WATER_));
       
       TGeoRotation *rw = new TGeoRotation();
@@ -568,34 +572,37 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
 	double xOffset = (lr ? -1.0 : 1.0)*mWaterPipeXoffset;
 	double yOffset = (stave->mLength - mWaterPipeExtensionLength)/2;
 	
-	stave->mVolume->AddNode(vwpipe, lr, new TGeoCombiTrans(0.1 * xOffset, 0.1 * yOffset, 0.1 * mWaterPipeZoffset, rw));
-	stave->mVolume->AddNode(vwater, lr, new TGeoCombiTrans(0.1 * xOffset, 0.1 * yOffset, 0.1 * mWaterPipeZoffset, rw));
+	stave->mVolume->AddNode(vwpipe, lr, new TGeoCombiTrans(xOffset, yOffset, mWaterPipeZoffset, rw));
+	stave->mVolume->AddNode(vwater, lr, new TGeoCombiTrans(xOffset, yOffset, mWaterPipeZoffset, rw));
       } //for lr
     }
     
     // Place round U-pieces at the downstream end;
     {
       TGeoTorus *wtpipe = new TGeoTorus(waterTorusPipeName,
-					0.1 * mWaterPipeXoffset,
-					0.1 * mcell->mWaterPipeInnerDiameter/2,
-					0.1 * waterPipeOuterDiameter/2,
+					mWaterPipeXoffset,
+					mcell->mWaterPipeInnerDiameter/2,
+					waterPipeOuterDiameter/2,
 					180.0, 180.);
       TGeoVolume *vwtpipe = new TGeoVolume(waterTorusPipeName, wtpipe, GetMedium(mKaptonMaterial));
       
       
       // Water itself;
       TGeoTorus *twater = new TGeoTorus(waterTorusName,
-					0.1 * mWaterPipeXoffset,
+					mWaterPipeXoffset,
 					0.0, 
-					0.1 * mcell->mWaterPipeInnerDiameter/2,
+					mcell->mWaterPipeInnerDiameter/2,
 					180.0, 180.);
       TGeoVolume *vtwater = new TGeoVolume(waterTorusName, twater, GetMedium(_WATER_));
       
       double qyOffset = chipNum * mAssemblyLength/2 + mEnforcementBracketThickness;
-      stave->mVolume->AddNode(vwtpipe,  0, new TGeoCombiTrans(0.0, -0.1 * qyOffset, 0.1 * mWaterPipeZoffset, 0));
-      stave->mVolume->AddNode(vtwater,  0, new TGeoCombiTrans(0.0, -0.1 * qyOffset, 0.1 * mWaterPipeZoffset, 0));
+      //stave->mVolume->AddNode(vwtpipe,  0, new TGeoCombiTrans(0.0, -0.1 * qyOffset, 0.1 * mWaterPipeZoffset, 0));
+      //stave->mVolume->AddNode(vtwater,  0, new TGeoCombiTrans(0.0, -0.1 * qyOffset, 0.1 * mWaterPipeZoffset, 0));
+      stave->mVolume->AddNode(vwtpipe,  0, new TGeoCombiTrans(0.0, -qyOffset, mWaterPipeZoffset, 0));
+      stave->mVolume->AddNode(vtwater,  0, new TGeoCombiTrans(0.0, -qyOffset, mWaterPipeZoffset, 0));
     } 
   } //if
+#endif
 
   return stave;
 } // MapsGeoParData::ConstructStave()

@@ -9,6 +9,7 @@
 #include <EicToyModel.h>
 #include <GemGeoParData.h>
 #include <MuMegasGeoParData.h>
+#include <VstGeoParData.h>
 
 // ---------------------------------------------------------------------------------------
 
@@ -31,7 +32,50 @@ public:
     // Place them as G4 volumes into the IR world volume all at once ...
     eic->PlaceG4Volumes(expHall_phys);
 
+    {
+      VstGeoParData vst;
+      vst.SetGeometryType(EicGeoParData::SimpleStructure);
+      //vst.SetGeometryType(EicGeoParData::NoStructure);
+      vst.UseTriangularAssemblies(true);
+      vst.WithMountingRings(false);
+      vst.WithEnforcementBrackets(false);
+      vst.WithExternalPipes(false);
+
+      MapsMimosaAssembly *ibcell = new MapsMimosaAssembly();
+
+      // Now when basic building blocks are created, compose barrel layers;
+      //
+      // a dirty part, but perhaps the easiest (and most readable) to do; parameters are:
+      //  - cell assembly type;
+      //  - number of staves in this layer;
+      //  - number of chips in a stave;
+      //  - chip center installation radius;
+      //  - additional stave slope around beam line direction; [degree];
+      //  - layer rotation around beam axis "as a whole"; [degree];
+      //
+      //vst.AddBarrelLayer(ibcell,   12,  9,   23.4 * etm::mm, 12.0, 0.0);
+      //vst.AddBarrelLayer(ibcell, 2*12,  9, 2*23.4 * etm::mm, 12.0, 0.0);
+      
+      //vst.AddBarrelLayer(ibcell, 6*12, 14, 6*23.4 * etm::mm, 14.0, 0.0);
+      vst.AddBarrelLayer(ibcell, 4*20, 14, 4*39.3 * etm::mm, 14.0, 0.0);
+
+      EicNamePatternHub<Color_t> *ctable = vst.GetColorTable();
+      ctable->AddPatternMatch("WaterPipe",      kYellow);
+      ctable->AddPatternMatch("Water",          kBlue);
+      ctable->AddPatternMatch("StaveBracket",   kOrange);
+      ctable->AddPatternMatch("Beam",           kBlack);
+      ctable->AddPatternMatch("ColdPlate",      kYellow);
+      ctable->AddPatternMatch("MimosaCore",     kYellow);
+      ctable->AddPatternMatch("CellFlexLayer",  kGreen+2);
+      ctable->AddPatternMatch("AluStrips",      kGray);
+      ctable->AddPatternMatch("MountingRing",   kMagenta+1);
+
+      auto mid = eic->mid()->get("TRACKER")->GetG4Volume();
+      vst.PlaceG4Volume(mid, true, 0, new G4ThreeVector(0, 0, 0));
+    }
+
     // Forward GEM tracker module(s);
+#if _OK_
     {
       GemGeoParData fgt("FGT");
       GemModule *sbs = new GemModule();
@@ -49,7 +93,7 @@ public:
       // Build ROOT geometry, convert it to GEANT geometry, place into the mother volume;
       fgt.PlaceG4Volume(fwd);
     }
-
+#endif
     // Backward GEM tracker module(s);
 #if _OK_
     {
@@ -131,9 +175,9 @@ int main(int argc, char** argv)
   UImanager->ApplyCommand("/vis/viewer/set/lightsThetaPhi    110. 150.");
   UImanager->ApplyCommand("/vis/drawVolume");
   UImanager->ApplyCommand("/vis/scene/add/axes 0 0 0 1 m");
-  //UImanager->ApplyCommand("/vis/viewer/set/background white");
+  UImanager->ApplyCommand("/vis/viewer/set/background white");
   UImanager->ApplyCommand("/vis/viewer/zoom 2.0");
-  UImanager->ApplyCommand("/geometry/test/run");
+  //UImanager->ApplyCommand("/geometry/test/run");
 
   UImanager->ApplyCommand("/vis/viewer/clearCutawayPlanes");     
   UImanager->ApplyCommand("/vis/viewer/addCutawayPlane 0 0 7 m 1  0 0");

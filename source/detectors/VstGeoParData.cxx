@@ -15,6 +15,7 @@ using namespace std;
 #include <TGeoTrd1.h>
 #include <TGeoTube.h>
 
+#include <EtmOrphans.h>
 #include <VstGeoParData.h>
 
 // ---------------------------------------------------------------------------------------
@@ -63,6 +64,23 @@ int VstGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
     {
       double staveCenterRadius;
 
+      // Figure out thickness of the overall air container volume; FIXME: calculate it carefully;
+      double airContainerThickness = 50.0 * etm::mm;
+      
+      // Define air container volume and place it into the top volume;
+      char barrelContainerVolumeName[128];
+      snprintf(barrelContainerVolumeName, 128-1, "%sBarrelContainerVolume%02d", "Vst", bl);
+      
+      TGeoTube *bcontainer = new TGeoTube(barrelContainerVolumeName,
+					  blayer->mRadius - airContainerThickness/2,
+					  blayer->mRadius + airContainerThickness/2,
+					  // FIXME: hardcoded;
+					  (stave->GetLength() + 20 * etm::mm)/2);
+      TGeoVolume *vbcontainer = new TGeoVolume(barrelContainerVolumeName, bcontainer, GetMedium(_AIR_));
+      
+      GetTopVolume()->AddNode(vbcontainer, 0, 0);//barrel->mTransformation);
+      
+#if 1//_TODAY_
       // Place staves into master volume; FIXME: no extra hierarchy here?; well, otherwise 
       // would have to precisely calculate barrel TUBE volume inner/outer radius; 
       for(unsigned st=0; st<blayer->mStaveNum; st++) {
@@ -84,32 +102,36 @@ int VstGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	  double beta = asin(fabs(mMimosaOffset)*sin(alfa)/blayer->mRadius);
 	  double gamma = TMath::Pi() - alfa - beta;
 	  staveCenterRadius = blayer->mRadius*sin(gamma)/sin(alfa);
-	  GetTopVolume()->AddNode(stave->GetVolume(), st, 
-				  new TGeoCombiTrans(0.1 * staveCenterRadius*sin(radAngle), 
-						     0.1 * staveCenterRadius*cos(radAngle), 0.0, rw));
+	  //GetTopVolume()->AddNode(stave->GetVolume(), st, 
+	  vbcontainer->AddNode(stave->GetVolume(), st, 
+			       new TGeoCombiTrans(staveCenterRadius*sin(radAngle), 
+						  staveCenterRadius*cos(radAngle), 0.0, rw));
 	}
       } //for st
       
+#if _LATER_
       // Construct a mounting ring; let it be there for all geometry types;
       if (WithMountingRings())
       {
 	TGeoTube *mring = new TGeoTube(mountingRingName,
-				       0.1 * (staveCenterRadius + mMountingRingRadialOffset - mMountingRingRadialThickness/2),
-				       0.1 * (staveCenterRadius + mMountingRingRadialOffset + mMountingRingRadialThickness/2),
-				       0.1 * mMountingRingBeamLineThickness/2);
+				       (staveCenterRadius + mMountingRingRadialOffset - mMountingRingRadialThickness/2),
+				       (staveCenterRadius + mMountingRingRadialOffset + mMountingRingRadialThickness/2),
+				       mMountingRingBeamLineThickness/2);
 	TGeoVolume *vmring = new TGeoVolume(mountingRingName, mring, GetMedium(mCarbonFiberMaterial));
 	
 	// Place two rings;
 	for(unsigned fb=0; fb<2; fb++) {
 	  double zOffset = (fb ? -1. : 1.)*(stave->GetLength()/2 + mMountingRingBeamLineThickness/2);
 	  
-	  GetTopVolume()->AddNode(vmring, fb, new TGeoCombiTrans(0.0, 0.0, 0.1 * zOffset, 0));
+	  GetTopVolume()->AddNode(vmring, fb, new TGeoCombiTrans(0.0, 0.0, zOffset, 0));
 	} //for fb
       } //if
+#endif
+#endif
     }
   } //for bl
    
-  printf("%5d chip(s) and %5d stave(s) total\n", chipGlobalCounter, staveGlobalCounter);
+  //printf("%5d chip(s) and %5d stave(s) total\n", chipGlobalCounter, staveGlobalCounter);
 
   // Place this stuff as a whole into the top volume and write out;
   FinalizeOutput(root, gdml, check);

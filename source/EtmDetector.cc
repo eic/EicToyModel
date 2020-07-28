@@ -422,7 +422,7 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
 	
 	G4VisAttributes* visAtt = new G4VisAttributes();
 	//new G4VisAttributes(G4Colour(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue()));
-	visAtt->SetColor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue());//, 0.3);
+	visAtt->SetColor(rcolor->GetRed(), rcolor->GetGreen(), rcolor->GetBlue(), 0.3);
 	visAtt->SetVisibility(true);
 	visAtt->SetForceWireframe(false);
 	visAtt->SetForceSolid(true);

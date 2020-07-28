@@ -5,10 +5,11 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-//#pragma link C++ namespace qeic;
-
 #pragma link C++ class EicPOD+;
 #pragma link C++ class EicDetName+;
+
+#pragma link C++ class EicGeoMedium+;
+#pragma link C++ class EicGeoMedia+;
 
 #pragma link C++ class EicNamePatternHub<unsigned>+;
 #pragma link C++ class EicNamePatternHub<double>+;
@@ -63,8 +64,6 @@
 #pragma link C++ class EtmDetectorStack+;
 
 #pragma link C++ class EicToyModel+;
-
-//#pragma link C++ class XString+;
 
 #pragma link C++ class vc2020_03_20+;
 

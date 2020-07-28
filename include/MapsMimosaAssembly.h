@@ -7,17 +7,19 @@
 #include <TMath.h>
 #include <TObject.h>
 
+#include <EicPOD.h>
 #include <EicGeoParData.h>
 
 #ifndef _MAPS_MIMOSA_ASSEMBLY_
 #define _MAPS_MIMOSA_ASSEMBLY_
 
-class MapsMimosaAssembly: public TObject {
+class MapsMimosaAssembly: public EicPOD {
  public:
-  MapsMimosaAssembly() { ResetVars(); };
+  MapsMimosaAssembly();// { ResetVars(); };
   MapsMimosaAssembly(MapsMimosaAssembly *source) { *this = *source; };
   ~MapsMimosaAssembly() {};
   
+#if 0
   void ResetVars() {
     mAssemblyBaseWidth = mAssemblySideSlope = mChipToChipGap = mAssemblyDeadMaterialWidth = 0.0;
     mApexEnforcementBeamDiameter = mBaseEnforcementBeamWidth = 0.0;
@@ -30,6 +32,7 @@ class MapsMimosaAssembly: public TObject {
 
     mEnforcementStripWidth = mEnforcementStripThickness = 0.0;
   };
+#endif
 
   //
   //  Data container -> no private section;
@@ -72,7 +75,7 @@ class MapsMimosaAssembly: public TObject {
       tan(mAssemblySideSlope*TMath::Pi()/180.);
   };
 
-  ClassDef(MapsMimosaAssembly,13);
+  ClassDef(MapsMimosaAssembly,14);
 };
 
 #endif

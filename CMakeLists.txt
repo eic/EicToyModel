@@ -68,6 +68,8 @@ SET( LIBSRC
   source/EicNamePatternHub.cxx 
   source/EicGeoParData.cxx 
 
+  source/detectors/EicGeoMedium.cxx
+  source/detectors/EicGeoMedia.cxx
   source/detectors/GemGeoParData.cxx 
   source/detectors/MuMegasGeoParData.cxx 
   source/detectors/MapsGeoParData.cxx 
@@ -103,6 +105,9 @@ SET( HEADERS
 
   # FIXME: do it better later;
   ${CMAKE_SOURCE_DIR}/include/EicPOD.h
+
+  ${CMAKE_SOURCE_DIR}/include/EicGeoMedium.h
+  ${CMAKE_SOURCE_DIR}/include/EicGeoMedia.h
   ${CMAKE_SOURCE_DIR}/include/EicDetName.h
   ${CMAKE_SOURCE_DIR}/include/EicGeoMap.h
   ${CMAKE_SOURCE_DIR}/include/EicNamePatternHub.h

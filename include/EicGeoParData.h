@@ -19,19 +19,8 @@
 class TGeoIdentity;
 
 class G4VPhysicalVolume;
-//class G4RotationMatrix;
-//class G4ThreeVector;
 
-//#include <FairGeoLoader.h>
-//#include <FairGeoInterface.h>
-//#include <FairGeoMedia.h>
-//#include <FairGeoMedium.h>
-//#include <FairGeoBuilder.h>
-class FairGeoLoader;
-class FairGeoInterface;
-class FairGeoMedia;
-class FairGeoMedium;
-class FairGeoBuilder;
+class EicGeoMedia;
 
 #include <EicDetName.h>
 #include <EicNamePatternHub.h>
@@ -472,9 +461,6 @@ class EicGeoParData: public TObject
   unsigned char mTransparency;
 
  private:
-  // FIXME: unify with EtmVacuumChamber::CreateMedium();
-  void CreateMedium(const char *name, double A, double Z, double density);
-
   void SwitchGeoManager( void );
   void RestoreGeoManager( void );
 
@@ -486,11 +472,7 @@ class EicGeoParData: public TObject
   TGeoVolume *mWrapperVolume;              //!
   TGeoVolume *mTopVolume;                  //!
 
-  FairGeoLoader *mGeoLoad;                 //!
-  FairGeoInterface *mGeoFace;              //!
-
-  FairGeoMedia *mFairMedia;                //!
-  FairGeoBuilder *mGeobuild;               //!
+  EicGeoMedia *mEicMedia;                  //!
 
   // Just need to store the names in order to make sure, that geobuild->createMedium()
   // was performed for all the media requested by GetMedium() calls;

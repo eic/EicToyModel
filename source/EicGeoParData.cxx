@@ -4,6 +4,8 @@
 //  EIC geometry mapping classes;
 //
 
+#include <fstream>
+
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>
@@ -26,8 +28,7 @@
 #include "RootGM/volumes/Factory.h"
 #endif
 
-//@@@#include <PndGeoHandling.h>
-
+#include <EicGeoMedia.h>
 #include <EicGeoParData.h>
 
 #ifdef _ETM2GEANT_
@@ -62,7 +63,9 @@ void EicGeoParData::ResetVars()
   mTopVolumeTransformation = 0;
   
   mDetName = 0; mRootGeoManager = mSavedGeoManager = 0; mWrapperVolume = mTopVolume = 0; 
-  mGeoLoad = 0; mGeoFace = 0; mFairMedia = 0; mGeobuild = 0; mSavedGeoIdentity = 0;
+  //@@@mGeoLoad = 0; mGeoFace = 0; mGeobuild = 0;
+  mEicMedia = 0;  
+  mSavedGeoIdentity = 0;
 
   mColorRequests = 0; mTransparencyRequests = 0;
 
@@ -78,6 +81,15 @@ EicGeoParData::EicGeoParData(const char *detName, int version, int subVersion):
 
   // Create detector name class;
   mDetName   = new EicDetName(detName);
+
+  {
+    std::fstream fin("/sl6_home/SL7.1/YR/EicToyModel/media.geo", std::fstream::in);
+
+    mEicMedia = new EicGeoMedia();
+
+    mEicMedia->read(fin);
+    mEicMedia->print();
+  }
 
   // Well, default constructor of some detectors (like VST) will call VstGeoParData()
   // as EicGeoParData("VST"); so can not just check on detName=0 here in order to see 
@@ -479,27 +491,14 @@ int EicGeoParData::AttachSourceFile(const char *fileName)
 
 // ---------------------------------------------------------------------------------------
 
-void EicGeoParData::CreateMedium(const char *name, double A, double Z, double density)
-{
-  // FIXME: do it better;
-  static unsigned counter;
-
-  new TGeoMedium (name, ++counter, new TGeoMaterial(name, A, Z, density));
-} // EicGeoParData::CreateMedium()
-
 const TGeoMedium *EicGeoParData::GetMedium(const char *medium) 
 {
   if (!mRootGeoManager) return 0;
 
   if (!mMediaCache.count(medium))
   {
-#if _TODAY_
-    FairGeoMedium *fmedium = mFairMedia->getMedium(medium);
-    mGeobuild->createMedium(fmedium);
-#endif
-
-    // FIXME: this is fake to the moment;
-    CreateMedium(medium,  9.01,   4,  1.85);
+    EicGeoMedium *fmedium = mEicMedia->getMedium(medium);
+    mEicMedia->createMedium(fmedium);
 
     mMediaCache.insert(medium);
   } //if
