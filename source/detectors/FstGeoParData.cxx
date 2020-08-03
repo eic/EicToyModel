@@ -216,7 +216,7 @@ int FstGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 #endif
     
     // Place mounting ring;
-    if (WithMountingRings())
+    if (mWithMountingRings) //WithMountingRings())
     {
       TGeoTube *mring = new TGeoTube(mountingRingName,
 				     0.1 * (disc->mMaxRadius - mMountingRingRadialThickness),

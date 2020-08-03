@@ -1,10 +1,6 @@
 //
 // AYK (ayk@bnl.gov), 2014/08/07
 //
-//  VST MAPS geometry description file; should have probably kept this stuff
-// in geometry/MAPS/vst.C; but 1) I'm really tired of CINT bugs and restrictions, 
-// 2) this way I perfectly decouple input data and construction algorithms;
-//
 //  FIXME: materials are hardcoded indeed; but I know, they are well defined ...;
 //
 
@@ -14,9 +10,18 @@ using namespace std;
 #include <TMath.h>
 #include <TGeoTrd1.h>
 #include <TGeoTube.h>
+#include <TVector2.h>
 
 #include <EtmOrphans.h>
 #include <VstGeoParData.h>
+
+// ---------------------------------------------------------------------------------------
+
+VstGeoParData::VstGeoParData(int version, int subVersion): 
+  MapsGeoParData(_VST_DETECTOR_NAME_, version, subVersion), 
+  mMountingRingRadialOffset      ( 3.00 * etm::mm)
+{
+} // VstGeoParData::VstGeoParData()
 
 // ---------------------------------------------------------------------------------------
 
@@ -62,76 +67,88 @@ int VstGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
       } //for st..nn
 
     {
-      double staveCenterRadius;
+      // ALICE TDR gives silicon chip center intallation radius (p.8); want to reproduce the 
+      // geometry (and slope in particular) in order to cross-check material budget;
+      double alfa = blayer->mStaveSlope*TMath::Pi()/180.0;
+      // Use sine theorem or such;
+      double beta = asin(fabs(mMimosaOffset)*sin(alfa)/blayer->mRadius);
+      double gamma = TMath::Pi() - alfa - beta;
+      double staveCenterRadius = blayer->mRadius*sin(gamma)/sin(alfa);
 
-      // Figure out thickness of the overall air container volume; FIXME: calculate it carefully;
-      double airContainerThickness = 50.0 * etm::mm;
+      // Figure out thickness of the overall air container volume; 
+      double H = GetAssemblyContainerWidth(mcell), W = mcell->GetAssemblyHeight();
+      TVector2 A(-W/2, -H/2), B(W/2, -H/2), C(0.0, H/2), *arr[3] = {&A, &B, &C};
+      double rmin = 0.0, rmax = 0.0;
+      for(unsigned iq=0; iq<3; iq++) {
+	TVector2 pt = arr[iq]->Rotate(alfa) + TVector2(0.0, staveCenterRadius);
+	double r = pt.Mod();
+
+	if (!iq || r < rmin) rmin = r;
+	if (!iq || r > rmax) rmax = r;
+      } //for iq
+      //printf("%f %f %f\n", rmin, blayer->mRadius, rmax);
       
       // Define air container volume and place it into the top volume;
       char barrelContainerVolumeName[128];
       snprintf(barrelContainerVolumeName, 128-1, "%sBarrelContainerVolume%02d", "Vst", bl);
       
       TGeoTube *bcontainer = new TGeoTube(barrelContainerVolumeName,
-					  blayer->mRadius - airContainerThickness/2,
-					  blayer->mRadius + airContainerThickness/2,
-					  // FIXME: hardcoded;
-					  (stave->GetLength() + 20 * etm::mm)/2);
+					  rmin,
+					  rmax,
+					  stave->GetLength()/2);
       TGeoVolume *vbcontainer = new TGeoVolume(barrelContainerVolumeName, bcontainer, GetMedium(_AIR_));
       
       GetTopVolume()->AddNode(vbcontainer, 0, 0);//barrel->mTransformation);
       
-#if 1//_TODAY_
-      // Place staves into master volume; FIXME: no extra hierarchy here?; well, otherwise 
+      // Place staves into master volume; FIXME: no extral hierarchy here?; well, otherwise 
       // would have to precisely calculate barrel TUBE volume inner/outer radius; 
       for(unsigned st=0; st<blayer->mStaveNum; st++) {
 	TGeoRotation *rw = new TGeoRotation();
 	  
 	double degAngle = st*360.0/blayer->mStaveNum + blayer->mAsimuthalOffset;
 	double radAngle = degAngle*TMath::Pi()/180.0;
-	
-	{
-	  double fullAngle = degAngle + blayer->mStaveSlope;
-	  rw->SetAngles(90.0, 0.0 - fullAngle, 180.0,  0.0, 90.0, 90.0 - fullAngle);
-	}
-	  
-	// ALICE TDR gives silicon chip center intallation radius (p.8); want to reproduce the 
-	// geometry (and slope in particular) in order to cross-check material budget;
-	{
-	  // Use sine theorem;
-	  double alfa = blayer->mStaveSlope*TMath::Pi()/180.0;
-	  double beta = asin(fabs(mMimosaOffset)*sin(alfa)/blayer->mRadius);
-	  double gamma = TMath::Pi() - alfa - beta;
-	  staveCenterRadius = blayer->mRadius*sin(gamma)/sin(alfa);
-	  //GetTopVolume()->AddNode(stave->GetVolume(), st, 
+	double fullAngle = degAngle + blayer->mStaveSlope;
+
+	rw->SetAngles(90.0, 0.0 - fullAngle, 180.0,  0.0, 90.0, 90.0 - fullAngle);
+
 	  vbcontainer->AddNode(stave->GetVolume(), st, 
 			       new TGeoCombiTrans(staveCenterRadius*sin(radAngle), 
 						  staveCenterRadius*cos(radAngle), 0.0, rw));
-	}
       } //for st
       
-#if _LATER_
       // Construct a mounting ring; let it be there for all geometry types;
-      if (WithMountingRings())
-      {
+      if (mWithMountingRings) {
+	printf("%f %f %f\n", (staveCenterRadius + mMountingRingRadialOffset - mMountingRingRadialThickness/2),
+				       (staveCenterRadius + mMountingRingRadialOffset + mMountingRingRadialThickness/2),
+				       mMountingRingBeamLineThickness/2);
 	TGeoTube *mring = new TGeoTube(mountingRingName,
 				       (staveCenterRadius + mMountingRingRadialOffset - mMountingRingRadialThickness/2),
 				       (staveCenterRadius + mMountingRingRadialOffset + mMountingRingRadialThickness/2),
 				       mMountingRingBeamLineThickness/2);
 	TGeoVolume *vmring = new TGeoVolume(mountingRingName, mring, GetMedium(mCarbonFiberMaterial));
 	
-	// Place two rings;
+	// Place two rings; FIXME: it looks like they do not belong to the container volume?;
 	for(unsigned fb=0; fb<2; fb++) {
 	  double zOffset = (fb ? -1. : 1.)*(stave->GetLength()/2 + mMountingRingBeamLineThickness/2);
 	  
 	  GetTopVolume()->AddNode(vmring, fb, new TGeoCombiTrans(0.0, 0.0, zOffset, 0));
 	} //for fb
       } //if
-#endif
-#endif
     }
   } //for bl
    
   //printf("%5d chip(s) and %5d stave(s) total\n", chipGlobalCounter, staveGlobalCounter);
+
+  // Color palette; FIXME: what about transparency?;
+  GetColorTable()->AddPatternMatch("WaterPipe",      kYellow);
+  GetColorTable()->AddPatternMatch("Water",          kBlue);
+  GetColorTable()->AddPatternMatch("StaveBracket",   kOrange);
+  GetColorTable()->AddPatternMatch("Beam",           kBlack);
+  GetColorTable()->AddPatternMatch("ColdPlate",      kYellow);
+  GetColorTable()->AddPatternMatch("MimosaCore",     kYellow);
+  GetColorTable()->AddPatternMatch("CellFlexLayer",  kGreen+2);
+  GetColorTable()->AddPatternMatch("AluStrips",      kGray);
+  GetColorTable()->AddPatternMatch("MountingRing",   kMagenta+1);
 
   // Place this stuff as a whole into the top volume and write out;
   FinalizeOutput(root, gdml, check);

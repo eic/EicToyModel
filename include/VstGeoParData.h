@@ -42,8 +42,7 @@ class VstGeoParData: public MapsGeoParData
  private:
 
  public:
- VstGeoParData(int version = -1, int subVersion = 0): 
-  MapsGeoParData(_VST_DETECTOR_NAME_, version, subVersion), mMountingRingRadialOffset(0.0) {};
+ VstGeoParData(int version = -1, int subVersion = 0);
   ~VstGeoParData() {};
 
   void AddBarrelLayer(MapsMimosaAssembly *chipAssembly, 

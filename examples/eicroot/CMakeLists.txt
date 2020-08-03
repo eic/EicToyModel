@@ -2,16 +2,16 @@
 # . <root-installation-directory>/bin/thisroot.sh
 # . <geant-installation-directory>/bin/geant4.sh
 #
-# export LD_LIBRARY_PATH=<EicToyModel-installation-directory>/lib:${LD_LIBRARY_PATH}
+# export LD_LIBRARY_PATH=<EicToyModel-installation-directory>/lib:<VGM-library-location>:${LD_LIBRARY_PATH}
 #
 # mkdir build && mkdir build
 # cmake -Wno-dev -DETM=<EicToyModel-installation-directory> ..
 # make 
 #
-# ./basic <path-to-EicToyModel-root-file>
+# ./eicroot <path-to-EicToyModel-root-file> <path-to-media.geo-file>
 #
 
-PROJECT(BASIC)
+PROJECT(EICROOT)
 
 # Yes, help my buggy assert() statements; FIXME: do it better later;
 IF( NOT CMAKE_BUILD_TYPE )
@@ -38,7 +38,7 @@ include(${Geant4_USE_FILE})
 
 SET( CMAKE_CXX_FLAGS "-g -Wall -Wno-pedantic -Wno-reorder" )
 
-SET(EXENAME basic)
+SET(EXENAME eicroot)
 
 SET( EXESRC main.cc )
 
@@ -46,13 +46,7 @@ INCLUDE_DIRECTORIES (
   ${ROOT_INCLUDE_DIR}
 
   ${ETM}/include/etm
-
-  /sl6_home/SL7.1/include
-  #/sl6_home/SL7.1/YR/EicRoot/geobase
-  #/sl6_home/SL7.1/YR/EicRoot/eic/base
 )
 
-#SET( EICROOT /sl6_home/SL7.1/YR/EicRoot/build )
-
 ADD_EXECUTABLE( ${EXENAME} ${EXESRC} )
-TARGET_LINK_LIBRARIES( ${EXENAME} ${ROOT_LIBRARIES} Geom ${Geant4_LIBRARIES} -L${ETM}/lib etm -L/sl6_home/SL7.1/lib64 -lRootGM -lGeant4GM -lBaseVGM -lClhepVGM)
+TARGET_LINK_LIBRARIES( ${EXENAME} ${ROOT_LIBRARIES} Geom ${Geant4_LIBRARIES} -L${ETM}/lib etm )

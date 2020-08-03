@@ -1,8 +1,6 @@
 //
 // AYK (ayk@bnl.gov), 2014/08/11
 //
-//  MAPS Mimosa 34 container description;
-//
 
 #include <EtmOrphans.h>
 #include <MapsMimosaAssembly.h>
@@ -12,7 +10,8 @@
 MapsMimosaAssembly::MapsMimosaAssembly( void ):
   // Air container volume parameters sufficient to pack all the stuff;
   mAssemblyBaseWidth           (   17.500 * etm::mm),
-  mAssemblySideSlope           (   30.000 * etm::mm),
+  // In degrees here;
+  mAssemblySideSlope           (   30.0),
   mChipToChipGap               (    0.100 * etm::mm),
 
   // Space structure;

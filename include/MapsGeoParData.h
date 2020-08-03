@@ -46,18 +46,7 @@ class MapsGeoParData: public EicGeoParData
  private:
 
  public:
- MapsGeoParData(const char *detName = 0, int version = -1, int subVersion = 0): 
-  EicGeoParData(detName, version, subVersion), mMountingRingBeamLineThickness(0.0), 
-    mMountingRingRadialThickness(0.0), mWaterPipeExtensionLength(0.0),
-    mEnforcementBracketThickness(0.0), mUseTriangularAssemblies(false),
-    mWithMountingRings(false), mWithEnforcementBrackets(false), mWithExternalPipes(false),
-    mCarbonFiberMaterial("MapsCarbonFiber"), mKaptonMaterial("MapsKapton") {
-    mGeometryType = FullStructure;
-
-    // Transient variables; 
-    mMimosaCoreName[0] = mMimosaShellName[0] = mCellAssemblyName[0] = 0; 
-    mAssemblyHeight = mAssemblyLength = mWaterPipeXoffset = mWaterPipeZoffset = mMimosaOffset = 0.0;
-  };
+ MapsGeoParData(const char *detName = 0, int version = -1, int subVersion = 0);
   ~MapsGeoParData() {};
 
   // Add sort of mounting rings on both sides of each barrel layer; assume they are 
@@ -68,17 +57,17 @@ class MapsGeoParData: public EicGeoParData
   Double_t mWaterPipeExtensionLength;      // length of water pipe external pieces
   Double_t mEnforcementBracketThickness;   // thickness of triangular bracket at both stave ends
 
-  void UseTriangularAssemblies(bool yesNo) { mUseTriangularAssemblies = yesNo; };
-  bool UseTriangularAssemblies()  const    { return mUseTriangularAssemblies; };
+  void UseTriangularAssemblies(bool yesNo = true) { mUseTriangularAssemblies = yesNo; };
+  //bool UseTriangularAssemblies()         const    { return mUseTriangularAssemblies; };
 
-  void WithMountingRings(bool yesNo)       { mWithMountingRings       = yesNo; };
-  bool WithMountingRings()        const    { return mWithMountingRings; };
+  void WithMountingRings(bool yesNo = true)       { mWithMountingRings       = yesNo; };
+  //bool WithMountingRings()               const    { return mWithMountingRings; };
 
-  void WithEnforcementBrackets(bool yesNo) { mWithEnforcementBrackets = yesNo; };
-  bool WithEnforcementBrackets()  const    { return mWithEnforcementBrackets; };
+  void WithEnforcementBrackets(bool yesNo = true) { mWithEnforcementBrackets = yesNo; };
+  //bool WithEnforcementBrackets()         const    { return mWithEnforcementBrackets; };
 
-  void WithExternalPipes(bool yesNo)       { mWithExternalPipes       = yesNo; };
-  bool WithExternalPipes()        const    { return mWithExternalPipes; };
+  void WithExternalPipes(bool yesNo = true)       { mWithExternalPipes       = yesNo; };
+  //bool WithExternalPipes()               const    { return mWithExternalPipes; };
 
   void SetCarbonFiberMaterial(const char *material) { mCarbonFiberMaterial = TString(material); };
   void SetKaptonMaterial     (const char *material) { mKaptonMaterial      = TString(material); };
@@ -86,11 +75,11 @@ class MapsGeoParData: public EicGeoParData
  private:
   Bool_t mUseTriangularAssemblies; // either use simple triangular cell profile or composite shape
 
+ protected:
   Bool_t mWithMountingRings;       // either create or not mounting rings
   Bool_t mWithEnforcementBrackets; // either create or not enforcement brackets
   Bool_t mWithExternalPipes;       // either create or not external pieces op water pipes
 
- protected:
   TString mCarbonFiberMaterial;    // may want to specify a different carbon fiber in media.geo
   TString mKaptonMaterial;         // may want to specify a different kapton in media.geo
 
@@ -108,12 +97,13 @@ class MapsGeoParData: public EicGeoParData
   TGeoVolume *ConstructMimosaCell(MapsMimosaAssembly *mcell, unsigned id);
 
   double GetExpectedStaveLength(unsigned chipNum, MapsMimosaAssembly *mcell) {
-    return chipNum * mcell->GetAssemblyLength() + 2*mEnforcementBracketThickness + 
-      2*mWaterPipeExtensionLength;
+    return chipNum * mcell->GetAssemblyLength() + 
+      2*(mWithEnforcementBrackets ? mEnforcementBracketThickness : 0.0) + 
+      2*(mWithExternalPipes       ? mWaterPipeExtensionLength    : 0.0);
   };
 
   double GetAssemblyContainerWidth(const MapsMimosaAssembly *mcell) const {
-    return (UseTriangularAssemblies() ? mcell->mAssemblyBaseWidth : 
+    return (/*UseTriangularAssemblies()*/ mUseTriangularAssemblies ? mcell->mAssemblyBaseWidth : 
 	    mcell->mAssemblyDeadMaterialWidth);
   };
 

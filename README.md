@@ -18,6 +18,7 @@ configuration purposes.
  * [GEANT interface](#geant-interface)
  * &nbsp; &nbsp; &nbsp; [*escalate* Docker container](#escalate-docker-container)
  * &nbsp; &nbsp; &nbsp; [*fun4all* singularity container](#fun4all-singularity-container)
+ * &nbsp; &nbsp; &nbsp; [EicRoot tracker building blocks](#eicroot-tracker-building-blocks)
  * [Extended functionaly](#extended-functionality)
  * &nbsp; &nbsp; &nbsp; [CAD interface](#cad-interface)
  * &nbsp; &nbsp; &nbsp; [Magnetic field interface](#magnetic-field-interface)
@@ -532,6 +533,7 @@ cmake -DCMAKE_INSTALL_PREFIX=. -DGEANT=YES -Wno-dev ..
 
 Beyond that point there is no difference between escalate and fun4all environment, [follow the instructions here](#common-part).
 
+
 #### Common part
 
 ```
@@ -555,6 +557,59 @@ first, then click back on "viewer-0".
 
 Working examples of the toy model integration volumes usage in the actual escalate and fun4all
 EIC detector geometry description will follow shortly.
+
+
+#### EicRoot tracker building blocks
+
+As of 2020/08/02 the following parametric tracker elements are moved from EicRoot sources to 
+EicToyModel and are directly accessible for GEANT4 detector construction:
+
+* Silicon vertex tracker (internal structure matches ALICE ITS2 inner barrel design with 
+Alpide chip), configurable staves organized in barrel layers. One can build either an exact 
+ALICE design copy, or a simplified geometry.
+
+* Endcap GEM tracker (internal structure originally built accorging to SBS chambers; should 
+be very similar to a typical triple GEM detector).
+
+* Barrel micromegas detectors (M.Vandenbroucke, private communication). 
+
+Access to shape parameters is provided through the ROOT reflection based interface. The 
+shapes are built using TGeo internally, and converted to G4 on the fly, using VGM interface.
+
+  One can either place these shapes in the EicToyModel integration volumes, or bypass 
+the EicToyModel volume layer completely.
+
+  An STL vector of G4VPhysicalVolume sensitive volumes is provided via a separate method
+and can be communicated to a particular framework geometry manager. 
+  
+  One has to import [media.geo](examples/eicroot/media.geo) file with EicRoot materials, 
+which VGM then automatically converts into the GEANT ones. 
+
+  Usage below is shown schematically. A subset of EicToyModel integration volumes is created 
+as *eicroot.root* file (see [eicroot.C](scripts/eicroot.C)), then a standalone GEANT4 application 
+[main.cc](examples/eicroot/main.cc) imports the model and populates the integration volumes
+with a few example EicRoot tracker shapes.
+
+```
+# It is assumed that geant.(c)sh and thisroot.(c)sh were sourced, and also ETM library with 
+# VGM support was built (see the very beginning of the GEANT interface section); 
+# VGM: /container/app/vgm/vgm-v4-5 in the escalate container; fun4all container: vgm.4.3 is 
+# required for GEANT 10.2.2 (http://ivana.home.cern.ch/ivana/vgm.4.3.tar.gz); 
+cd /scratch/EicToyModel/build
+root -l ../scripts/eicroot.C
+
+cd ../examples/eicroot
+mkdir build && cd build
+# Make sure LD_LIBRARY_PATH contained location of ETM and VGM libraries;
+cmake -DETM=/scratch/EicToyModel/build -Wno-dev ..
+make -j4
+
+# Ignore 'duplicate name of material' warnings; Qt display may take a while to come up, 
+# depending on your graphics card; 
+./eicroot ../../../build/eicroot.root ../media.geo
+
+```
+
 
 <br/>
 

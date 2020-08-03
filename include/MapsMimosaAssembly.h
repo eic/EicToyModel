@@ -1,11 +1,10 @@
 //
 // AYK (ayk@bnl.gov), 2014/08/11
 //
-//  MAPS Mimosa 34 container description;
+//  MAPS a la ALICE ITS2 Alpide chip "container" description;
 //
 
 #include <TMath.h>
-#include <TObject.h>
 
 #include <EicPOD.h>
 #include <EicGeoParData.h>
@@ -15,25 +14,10 @@
 
 class MapsMimosaAssembly: public EicPOD {
  public:
-  MapsMimosaAssembly();// { ResetVars(); };
+  MapsMimosaAssembly();
   MapsMimosaAssembly(MapsMimosaAssembly *source) { *this = *source; };
   ~MapsMimosaAssembly() {};
   
-#if 0
-  void ResetVars() {
-    mAssemblyBaseWidth = mAssemblySideSlope = mChipToChipGap = mAssemblyDeadMaterialWidth = 0.0;
-    mApexEnforcementBeamDiameter = mBaseEnforcementBeamWidth = 0.0;
-
-    mChipLength = mChipWidth = mChipThickness = mChipActiveZoneThickness = 0.0;
-
-    mFlexCableKaptonThickness = mFlexCableAluThickness = mColdPlateThickness = 0.0;
-
-    mWaterPipeInnerDiameter = mWaterPipeWallThickness = 0.0;
-
-    mEnforcementStripWidth = mEnforcementStripThickness = 0.0;
-  };
-#endif
-
   //
   //  Data container -> no private section;
   //
@@ -50,15 +34,15 @@ class MapsMimosaAssembly: public EicPOD {
   Double_t mEnforcementStripThickness;  // thickness of side wall enforcement strip
   Double_t mSideWallThickness;          // thickness of container side walls
 
-  // Basic Mimosa 34 chip parameters; pixel size does not matter here (will play 
+  // Basic chip parameters; pixel size does not matter here (will play 
   // a role during digitization only);
-  Double_t mChipLength;                 // Mimosa 34 chip length along the stave (30mm)
-  Double_t mChipWidth;                  // Mimosa 34 chip width (15mm)
-  Double_t mChipThickness;              // Mimosa 34 silicon thickness (50um)
-  Double_t mChipActiveZoneThickness;    // Mimosa 34 active layer thickness (assume 20um in the middle)
-  Double_t mChipDeadAreaWidth;          // Mimosa 34 dead area along the long side (2mm or so)
+  Double_t mChipLength;                 // chip length along the stave (30mm)
+  Double_t mChipWidth;                  // chip width (15mm)
+  Double_t mChipThickness;              // silicon thickness (50um)
+  Double_t mChipActiveZoneThickness;    // active layer thickness (assume 20um in the middle)
+  Double_t mChipDeadAreaWidth;          // dead area along the long side (2mm or so)
 
-  Double_t mAssemblyDeadMaterialWidth;  // cold head, etc can be wider than the Mimosa 34 chip
+  Double_t mAssemblyDeadMaterialWidth;  // cold head, etc can be wider than the chip
 
   // Layers at the base of the assembly;
   Double_t mFlexCableKaptonThickness;   // flex cable substrate thickness

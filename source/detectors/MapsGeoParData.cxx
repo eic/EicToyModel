@@ -18,8 +18,32 @@ using namespace std;
 #include <TGeoTorus.h>
 #include <TGeoCompositeShape.h>
 
+#include <EtmOrphans.h>
 #include <MapsGeoParData.h>
 #include <MapsMimosaAssembly.h>
+
+// ---------------------------------------------------------------------------------------
+
+MapsGeoParData::MapsGeoParData(const char *detName, int version, int subVersion): 
+  EicGeoParData(detName, version, subVersion), 
+  // For now assume these variables will not be needed -> no EicPOD inheritance;
+  mMountingRingBeamLineThickness ( 5.00 * etm::mm),
+  mMountingRingRadialThickness   ( 5.00 * etm::mm),
+  mWaterPipeExtensionLength      ( 4.00 * etm::mm),
+  mEnforcementBracketThickness   ( 1.00 * etm::mm),
+  mUseTriangularAssemblies       (true),
+  mWithMountingRings             (false), 
+  mWithEnforcementBrackets       (false), 
+  mWithExternalPipes             (false),
+  mCarbonFiberMaterial           ("MapsCarbonFiber"), 
+  mKaptonMaterial                ("MapsKapton") 
+{
+  mGeometryType = FullStructure;
+
+  // Transient variables; 
+  mMimosaCoreName[0] = mMimosaShellName[0] = mCellAssemblyName[0] = 0; 
+  mAssemblyHeight = mAssemblyLength = mWaterPipeXoffset = mWaterPipeZoffset = mMimosaOffset = 0.0;
+} // MapsGeoParData::MapsGeoParData()
 
 // ---------------------------------------------------------------------------------------
 
@@ -48,14 +72,12 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
   snprintf(mCellAssemblyName,       128-1, "%sChipAssembly%02d",        detName, id);
   
   // Used throughout the code;
-  //mAssemblyHeight = (mcell->mAssemblyBaseWidth/2)*
-  //tan(mcell->mAssemblySideSlope*TMath::Pi()/180.);
   mAssemblyHeight = mcell->GetAssemblyHeight();
   mAssemblyLength = mcell->GetAssemblyLength();
 
   // Compose elementary cell volume with the Mimosa 34 chip inside;
   TGeoVolume *vcell;
-  if (UseTriangularAssemblies()) {
+  if (mUseTriangularAssemblies) {//UseTriangularAssemblies()) {
     // This is fine for the VST;
     TGeoTrd1 *trd1 = new TGeoTrd1(mCellAssemblyName,
 				  mcell->mAssemblyBaseWidth/2,
@@ -71,6 +93,7 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
     snprintf(tmp1Name,              128-1, "%sTmp1Volume%02d",          detName, id);
     snprintf(tmp2Name,              128-1, "%sTmp2Volume%02d",          detName, id);
 
+    // FIXME: re-activate this code back (if it is supported by VGM and G4 graphics of course);
     assert(0);
     // For FST/BST have to cut triangular cell edges, otherwise can not come close enough
     // to the beam pipe; TGeoCompositeShape has problems with drawing of course, but 
@@ -125,7 +148,6 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
       zOffset += mcell->mFlexCableKaptonThickness;
     }
     
-#if _TODAY_
     // Alu strips;
     {
       if (GetGeometryType() == MapsGeoParData::NoStructure)
@@ -395,7 +417,6 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
 	}
       } //if
     }
-#endif
   }
 
   //cout << GetMedium(mCarbonFiberMaterial)->GetMaterial()->GetRadLen() << endl; exit(0);
@@ -416,7 +437,7 @@ TGeoVolume *MapsGeoParData::ConstructMimosaCell(MapsMimosaAssembly *mcell, unsig
     //printf("%f %f %f %f\n", 100*aluRadLen, 100*kaptonRadLen, 100*carbonRadLen, 100*waterRadLen);
 
     // Effective carbon fiber layer thickness;
-    double equivalentCarbonThickness = 10. * (aluRadLen + kaptonRadLen + carbonRadLen + waterRadLen)*
+    double equivalentCarbonThickness = /*10. **/ (aluRadLen + kaptonRadLen + carbonRadLen + waterRadLen)*
       GetMedium(mCarbonFiberMaterial)->GetMaterial()->GetRadLen();
     //printf("%f\n", equivalentCarbonThickness);
 
@@ -485,11 +506,9 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
 
   // NB: for now do not mind to do stave setup front/back symmetric 
   // in terms of elementary cell location;
-  //stave->mLength = chipNum * mAssemblyLength + 2*mEnforcementBracketThickness + 
-  //2*mWaterPipeExtensionLength;
   stave->mLength = GetExpectedStaveLength(chipNum, mcell);
 
-  if (UseTriangularAssemblies()) {
+  if (mUseTriangularAssemblies) {
     TGeoTrd1 *qstave = new TGeoTrd1(staveName,
 				    mcell->mAssemblyBaseWidth/2,
 				    0.0,
@@ -503,6 +522,7 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
     snprintf(tmp1Name,              128-1, "%sTmp1Volume%02d",          detName, id);
     snprintf(tmp2Name,              128-1, "%sTmp2Volume%02d",          detName, id);
 
+    // FIXME: may need this code back for FST;
     assert(0);
     // Same stuff as in MapsGeoParData::ConstructMimosaCell();
 #if _DISABLED_ANYWAY_
@@ -529,9 +549,8 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
     stave->mVolume->AddNode(vcell, nn, new TGeoCombiTrans(0.0, yOffset, 0.0, 0));
   } //for nn
 
-#if _TODAY_
   // Place two brackets at the end of assembly; let them be always present, for all geometry types;
-  if (WithEnforcementBrackets()) {
+  if (mWithEnforcementBrackets) {
     TGeoTrd1 *bracket = new TGeoTrd1(bracketName,
 				     mcell->mAssemblyDeadMaterialWidth/2,
 				     0.0,
@@ -546,7 +565,7 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
     } //for ud
   } //if
 
-  if (WithExternalPipes() &&
+  if (mWithExternalPipes && 
       GetGeometryType() == MapsGeoParData::FullStructure) {
     double waterPipeOuterDiameter = mcell->mWaterPipeInnerDiameter + 2*mcell->mWaterPipeWallThickness;
     
@@ -595,14 +614,12 @@ MapsStave *MapsGeoParData::ConstructStave(unsigned chipNum, unsigned id,
 					180.0, 180.);
       TGeoVolume *vtwater = new TGeoVolume(waterTorusName, twater, GetMedium(_WATER_));
       
-      double qyOffset = chipNum * mAssemblyLength/2 + mEnforcementBracketThickness;
-      //stave->mVolume->AddNode(vwtpipe,  0, new TGeoCombiTrans(0.0, -0.1 * qyOffset, 0.1 * mWaterPipeZoffset, 0));
-      //stave->mVolume->AddNode(vtwater,  0, new TGeoCombiTrans(0.0, -0.1 * qyOffset, 0.1 * mWaterPipeZoffset, 0));
+      double qyOffset = chipNum * mAssemblyLength/2 + 
+	(mWithEnforcementBrackets ? mEnforcementBracketThickness : 0.0);
       stave->mVolume->AddNode(vwtpipe,  0, new TGeoCombiTrans(0.0, -qyOffset, mWaterPipeZoffset, 0));
       stave->mVolume->AddNode(vtwater,  0, new TGeoCombiTrans(0.0, -qyOffset, mWaterPipeZoffset, 0));
     } 
   } //if
-#endif
 
   return stave;
 } // MapsGeoParData::ConstructStave()

@@ -215,7 +215,7 @@ void EicGeoParData::PlaceG4Volume(G4VPhysicalVolume *mother, bool check,
       Geant4GM::Factory g4Factory;
 
       auto node = assembly->GetNode(iq);
-      //printf("%s\n", node->GetName());
+      //printf("@@@ -> %s\n", node->GetName());
 
       rtFactory.Import(node);
       rtFactory.Export(&g4Factory);
