@@ -162,6 +162,7 @@ G4VPhysicalVolume *EicToyModel::ConstructG4World( void )
   
   return new G4PVPlacement(0, G4ThreeVector(), expHall_log, "World", 0, false, 0);
 #else
+  printf("\n\n  G4 support is not compiled in; use 'cmake -DGEANT=YES ...' \n\n");
   return 0;
 #endif
 } // EicToyModel::ConstructG4World()

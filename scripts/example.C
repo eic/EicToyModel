@@ -85,4 +85,5 @@
   // Prefer to save the original configuration, no matter user calls write() 
   // afterwards or not;
   eic->write();
+  //eic->ExportVacuumChamber();
 } 

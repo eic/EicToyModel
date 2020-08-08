@@ -23,6 +23,7 @@ public:
 
     // The easiest: ask the model to build its own IR world;
     auto expHall_phys = eic->ConstructG4World();
+    if (!expHall_phys) exit(0);
     expHall_phys->GetLogicalVolume()->SetVisAttributes(G4VisAttributes::Invisible);
 
     // Construct the integration volumes geometry, internally; see scripts/eicroot.C
@@ -67,7 +68,7 @@ public:
       //   - Z offset from 0.0 (default);
       //   - azimuthal rotation from 0.0 (default);
       fgt.AddWheel(sbs, 12, 420.0 * etm::mm, -50.0 * etm::mm, 0);
-      //fgt.AddWheel(sbs, 12, 420.0 * etm::mm,  50.0 * etm::mm, 0);
+      fgt.AddWheel(sbs, 12, 420.0 * etm::mm,  50.0 * etm::mm, 0);
 
       auto fwd = eic->fwd()->get("MPGD")   ->GetG4Volume();
       // Build ROOT geometry, convert it to GEANT geometry, place into the mother volume;
@@ -106,8 +107,8 @@ public:
       
       mmt.SetTransparency(50);
 
-      //auto mid = eic->mid()->get("TRACKER")->GetG4Volume();
-      //mmt.PlaceG4Volume(mid, false, 0, new G4ThreeVector(0, 0, 20 * g4::mm));
+      auto mid = eic->mid()->get("TRACKER")->GetG4Volume();
+      mmt.PlaceG4Volume(mid, false, 0, new G4ThreeVector(0, 0, 20 * g4::mm));
     }
 
     return expHall_phys;
@@ -127,7 +128,7 @@ class BasicPhysicsList : public G4VModularPhysicsList {
 int main(int argc, char** argv)
 {
   if (argc != 3) {
-    printf("\n\n   usage: %s <EicToyModel-root-file-name> <EicRoot-media-file-name\n\n\n", argv[0]);
+    printf("\n\n   usage: %s <EicToyModel-root-file-name> <EicRoot-media-file-name>\n\n\n", argv[0]);
     return -1;
   } //if
 
