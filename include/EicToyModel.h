@@ -130,6 +130,8 @@ class EicToyModel: public TObject {
   void Export(const char *fname, bool everything = false, bool lock = false);
   void ExportVacuumChamber(const char *fname = 0);
   G4VPhysicalVolume *ConstructG4World( void );
+  void DefineG4World(G4LogicalVolume *world) { mG4LogicalWorld = world; };
+  G4LogicalVolume *GetG4World( void )  const { return mG4LogicalWorld; };
 
   static EicToyModel *Import(const char *fname);
   // There is no good reason to Get() the TGeoManager instance sitting in the same 
@@ -296,6 +298,8 @@ class EicToyModel: public TObject {
   bool mGeometryLocked;
 
   bool mNewCanvasRequired; //!
+
+  G4LogicalVolume *mG4LogicalWorld; //!
 
   ClassDef(EicToyModel, 1)
 };

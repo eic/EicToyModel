@@ -31,7 +31,8 @@ public:
     eic->Construct();
 
     // Place them as G4 volumes into the IR world volume all at once ...
-    eic->PlaceG4Volumes(expHall_phys);
+    //eic->PlaceG4Volumes(expHall_phys);
+    eic->DefineG4World(expHall_phys->GetLogicalVolume());
 
     // Vertex tracker;
     {

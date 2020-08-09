@@ -322,7 +322,6 @@ void EtmDetector::Build( void )
   //child->Build(ip, axis, distance + child->mOffset, boundaries, tb, false);
 } // EtmDetector::Build()
 
-
 // ---------------------------------------------------------------------------------------
 
 unsigned EtmDetector::GetOrder( void ) const
@@ -350,6 +349,9 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4LogicalVolume *world, const char
 {
   // Can be a GAP or a MARKER detector;
   if (!Polygons().size()) return 0;
+
+  // Of course the volume should be placed only once;
+  if (mG4PhysicalVolume) return mG4PhysicalVolume;
 
 #ifdef _ETM2GEANT_
   auto polygon = Polygons()[0];
@@ -451,6 +453,25 @@ G4VPhysicalVolume *EtmDetector::PlaceG4Volume(G4VPhysicalVolume *world, const ch
   return 0;
 #endif
 } // EtmDetector::PlaceG4Volume()
+
+// ---------------------------------------------------------------------------------------
+
+G4VPhysicalVolume *EtmDetector::GetG4Volume( void )
+{
+  // If the volume was defioned and placed already, just return the pointer;
+  if (mG4PhysicalVolume) return mG4PhysicalVolume;
+
+  // Otherwise check, whether the world volume was defined; act accordingly;
+  auto eic = EicToyModel::Instance();
+
+  auto world = eic->GetG4World();
+  if (!world) {
+    printf("\n\n World volume was not define yet, sorry!\n\n");
+    return 0;//exit(0);
+  } //if
+
+  return PlaceG4Volume(world);
+} // EtmDetector::GetG4Volume()
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------

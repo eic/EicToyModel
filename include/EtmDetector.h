@@ -72,7 +72,7 @@ class EtmDetector: public EtmPolygonGroup {
   // Well, 'world' here means some 'parent' volume, actually;
   G4VPhysicalVolume *PlaceG4Volume(G4LogicalVolume   *world, const char *name = 0);
   G4VPhysicalVolume *PlaceG4Volume(G4VPhysicalVolume *world, const char *name = 0);
-  G4VPhysicalVolume *GetG4Volume( void ) const { return mG4PhysicalVolume; };
+  G4VPhysicalVolume *GetG4Volume( void );// const { return mG4PhysicalVolume; };
 
   void Export(const char *fname);
 
