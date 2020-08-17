@@ -3,7 +3,7 @@
   auto eic = new EicToyModel();
 
   // Shift IP if needed; define canvas width; request eta=0 line in the drawing; set name;
-  eic->ip(-50.0 * etm::cm)->width(1200)->AddEtaLine(0.0)->SetName("EIC-IR1-XX-v01");
+  eic->ip(-50.0 * etm::cm)->width(1200)->AddEtaLine(0.0)->SetName("EIC-IR1-XX-v02");
   // Define acceptance ranges and the vacuum chamber design;
   eic->acceptance(-4.2, -1.0, 1.2, 4.2);
   eic->SetAzimuthalSegmentation(12);
@@ -20,11 +20,11 @@
   {
     auto mid = eic->mid(); mid->offset( 20 * etm::cm);
       
-    mid->add("TRACKER",   75 * etm::cm);
-    mid->add("Cherenkov", 25 * etm::cm);
+    mid->add("TRACKER",   80 * etm::cm);
+    mid->add("Cherenkov", 20 * etm::cm);
     mid->add("EmCal",     30 * etm::cm);
     mid->add("Cryostat",  40 * etm::cm);
-    mid->add("HCal",     120 * etm::cm)->brick();
+    mid->add("HCal",     120 * etm::cm)->trim(0.0, 1.0);
   }
 
   // Hadron-going endcap;
@@ -40,7 +40,7 @@
 
     fwd->add("Preshower", 10 * etm::cm);
     fwd->add("EmCal",     40 * etm::cm);
-    fwd->add("HCal",     105 * etm::cm);
+    fwd->add("HCal",     105 * etm::cm)->trim(0.0, 0.0);
   } 
 
   // Electron-going endcap;
@@ -69,9 +69,13 @@
     eic->mid()->get("HCal")      ->stretch(eic->bck()->get("HCal"));
     eic->mid()->get("HCal")      ->stretch(eic->fwd()->get("HCal"));
     eic->mid()->get("Cryostat")  ->stretch(eic->bck()->get("HCal"));
-    eic->mid()->get("EmCal")     ->stretch(eic->bck()->get("EmCal"));
 
-    eic->fwd()->get("HCal")      ->stretch(eic->mid()->get("HCal"), 90 * etm::cm);
+    eic->mid()->get("Cherenkov") ->stretch(eic->bck()->get("HCal"));
+    eic->mid()->get("EmCal")     ->stretch(eic->bck()->get("HCal"));
+    eic->mid()->get("HCal")      ->stretch(eic->fwd()->get("HCal"));
+
+    //eic->fwd()->get("HCal")      ->stretch(eic->mid()->get("HCal"), 90 * etm::cm);
+    eic->fwd()->get("TRD")       ->stretch(eic->mid()->get("HCal"), 50 * etm::cm);
 
     eic->bck()->get("HCal")      ->stretch(eic->mid()->get("HCal"), 90 * etm::cm);
   }
