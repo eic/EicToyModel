@@ -62,20 +62,20 @@ SET(LIBNAME etm)
 SET(EXENAME exe)
 
 SET( LIBSRC 
-  source/EicPOD.cc
-  source/EicDetName.cxx 
-  source/EicGeoMap.cxx 
-  source/EicNamePatternHub.cxx 
-  source/EicGeoParData.cxx 
+  source/eicroot/EicPOD.cc
+  source/eicroot/EicDetName.cxx 
+  source/eicroot/EicGeoMap.cxx 
+  source/eicroot/EicNamePatternHub.cxx 
+  source/eicroot/EicGeoParData.cxx 
 
-  source/detectors/EicGeoMedium.cxx
-  source/detectors/EicGeoMedia.cxx
-  source/detectors/GemGeoParData.cxx 
-  source/detectors/MuMegasGeoParData.cxx 
-  source/detectors/MapsGeoParData.cxx 
-  source/detectors/MapsMimosaAssembly.cxx 
-  source/detectors/FstGeoParData.cxx 
-  source/detectors/VstGeoParData.cxx 
+  source/eicroot/EicGeoMedium.cxx
+  source/eicroot/EicGeoMedia.cxx
+  source/eicroot/GemGeoParData.cxx 
+  source/eicroot/MuMegasGeoParData.cxx 
+  source/eicroot/MapsGeoParData.cxx 
+  source/eicroot/MapsMimosaAssembly.cxx 
+  source/eicroot/FstGeoParData.cxx 
+  source/eicroot/VstGeoParData.cxx 
 
   source/EtmOrphans.cc 
   source/EtmLine2D.cc 

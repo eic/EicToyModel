@@ -176,7 +176,8 @@ void EicGeoParData::RestoreGeoManager( void )
 
 // ---------------------------------------------------------------------------------------
 
-void EicGeoParData::PlaceG4Volume(G4VPhysicalVolume *mother, bool check, 
+//void EicGeoParData::PlaceG4Volume(G4VPhysicalVolume *mother, bool check, 
+void EicGeoParData::PlaceG4Volume(G4LogicalVolume *mother, bool check, 
 				  //G4RotationMatrix *pRot, G4ThreeVector *tlate)
 				  void *pRot, void *tlate)
 {
@@ -233,7 +234,7 @@ void EicGeoParData::PlaceG4Volume(G4VPhysicalVolume *mother, bool check,
       //auto pvol = new G4PVPlacement(g4Factory.World()->GetRotation(), g4Factory.World()->GetTranslation(), 
       auto pvol = new G4PVPlacement((G4RotationMatrix*)pRot, offset,
 				    g4Factory.World()->GetLogicalVolume(), 
-				    node->GetName(), mother->GetLogicalVolume(), false, 0);
+				    node->GetName(), mother/*->GetLogicalVolume()*/, false, 0);
       AssignG4Colors(pvol);
     } //for iq
   }
@@ -1015,3 +1016,10 @@ ClassImp(LogicalVolumeGroup)
 ClassImp(SourceFile)
 ClassImp(EicGeoParData)
 ClassImp(LogicalVolumeLookupTableEntry)
+
+#if 0
+const std::vector<G4VPhysicalVolume*> &EicGeoParData::GetG4Volumes         ( void ) const 
+{ 
+  return mG4Volumes; 
+}
+#endif

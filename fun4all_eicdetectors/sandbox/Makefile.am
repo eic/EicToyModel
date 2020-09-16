@@ -5,37 +5,36 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include\
   -I$(G4_MAIN)/include \
-  -I/scratch/EicToyModel/build/include/etm
+  -I../../build/include/etm
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib\
-  -L/scratch/EicToyModel/build/lib
+  -L../../build/lib
 
 pkginclude_HEADERS = \
-  BeastMagnetSubsystem.h\
   EicToyModelSubsystem.h\
-  EicVstSubsystem.h
+  EicRootSubsystem.h\
+  EicRootVstSubsystem.h\
+  TrackFastSimEval.h
 
 lib_LTLIBRARIES = \
   libeicdetectors.la
 
 libeicdetectors_la_SOURCES = \
-  BeastMagnetSubsystem.cc\
-  BeastMagnetDetector.cc\
-  BeastMagnetDisplayAction.cc \
-  BeastMagnetSteppingAction.cc \
   EicToyModelSubsystem.cc\
   EicToyModelDetector.cc\
-  EicVstSubsystem.cc\
-  EicVstDetector.cc\
-  EicVstSteppingAction.cc
+  EicRootSubsystem.cc\
+  EicRootDetector.cc\
+  EicRootSteppingAction.cc\
+  TrackFastSimEval.cc
 
 libeicdetectors_la_LIBADD = \
   -lphool \
   -lSubsysReco\
   -lg4detectors\
   -lg4testbench \
+  -ltrackbase_historic_io\
   -letm
 
 BUILT_SOURCES = testexternals.cc

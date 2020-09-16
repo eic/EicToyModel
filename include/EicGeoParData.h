@@ -19,6 +19,7 @@
 class TGeoIdentity;
 
 class G4VPhysicalVolume;
+class G4LogicalVolume;
 
 class EicGeoMedia;
 
@@ -294,7 +295,8 @@ class EicGeoParData: public TObject
 
   ULogicalIndex_t GeantMultiToLogicalIndex(ULong64_t multi) const;
 
-  void PlaceG4Volume(G4VPhysicalVolume *mother, bool check = false, 
+  //void PlaceG4Volume(G4VPhysicalVolume *mother, bool check = false,
+  void PlaceG4Volume(G4LogicalVolume *mother, bool check = false, 
 		     //G4RotationMatrix *pRot = 0, G4ThreeVector *tlate = 0);
 		     void *pRot = 0, void *tlate = 0);
 

@@ -1,19 +1,7 @@
-#include "BeastMagnetSteppingAction.h"
 
-#include "BeastMagnetDetector.h"
-
-#include <phparameter/PHParameters.h>
-
-#include <g4detectors/PHG4StepStatusDecode.h>
-
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hitv1.h>
-#include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>
-#include <g4main/PHG4TrackUserInfoV1.h>
-
-#include <phool/getClass.h>
+#include <cmath>
+#include <iostream>
+#include <string>
 
 #include <TSystem.h>
 
@@ -33,20 +21,31 @@
 #include <Geant4/G4VTouchable.hh>
 #include <Geant4/G4VUserTrackInformation.hh>
 
-#include <cmath>
-#include <iostream>
-#include <string>
+#include <phparameter/PHParameters.h>
 
-class PHCompositeNode;
+#include <g4detectors/PHG4StepStatusDecode.h>
+
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>
+#include <g4main/PHG4TrackUserInfoV1.h>
+
+#include <phool/getClass.h>
+
+#include "EicRootSteppingAction.h"
+#include "EicRootDetector.h"
 
 using namespace std;
 
 //____________________________________________________________________________..
-BeastMagnetSteppingAction::BeastMagnetSteppingAction(BeastMagnetDetector *detector, const PHParameters *parameters)
+GdmlImportDetectorSteppingAction::GdmlImportDetectorSteppingAction(EicRootDetector *detector, const PHParameters *parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
   , m_HitContainer(nullptr)
+  , m_AbsorberHitContainer(nullptr)
   , m_Hit(nullptr)
   , m_SaveHitContainer(nullptr)
   , m_SaveVolPre(nullptr)
@@ -54,14 +53,13 @@ BeastMagnetSteppingAction::BeastMagnetSteppingAction(BeastMagnetDetector *detect
   , m_SaveTrackId(-1)
   , m_SavePreStepStatus(-1)
   , m_SavePostStepStatus(-1)
-  , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
   , m_EdepSum(0)
 {
 }
 
 //____________________________________________________________________________..
-BeastMagnetSteppingAction::~BeastMagnetSteppingAction()
+GdmlImportDetectorSteppingAction::~GdmlImportDetectorSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
@@ -72,7 +70,7 @@ BeastMagnetSteppingAction::~BeastMagnetSteppingAction()
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool BeastMagnetSteppingAction::UserSteppingAction(const G4Step *aStep, bool was_used)
+bool GdmlImportDetectorSteppingAction::UserSteppingAction(const G4Step *aStep, bool was_used)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
@@ -97,38 +95,14 @@ bool BeastMagnetSteppingAction::UserSteppingAction(const G4Step *aStep, bool was
     G4Track *killtrack = const_cast<G4Track *>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
-  // we use here only one detector in this simple example
-  // if you deal with multiple detectors in this stepping action
-  // the detector id can be used to distinguish between them
-  // hits can easily be analyzed later according to their detector id
-  int detector_id = -1;  // we use here only one detector in this simple example
-  if (volume->GetName().find("Coil") != string::npos)
-  {
-    for (int i = 0; i <= 4; i++)
-    {
-      if (volume->GetName().find(to_string(i)) != string::npos)
-      {
-        detector_id = i;
-        break;
-      }
-    }
-  }
-  else if (volume->GetName().find("CryostatHe") != string::npos)
-  {
-    detector_id = 5;
-  }
-  else if (volume->GetName().find("CryostatAl") != string::npos)
-  {
-    detector_id = 6;
-  }
-  else if (volume->GetName().find("Yoke") != string::npos)
-  {
-    detector_id = 7;
-  }
-  else
-  {
-    cout << "cannot extract detector id from " << volume->GetName() << endl;
-  }
+
+
+  //++int detector_id = m_Detector->get_detid(volume, whichactive);  // the detector id is coded into the IsInDetector return
+  int detector_id = 2;
+
+
+  // cout << "Name: " << volume->GetName() << endl;
+  // cout << "det id: " << whichactive << endl;
   bool geantino = false;
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
@@ -209,12 +183,14 @@ bool BeastMagnetSteppingAction::UserSteppingAction(const G4Step *aStep, bool was
     // value at the last step in this volume later one
     if (whichactive > 0)
     {
-      m_SaveHitContainer = m_HitContainer;
+      //assert(0);
+      m_SaveHitContainer = m_Detector->get_hitcontainer();//detector_id);
     }
     else
     {
-      cout << "implement stuff for whichactive < 0 (inactive volumes)" << endl;
-      gSystem->Exit(1);
+      // all absorber hits go into one node
+      assert(0);
+      //+m_SaveHitContainer = m_Detector->get_hitcontainer(-1);
     }
     // this is for the tracking of the truth info
     if (G4VUserTrackInformation *p = aTrack->GetUserInformation())
@@ -316,6 +292,7 @@ bool BeastMagnetSteppingAction::UserSteppingAction(const G4Step *aStep, bool was
       {
         m_Hit->set_edep(m_EdepSum);
       }
+      //printf("Adding hit!\n");
       m_SaveHitContainer->AddHit(detector_id, m_Hit);
       // ownership has been transferred to container, set to null
       // so we will create a new hit for the next track
@@ -331,26 +308,4 @@ bool BeastMagnetSteppingAction::UserSteppingAction(const G4Step *aStep, bool was
   }
   // return true to indicate the hit was used
   return true;
-}
-
-//____________________________________________________________________________..
-void BeastMagnetSteppingAction::SetInterfacePointers(PHCompositeNode *topNode)
-{
-  string hitnodename;
-  if (m_Detector->SuperDetector() != "NONE")
-  {
-    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
-  }
-  else
-  {
-    hitnodename = "G4HIT_" + m_Detector->GetName();
-  }
-  // now look for the map and grab a pointer to it.
-  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  // if we do not find the node we need to make it.
-  if (!m_HitContainer)
-  {
-    std::cout << "BeastMagnetSteppingAction::SetTopNode - unable to find "
-              << hitnodename << std::endl;
-  }
 }

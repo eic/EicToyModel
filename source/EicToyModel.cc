@@ -1234,6 +1234,23 @@ void EicToyModel::DrawBeamLine( void )
     DrawSingleLine(left,  GetIpLocation());//, kBlack, 1, etm::dashed);
     DrawSingleLine(GetIpLocation(), right);//, kBlack, 1, etm::dashed);
   }     
+
+  {
+    WriteText(TVector2(-300.0, 365.0), "R = 375 cm", kRed);
+    DrawSingleLine(TVector2(-450.0, 375.0), TVector2( 450.0, 375.0), kRed,  3, etm::dashdotted); 
+    DrawSingleLine(TVector2(-450.0, 375.0), TVector2(-450.0,   0.0), kRed,  3, etm::dashdotted); 
+    DrawSingleLine(TVector2( 450.0, 375.0), TVector2( 450.0,   0.0), kRed,  3, etm::dashdotted); 
+    DrawSingleLine(TVector2( 450.0, 375.0), TVector2( 500.0, 375.0), kRed,  1, etm::dashed); 
+    DrawSingleLine(TVector2( 500.0, 375.0), TVector2( 500.0,   0.0), kRed,  1, etm::dashed); 
+
+    WriteText(TVector2(-300.0, 400.0), "R = 410 cm", kBlue);
+    DrawSingleLine(TVector2(-410.0, 410.0), TVector2( 410.0, 410.0), kBlue, 3, etm::dashdotted); 
+    DrawSingleLine(TVector2(-410.0, 410.0), TVector2(-410.0,   0.0), kBlue, 3, etm::dashdotted); 
+    DrawSingleLine(TVector2( 410.0, 410.0), TVector2( 410.0,   0.0), kBlue, 3, etm::dashdotted); 
+    DrawSingleLine(TVector2( 410.0, 410.0), TVector2( 470.0, 410.0), kBlue, 1, etm::dashed); 
+    DrawSingleLine(TVector2( 470.0, 410.0), TVector2( 470.0,   0.0), kBlue, 1, etm::dashed);  
+  }
+#if _TODAY_
   for(unsigned tb=0; tb<2; tb++) {
     if (tb && !mMirrorImage) continue;
 
@@ -1241,8 +1258,9 @@ void EicToyModel::DrawBeamLine( void )
     double y0 = (tb ? -1.0 : 1.0)*_HALL_RADIAL_BOUNDARY_;
 
     DrawSingleLine(TVector2(-mIrRegionLength/2, y0), TVector2(mIrRegionLength/2, y0), 
-		   kBlack, 1, etm::dashed);   
+		   kRed, 2, etm::dashed);   
   } //for tb
+#endif
 } // EicToyModel::DrawBeamLine()
 
 // ---------------------------------------------------------------------------------------
