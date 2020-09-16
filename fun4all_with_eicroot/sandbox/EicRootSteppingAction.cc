@@ -96,10 +96,8 @@ bool GdmlImportDetectorSteppingAction::UserSteppingAction(const G4Step *aStep, b
     killtrack->SetTrackStatus(fStopAndKill);
   }
 
-
-  //++int detector_id = m_Detector->get_detid(volume, whichactive);  // the detector id is coded into the IsInDetector return
-  int detector_id = 2;
-
+  // Subtract '1' back, so the layer count starts from 0;
+  int detector_id = whichactive - 1;
 
   // cout << "Name: " << volume->GetName() << endl;
   // cout << "det id: " << whichactive << endl;
@@ -183,7 +181,6 @@ bool GdmlImportDetectorSteppingAction::UserSteppingAction(const G4Step *aStep, b
     // value at the last step in this volume later one
     if (whichactive > 0)
     {
-      //assert(0);
       m_SaveHitContainer = m_Detector->get_hitcontainer();//detector_id);
     }
     else

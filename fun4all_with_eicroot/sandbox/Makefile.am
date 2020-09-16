@@ -16,6 +16,7 @@ pkginclude_HEADERS = \
   EicToyModelSubsystem.h\
   EicRootSubsystem.h\
   EicRootVstSubsystem.h\
+  EicRootMuMegasSubsystem.h\
   TrackFastSimEval.h
 
 lib_LTLIBRARIES = \

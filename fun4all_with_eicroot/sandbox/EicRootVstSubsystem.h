@@ -2,6 +2,8 @@
 #ifndef _EICROOT_VST_SUBSYSTEM_
 #define _EICROOT_VST_SUBSYSTEM_
 
+#include <map>
+
 #include <EicRootSubsystem.h>
 #include <VstGeoParData.h>
 
@@ -17,7 +19,7 @@ class EicRootVstSubsystem : public EicRootSubsystem, public VstGeoParData
 		     void *pRot = 0, void *tlate = 0) {
     EicGeoParData::PlaceG4Volume(mother, check, pRot, tlate);
   };
-  const std::vector<G4VPhysicalVolume*> &GetG4SensitiveVolumes( void ) const {
+  const std::map<G4VPhysicalVolume*, unsigned>  &GetG4SensitiveVolumes( void ) const {
     return EicGeoParData::GetG4SensitiveVolumes();
   };
 };

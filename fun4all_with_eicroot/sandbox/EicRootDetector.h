@@ -27,14 +27,14 @@ class EicRootDetector : public PHG4Detector
 
   void Print(const std::string &what = "ALL") const override;
 
-  int IsInDetector(G4VPhysicalVolume *) const;
+  int IsInDetector(G4VPhysicalVolume *);// const;
 
   PHG4HitContainer *get_hitcontainer( void ) { return m_HitContainer; };
+  void set_hitcontainer(PHG4HitContainer *container) { m_HitContainer = container; };
 
-  //private:
-
+ private:
   // active volumes
-  std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
+  //std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
 
   PHG4HitContainer *m_HitContainer;
 };

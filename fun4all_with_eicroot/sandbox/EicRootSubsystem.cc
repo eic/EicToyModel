@@ -66,8 +66,8 @@ int EicRootSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
     dstNode->addNode(DetNode);
 
-    m_Detector->m_HitContainer = new PHG4HitContainer(GetG4HitName());
-    DetNode->addNode(new PHIODataNode<PHObject>(m_Detector->m_HitContainer, GetG4HitName(), "PHObject"));
+    m_Detector->set_hitcontainer(new PHG4HitContainer(GetG4HitName()));
+    DetNode->addNode(new PHIODataNode<PHObject>(m_Detector->get_hitcontainer(), GetG4HitName(), "PHObject"));
     m_SteppingAction = new GdmlImportDetectorSteppingAction(m_Detector, GetParams());
   } //if
 

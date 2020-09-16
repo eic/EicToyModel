@@ -4,6 +4,7 @@
 #define _EICROOT_SUBSYSTEM_
 
 #include <vector>
+#include <map>
 
 #include <g4detectors/PHG4DetectorSubsystem.h>
 
@@ -41,7 +42,7 @@ class EicRootSubsystem : public PHG4DetectorSubsystem
   // These two methods will be available after inheritance from EicGeoParData;
   virtual void PlaceG4Volume(G4LogicalVolume *mother, bool check = false, 
   			     void *pRot = 0, void *tlate = 0) = 0;
-  virtual const std::vector<G4VPhysicalVolume*> &GetG4SensitiveVolumes( void ) const = 0;
+  virtual const std::map<G4VPhysicalVolume*, unsigned>  &GetG4SensitiveVolumes( void ) const = 0;
 
  protected:
   // Sets default parameter values;

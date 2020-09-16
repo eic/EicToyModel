@@ -25,14 +25,16 @@ EicRootDetector::EicRootDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
 
 // ---------------------------------------------------------------------------------------
 
-int EicRootDetector::IsInDetector(G4VPhysicalVolume *volume) const
+int EicRootDetector::IsInDetector(G4VPhysicalVolume *volume) //const
 {
-  set<G4VPhysicalVolume *>::const_iterator iter = m_PhysicalVolumesSet.find(volume);
-  if (iter != m_PhysicalVolumesSet.end())
-  {
-    return 1;
-  }
-  return 0;
+  auto subsys = dynamic_cast<EicRootSubsystem*>(GetMySubsystem());
+  auto svols = subsys->GetG4SensitiveVolumes();
+
+  if (svols.find(volume) == svols.end()) return 0;
+
+  // Well, this looks dumb, but I do not want to break the fun4all stepping code
+  // convention where 0 return code means "out of detector"; 
+  return svols[volume] + 1;
 } // EicRootDetector::IsInDetector()
 
 // ---------------------------------------------------------------------------------------
@@ -55,8 +57,8 @@ void EicRootDetector::ConstructMe(G4LogicalVolume *logicWorld)
   } //if
 
   // Declare sensitive volumes;
-  for(auto phy: subsys->GetG4SensitiveVolumes())
-    m_PhysicalVolumesSet.insert(phy);
+  //for(auto phy: subsys->GetG4SensitiveVolumes())
+  //m_PhysicalVolumesSet.insert(phy);
 
   return;
 } // EicRootDetector::ConstructMe()

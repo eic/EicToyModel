@@ -197,7 +197,10 @@ void EicGeoParData::PlaceG4Volume(G4LogicalVolume *mother, bool check,
     const EicGeoMap *fmap = GetMapPtrViaMapID(iq);
 
     //printf("@@@ %s\n", fmap->GetInnermostVolumeName()->Data());
-    mSensitiveVolumeNames.insert(*fmap->GetInnermostVolumeName());
+    //mSensitiveVolumeNames.insert(*fmap->GetInnermostVolumeName());
+    assert(mSensitiveVolumeNames.find(*fmap->GetInnermostVolumeName()) ==
+	   mSensitiveVolumeNames.end());
+    mSensitiveVolumeNames[*fmap->GetInnermostVolumeName()] = iq;
   } //if..for iq
 
   {
@@ -261,8 +264,10 @@ void EicGeoParData::AssignG4Colors(G4VPhysicalVolume *pvol)
 
   // Deal with the volume vectors here as well; FIXME: change the method name;
   mG4Volumes.push_back(pvol);
+  //if (mSensitiveVolumeNames.find(lvol->GetName()) != mSensitiveVolumeNames.end())
+  //mG4SensitiveVolumes.push_back(pvol);
   if (mSensitiveVolumeNames.find(lvol->GetName()) != mSensitiveVolumeNames.end())
-    mG4SensitiveVolumes.push_back(pvol);
+    mG4SensitiveVolumes[pvol] = mSensitiveVolumeNames[lvol->GetName()];// + 1;
   
   // Follow the logic of EicGeoParData::FinalizeOutput();
   {
@@ -1017,9 +1022,3 @@ ClassImp(SourceFile)
 ClassImp(EicGeoParData)
 ClassImp(LogicalVolumeLookupTableEntry)
 
-#if 0
-const std::vector<G4VPhysicalVolume*> &EicGeoParData::GetG4Volumes         ( void ) const 
-{ 
-  return mG4Volumes; 
-}
-#endif

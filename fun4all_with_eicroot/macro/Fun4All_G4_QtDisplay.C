@@ -16,7 +16,7 @@ R__LOAD_LIBRARY(libeicdetectors.so)
 // Optionally may want to place the detectors into the respective EicToyModel integration volume bubbles;
 #define _USE_INTEGRATION_VOLUMES_
 
-void Fun4All_G4_Sandbox( void )
+void Fun4All_G4_QtDisplay( void )
 {
   // Make the Server;
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -64,4 +64,4 @@ void Fun4All_G4_Sandbox( void )
   g4->InitRun(se->topNode());
   g4->ApplyDisplayAction();
   g4->StartGui();
-} // Fun4All_G4_Sandbox()
+} // Fun4All_G4_QtDisplay()

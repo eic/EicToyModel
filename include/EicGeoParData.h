@@ -8,6 +8,7 @@
 #include <assert.h>
 
 #include <set>
+#include <map>
 #include <vector>
 
 #include <TString.h>
@@ -488,15 +489,17 @@ class EicGeoParData: public TObject
   EicNamePatternHub<Color_t> *mColorRequests; //!
   EicNamePatternHub<Char_t>  *mTransparencyRequests; //!
 
-  std::set<TString> mSensitiveVolumeNames;    //!
+  std::map<TString, unsigned> mSensitiveVolumeNames;    //!
   std::vector<G4VPhysicalVolume*> mG4Volumes; //!
-  std::vector<G4VPhysicalVolume*> mG4SensitiveVolumes; //!
+  std::map<G4VPhysicalVolume*, unsigned> mG4SensitiveVolumes; //!
 
  public:
-  const std::vector<G4VPhysicalVolume*> &GetG4Volumes         ( void ) const { return mG4Volumes; };
-  const std::vector<G4VPhysicalVolume*> &GetG4SensitiveVolumes( void ) const { return mG4SensitiveVolumes; };
+  const std::vector<G4VPhysicalVolume*> &GetG4Volumes ( void ) const { return mG4Volumes; };
+  const std::map<G4VPhysicalVolume*, unsigned> &GetG4SensitiveVolumes( void ) const { 
+    return mG4SensitiveVolumes; 
+  };
 
-  ClassDef(EicGeoParData,49);
+  ClassDef(EicGeoParData,50);
 };
 
 #endif

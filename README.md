@@ -22,6 +22,7 @@ configuration purposes.
  * [Extended functionaly](#extended-functionality)
  * &nbsp; &nbsp; &nbsp; [CAD interface](#cad-interface)
  * &nbsp; &nbsp; &nbsp; [Magnetic field interface](#magnetic-field-interface)
+ * [*fun4all* tracking using EicRoot detector modules](#fun4all-tracking-using-eicroot-detector-modules)
  * [ROOT macros options](#root-macro-options)
 
 <br/>
@@ -665,6 +666,13 @@ keys at the beginning of this README.
 If the EicToyModel library is configured *without* BeastMagneticField interface, one can still 
 perform the B*dl integral scans, assuming constant field, parallel to the electron beam line
 axis.
+
+<br/>
+
+*fun4all* tracking using EicRoot detector modules
+-----------------------------------------------
+
+Click [here](fun4all_with_eicroot/README.md).
 
 <br/>
 
