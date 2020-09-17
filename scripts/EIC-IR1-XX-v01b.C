@@ -3,7 +3,7 @@
   auto eic = new EicToyModel();
 
   // Shift IP if needed; define canvas width; request eta=0 line in the drawing; set name;
-  eic->ip(0.0 * etm::cm)->width(1200)->AddEtaLine(0.0)->SetName("EIC-IR1-XX-v01a");
+  eic->ip(0.0 * etm::cm)->width(1200)->AddEtaLine(0.0)->SetName("EIC-IR1-XX-v01b");
   eic->ir(1020.0 * etm::cm, 420.0*etm::cm);
   // Define acceptance ranges and the vacuum chamber design;
   eic->acceptance(-4.2, -1.0, 1.2, 4.2);
@@ -70,19 +70,18 @@
     eic->mid()->get("HCal")      ->stretch(eic->bck()->get("HCal"));
     eic->mid()->get("HCal")      ->stretch(eic->fwd()->get("HCal"));
     eic->mid()->get("Cryostat")  ->stretch(eic->bck()->get("HCal"));
-    eic->mid()->get("EmCal")     ->stretch(eic->bck()->get("EmCal"));
+    eic->mid()->get("Cherenkov") ->stretch(eic->bck()->get("Cherenkov"));
 
     eic->fwd()->get("HCal")      ->stretch(eic->mid()->get("HCal"), 90 * etm::cm);
 
     eic->bck()->get("HCal")      ->stretch(eic->mid()->get("HCal"), 90 * etm::cm);
+    eic->bck()->get("EmCal")     ->stretch(eic->mid()->get("EmCal"));
   }
 
   // Beautify picture a little bit;
   eic->ApplyStandardTrimming();
 
   // Draw horizontal cross cut view; write the .root file out;
-  //eic->mirror();
   eic->hdraw();
   eic->write();
-  //eic->Export("example.stp");
 } 

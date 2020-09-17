@@ -8,7 +8,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TColor.h>
-#include <TText.h>
+#include <TLatex.h>
 #include <TFile.h>
 #include <TROOT.h>
 #include <TArrow.h>
@@ -26,7 +26,7 @@
 #include <EicToyModel.h>
 
 // Side, top & bottom extra space for labels and such;
-#define _IR_REGION_SMARGIN_                   ( 40.0 * etm::cm)
+#define _IR_REGION_SMARGIN_                   ( 50.0 * etm::cm)
 #define _IR_REGION_BMARGIN_                   ( 30.0 * etm::cm)
 
 #define _CANVAS_WIDTH_DEFAULT_                ( 1500)
@@ -34,7 +34,7 @@
 // FIXME: this is dubm, but I did not find a way to calculate text width in pixels
 // dynamically; somehow TText routines do not work for me;
 #define _COLOR_LEGEND_HEIGHT_                  (20.0 * etm::cm)
-#define _COLOR_LEGEND_STEP_                    (70.0 * etm::cm)
+#define _COLOR_LEGEND_STEP_                    (80.0 * etm::cm)
 #define _COLOR_LEGEND_GAP_                     ( 5.0 * etm::cm)
 
 // Use STAR drawings with Mark additions as shown at Temple in March 2020;
@@ -1063,7 +1063,8 @@ void EicToyModel::WriteText(const TVector2 &where, const TString &what, int colo
   TVector2 coord = cnv(where);
 
   // FIXME: here and in many other places: a memory leak;
-  auto text = new TText(coord.X(), coord.Y(), what);
+  //auto text = new TText(coord.X(), coord.Y(), what);
+  auto text = new TLatex(coord.X(), coord.Y(), what);
 
   text->SetTextAlign(22);
   text->SetTextColor(color);
@@ -1169,7 +1170,7 @@ void EicToyModel::DrawSingleEtaLine(double eta, const TVector2 &to,
 
   // Label is optional;
   if (what.second) {
-    TString label; label.Form("%4.2f", eta);
+    TString label; label.Form("#eta %4.2f", eta);
     
     // FIXME: offsets hardcoded;
     double sign = to.Y() > 0.0 ? 1.0 : -1.0;
