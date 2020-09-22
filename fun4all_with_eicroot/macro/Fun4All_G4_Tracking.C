@@ -13,6 +13,7 @@
 
 #include <EicToyModelSubsystem.h>
 #include <EicRootVstSubsystem.h>
+#include <EicRootGemSubsystem.h>
 #include <EicRootMuMegasSubsystem.h>
 #include <EtmOrphans.h>
 
@@ -21,6 +22,8 @@
 R__LOAD_LIBRARY(libeicdetectors.so)
 // FIXME: add to CMakeLists.txt;
 R__LOAD_LIBRARY(libg4trackfastsim.so)
+
+#define _USE_GEM_TRACKER_
 
 // This scrips is simple, sorry: either Qt display or tracking; uncomment if want to see the geometry; 
 //#define _QT_DISPLAY_
@@ -47,6 +50,10 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
 
   // Geant4 setup;
   PHG4Reco* g4Reco = new PHG4Reco();
+#if defined(_USE_GEM_TRACKER_) && defined(_QT_DISPLAY_)
+  // Well, the GDML export does not work properly for these volumes;
+  g4Reco->save_DST_geometry(false);
+#endif
 
   // BeAST magnetic field;
   g4Reco->set_field_map(string(getenv("CALIBRATIONROOT")) + string("/Field/Map/mfield.4col.dat"), PHFieldConfig::kFieldBeast);
@@ -108,10 +115,38 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
     g4Reco->registerSubsystem(mmt);
   }
 
+  // Forward GEM tracker module(s);
+#if defined(_USE_GEM_TRACKER_) && defined(_QT_DISPLAY_)
+  auto fgt = new EicRootGemSubsystem("FGT");
+  {
+    fgt->SetActive(true);
+
+    {
+      auto sbs = new GemModule();
+
+      // Compose sectors; parameters are: 
+      //   - layer description (obviously can mix different geometries);
+      //   - azimuthal segmentation;
+      //   - gas volume center radius;
+      //   - Z offset from 0.0 (default);
+      //   - azimuthal rotation from 0.0 (default);
+      fgt->AddWheel(sbs, 12, 420.0 * etm::mm, 1200.0 * etm::mm, 0);
+      fgt->AddWheel(sbs, 12, 420.0 * etm::mm, 1300.0 * etm::mm, 0);
+    }
+
+    g4Reco->registerSubsystem(fgt);
+  }
+#endif
+
   // Truth information;
   g4Reco->registerSubsystem(new PHG4TruthSubsystem());
   se->registerSubsystem(g4Reco);
 
+#ifdef _QT_DISPLAY_
+  g4Reco->InitRun(se->topNode());
+  g4Reco->ApplyDisplayAction();
+  g4Reco->StartGui();
+#else
   // Ideal track finder and Kalman filter;
   {
     auto kalman = new PHG4TrackFastSim("PHG4TrackFastSim");
@@ -144,11 +179,6 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
   // User analysis code: just a single dp/p histogram;
   se->registerSubsystem(new TrackFastSimEval());
 
-#ifdef _QT_DISPLAY_
-  g4Reco->InitRun(se->topNode());
-  g4Reco->ApplyDisplayAction();
-  g4Reco->StartGui();
-#else
   // Run it all, eventually;
   se->run(nEvents);
   se->End();
