@@ -28,6 +28,7 @@
 #include "RootGM/volumes/Factory.h"
 #endif
 
+#include <EtmOrphans.h>
 #include <EicGeoMedia.h>
 #include <EicGeoParData.h>
 
@@ -73,6 +74,8 @@ void EicGeoParData::ResetVars()
   mColorRequests = 0; mTransparencyRequests = 0;
 
   mTransparency = 0;
+
+  mGeometryCheckPrecision = 1.0 *etm::um;//.0;
 } // EicGeoParData::ResetVars() 
 
 // ---------------------------------------------------------------------------------------
@@ -626,7 +629,7 @@ void EicGeoParData::FinalizeOutput(bool root, bool gdml, bool check) //const
   // Check overlap (1um accuracy) and export;
   mRootGeoManager->CloseGeometry();
   //#if _TODAY_
-  if (check) mRootGeoManager->CheckOverlaps(0.0001);
+  if (check && mGeometryCheckPrecision) mRootGeoManager->CheckOverlaps(mGeometryCheckPrecision);//0.000001);
   //#endif
 
   if (root) {

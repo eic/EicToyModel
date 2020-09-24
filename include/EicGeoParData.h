@@ -493,13 +493,21 @@ class EicGeoParData: public TObject
   std::vector<G4VPhysicalVolume*> mG4Volumes; //!
   std::map<G4VPhysicalVolume*, unsigned> mG4SensitiveVolumes; //!
 
+  double mGeometryCheckPrecision;
+
  public:
+  void SetTGeoGeometryCheckPrecision(double value) { 
+    // NB: 0.0 effectively turns the check off;
+    mGeometryCheckPrecision = fabs(value);
+  };
+  void TurnTGeoGeometryCheckOff( void ) { mGeometryCheckPrecision = 0.0; };
+
   const std::vector<G4VPhysicalVolume*> &GetG4Volumes ( void ) const { return mG4Volumes; };
   const std::map<G4VPhysicalVolume*, unsigned> &GetG4SensitiveVolumes( void ) const { 
     return mG4SensitiveVolumes; 
   };
 
-  ClassDef(EicGeoParData,50);
+  ClassDef(EicGeoParData,51);
 };
 
 #endif

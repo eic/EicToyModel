@@ -26,7 +26,7 @@ R__LOAD_LIBRARY(libg4trackfastsim.so)
 #define _USE_GEM_TRACKER_
 
 // This scrips is simple, sorry: either Qt display or tracking; uncomment if want to see the geometry; 
-//#define _QT_DISPLAY_
+#define _QT_DISPLAY_
 
 void Fun4All_G4_Tracking(int nEvents = 1000)
 {
@@ -50,10 +50,10 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
 
   // Geant4 setup;
   PHG4Reco* g4Reco = new PHG4Reco();
-#if defined(_USE_GEM_TRACKER_) && defined(_QT_DISPLAY_)
+  //#if defined(_USE_GEM_TRACKER_) && defined(_QT_DISPLAY_)
   // Well, the GDML export does not work properly for these volumes;
-  g4Reco->save_DST_geometry(false);
-#endif
+  //g4Reco->save_DST_geometry(false);
+  //#endif
 
   // BeAST magnetic field;
   g4Reco->set_field_map(string(getenv("CALIBRATIONROOT")) + string("/Field/Map/mfield.4col.dat"), PHFieldConfig::kFieldBeast);
@@ -116,10 +116,11 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
   }
 
   // Forward GEM tracker module(s);
-#if defined(_USE_GEM_TRACKER_) && defined(_QT_DISPLAY_)
+  //#if defined(_USE_GEM_TRACKER_) && defined(_QT_DISPLAY_)
   auto fgt = new EicRootGemSubsystem("FGT");
   {
     fgt->SetActive(true);
+    fgt->SetTGeoGeometryCheckPrecision(0.000001 * etm::um);
 
     {
       auto sbs = new GemModule();
@@ -136,7 +137,7 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
 
     g4Reco->registerSubsystem(fgt);
   }
-#endif
+  //#endif
 
   // Truth information;
   g4Reco->registerSubsystem(new PHG4TruthSubsystem());

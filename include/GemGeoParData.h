@@ -160,7 +160,7 @@ class GemGeoParData: public EicGeoParData
   Bool_t mWithMountingRings;               // either create or not mounting rings
 
  private:
-  // Default values are hardcoded in comnstructor; everything should be tuned once in terms
+  // Default values are hardcoded in the ctor; everything should be tuned once in terms
   // of radiation length thickness and not touched any longer;
   TString mKaptonMaterial;                 // may want to specify a different kapton in media.geo
   //TString mRohacellMaterial;               // ... as well as Rohacell ...
@@ -173,7 +173,8 @@ class GemGeoParData: public EicGeoParData
   
   void PlaceMaterialLayer(const char *detName, const char *namePrefix, unsigned wheelID, 
 			  TGeoVolume *moduleContainer, const char *material, 
-			  double *vert, double thickness, double *yOffset);
+			  //GemModule *module, //double *vert, 
+			  double thickness, double *yOffset);
 
   ClassDef(GemGeoParData,6);
 };
