@@ -13,15 +13,19 @@
 #define _MAPS_MIMOSA_ASSEMBLY_
 
 class MapsMimosaAssembly: public EicPOD {
+  friend class MapsGeoParData;
+  friend class VstGeoParData;
+  friend class FstGeoParData;
+
  public:
   MapsMimosaAssembly();
   MapsMimosaAssembly(MapsMimosaAssembly *source) { *this = *source; };
   ~MapsMimosaAssembly() {};
   
   //
-  //  Data container -> no private section;
+  // POD; access through EicPOD methods only; see friend classes above though;
   //
-
+ private:
   // Air container volume parameters sufficient to pack all the stuff;
   Double_t mAssemblyBaseWidth;          // air container TRD1 (with 0 width apex) volume base width
   Double_t mAssemblySideSlope;          // angle at the base of triangular container profile; [degree]

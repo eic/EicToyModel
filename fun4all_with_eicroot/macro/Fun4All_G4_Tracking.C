@@ -23,10 +23,8 @@ R__LOAD_LIBRARY(libeicdetectors.so)
 // FIXME: add to CMakeLists.txt;
 R__LOAD_LIBRARY(libg4trackfastsim.so)
 
-#define _USE_GEM_TRACKER_
-
-// This scrips is simple, sorry: either Qt display or tracking; uncomment if want to see the geometry; 
-#define _QT_DISPLAY_
+// This scrip is simple, sorry: either Qt display or tracking; uncomment if want to see the geometry; 
+//#define _QT_DISPLAY_
 
 void Fun4All_G4_Tracking(int nEvents = 1000)
 {
@@ -48,12 +46,8 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
     se->registerSubsystem(gen); 
   }
 
-  // Geant4 setup;
+  // fun4all Geant4 wrapper;
   PHG4Reco* g4Reco = new PHG4Reco();
-  //#if defined(_USE_GEM_TRACKER_) && defined(_QT_DISPLAY_)
-  // Well, the GDML export does not work properly for these volumes;
-  //g4Reco->save_DST_geometry(false);
-  //#endif
 
   // BeAST magnetic field;
   g4Reco->set_field_map(string(getenv("CALIBRATIONROOT")) + string("/Field/Map/mfield.4col.dat"), PHFieldConfig::kFieldBeast);
@@ -71,6 +65,8 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
     // according to the sequence of these calls;
     {
       auto ibcell = new MapsMimosaAssembly();
+      // See other MapsMimosaAssembly class POD entries in MapsMimosaAssembly.h;
+      ibcell->SetDoubleVariable("mAssemblyBaseWidth", 17.5 * etm::mm);
   
       // Compose barrel layers; parameters are:
       //  - cell assembly type;
@@ -106,8 +102,8 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
       //   - segmentation in phi;
       //   - Z offset from 0.0 (default);
       //   - azimuthal rotation from 0.0 (default);
-      mmt->AddBarrel(layer, 600. * etm::mm, 2, 300. * etm::mm, 3, 0.0, 0.0);
-      mmt->AddBarrel(layer, 600. * etm::mm, 3, 400. * etm::mm, 4, 0.0, 0.0);
+      mmt->AddBarrel(layer, 600 * etm::mm, 2, 300 * etm::mm, 3, 0.0, 0.0);
+      mmt->AddBarrel(layer, 600 * etm::mm, 3, 400 * etm::mm, 4, 0.0, 0.0);
       
       mmt->SetTransparency(50);
     }
@@ -116,14 +112,15 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
   }
 
   // Forward GEM tracker module(s);
-  //#if defined(_USE_GEM_TRACKER_) && defined(_QT_DISPLAY_)
   auto fgt = new EicRootGemSubsystem("FGT");
   {
     fgt->SetActive(true);
-    fgt->SetTGeoGeometryCheckPrecision(0.000001 * etm::um);
+    //fgt->SetTGeoGeometryCheckPrecision(0.000001 * etm::um);
 
     {
       auto sbs = new GemModule();
+      // See other GemModule class data in GemGeoParData.h;
+      sbs->SetDoubleVariable("mFrameBottomEdgeWidth", 30 * etm::mm);
 
       // Compose sectors; parameters are: 
       //   - layer description (obviously can mix different geometries);
@@ -131,13 +128,12 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
       //   - gas volume center radius;
       //   - Z offset from 0.0 (default);
       //   - azimuthal rotation from 0.0 (default);
-      fgt->AddWheel(sbs, 12, 420.0 * etm::mm, 1200.0 * etm::mm, 0);
-      fgt->AddWheel(sbs, 12, 420.0 * etm::mm, 1300.0 * etm::mm, 0);
+      fgt->AddWheel(sbs, 12, 420 * etm::mm, 1200 * etm::mm, 0);
+      fgt->AddWheel(sbs, 12, 420 * etm::mm, 1300 * etm::mm, 0);
     }
 
     g4Reco->registerSubsystem(fgt);
   }
-  //#endif
 
   // Truth information;
   g4Reco->registerSubsystem(new PHG4TruthSubsystem());
@@ -171,6 +167,16 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
 			 // Say 50um resolution?; [cm];
 			 50e-4,			        // azimuthal (arc-length) resolution [cm]
 			 50e-4,		        	// longitudinal (z) resolution [cm]
+			 1,				// efficiency (fraction)
+			 0);				// hit noise
+
+    // GEM tracker hits; should work;
+    kalman->add_phg4hits(fgt->GetG4HitName(),		// const std::string& phg4hitsNames
+			 PHG4TrackFastSim::Vertical_Plane,	// const DETECTOR_TYPE phg4dettype
+			 999.,				// radial-resolution [cm] (this number is not used in cylindrical geometry)
+			 // Say 70um resolution?; [cm];
+			 70e-4,			        // azimuthal (arc-length) resolution [cm]
+			 70e-4,		        	// longitudinal (z) resolution [cm]
 			 1,				// efficiency (fraction)
 			 0);				// hit noise
 

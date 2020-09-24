@@ -217,24 +217,8 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
       {
 	double yOffset = -module->mFrameThickness/2;// + 0.100;
 
-	// XY-projection shape does not change; it's only zOffset and thickness;
-	// FIXME: something is wrong with the floating point precision somewhere: just 
-	// subtract 1E-6 and be happy; this does not affect anything, obviously;
-#if _OLD_
-	double wdt = module->mActiveWindowTopWidth    - 1E-6;
-	double wdb = module->mActiveWindowBottomWidth - 1E-6;
-	double ht  = module->mActiveWindowHeight      - 1E-6;
-	double vert[8][2] = {
-	  {-wdb/2,   -ht/2},
-	  {-wdt/2,    ht/2},
-	  { wdt/2,    ht/2},
-	  { wdb/2,   -ht/2},
-	  {-wdb/2,   -ht/2},
-	  {-wdt/2,    ht/2},
-	  { wdt/2,    ht/2},
-	  { wdb/2,   -ht/2}
-	};
-#endif
+	//
+	// XY-projection shape does not change; it's only zOffset, thickness and material;
 	// 
 	// Proceed in direction opposite to the incident particles; whatever
 	// is left in thickness will remain air in front of the entrance foil;
@@ -242,17 +226,16 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	// This readout support stuff is optionally present;
 	if (module->mReadoutSupportThickness)
 	  PlaceMaterialLayer(detName, "ReadoutSupport", wl, vmcontainer, 
-			     module->mReadoutSupportMaterial.Data(), //module,
-			     //(double*)vert,
+			     module->mReadoutSupportMaterial.Data(), 
 			     module->mReadoutSupportThickness, &yOffset); 
 	if (module->mReadoutG10Thickness)
 	  PlaceMaterialLayer(detName, "ReadoutG10", wl, vmcontainer, 
-			     mG10Material.Data(), //module, //(double*)vert,
+			     mG10Material.Data(), 
 			     module->mReadoutG10Thickness, &yOffset); 
 
 	// Readout foil is always there;
 	PlaceMaterialLayer(detName, "ReadoutKapton", wl, vmcontainer, 
-			   mKaptonMaterial.Data(), //module, //(double*)vert,
+			   mKaptonMaterial.Data(),
 			   module->mReadoutKaptonThickness, &yOffset); 
 
 	// Copper layers are extremely thin -> put one effective layer;
@@ -263,18 +246,17 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	    module->mDriftFoilCopperThickness;
 
 	  PlaceMaterialLayer(detName, "EffectiveCopper", wl, vmcontainer, 
-			     _COPPER_,// module, //(double*)vert,
-			     thickness, &yOffset); 
+			     _COPPER_, thickness, &yOffset); 
 	}
 
 	// Induction region;
 	{
 	  PlaceMaterialLayer(detName, "InductionRegionGas", wl, vmcontainer, 
-			     module->mGasMixture.Data(), //module, //(double*)vert,
+			     module->mGasMixture.Data(), 
 			     module->mInductionRegionLength, &yOffset);
 
 	  PlaceMaterialLayer(detName, "InductionRegionFoil", wl, vmcontainer, 
-			     mKaptonMaterial.Data(), //module, //(double*)vert,
+			     mKaptonMaterial.Data(), 
 			     module->mGemFoilAreaFraction*module->mGemFoilKaptonThickness, 
 			     &yOffset); 
 	}
@@ -282,11 +264,11 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	// 2-d transfer region;
 	{
 	  PlaceMaterialLayer(detName, "SecondTransferRegionGas", wl, vmcontainer, 
-			     module->mGasMixture.Data(), //module, //(double*)vert,
+			     module->mGasMixture.Data(), 
 			     module->mSecondTransferRegionLength, &yOffset);
 
 	  PlaceMaterialLayer(detName, "SecondTransferRegionFoil", wl, vmcontainer, 
-			     mKaptonMaterial.Data(), //module, //(double*)vert,
+			     mKaptonMaterial.Data(), 
 			     module->mGemFoilAreaFraction*module->mGemFoilKaptonThickness, 
 			     &yOffset); 
 	}
@@ -294,11 +276,11 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	// 1-st transfer region;
 	{
 	  PlaceMaterialLayer(detName, "FirstTransferRegionGas", wl, vmcontainer, 
-			     module->mGasMixture.Data(), //module, //(double*)vert,
+			     module->mGasMixture.Data(), 
 			     module->mFirstTransferRegionLength, &yOffset);
 
 	  PlaceMaterialLayer(detName, "FirstTransferRegionFoil", wl, vmcontainer, 
-			     mKaptonMaterial.Data(), //module, //(double*)vert,
+			     mKaptonMaterial.Data(), 
 			     module->mGemFoilAreaFraction*module->mGemFoilKaptonThickness, 
 			     &yOffset); 
 	}
@@ -307,22 +289,22 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 	{
 	  // NB: this is the sensitive volume!;
 	  PlaceMaterialLayer(detName, "DriftRegionGas", wl, vmcontainer, 
-			     module->mGasMixture.Data(), //module, //(double*)vert,
+			     module->mGasMixture.Data(), 
 			     module->mDriftRegionLength, &yOffset);
 
 	  PlaceMaterialLayer(detName, "DriftRegionFoil", wl, vmcontainer, 
-			     mKaptonMaterial.Data(), //module, //(double*)vert,
+			     mKaptonMaterial.Data(), 
 			     module->mDriftFoilKaptonThickness, &yOffset); 
 	}
 
 	// entrance region;
 	{
 	  PlaceMaterialLayer(detName, "EntranceRegionGas", wl, vmcontainer, 
-			     module->mGasMixture.Data(), //module, //(double*)vert,
+			     module->mGasMixture.Data(), 
 			     module->mEntranceRegionLength, &yOffset);
 
 	  PlaceMaterialLayer(detName, "EntranceWindow", wl, vmcontainer, 
-			     module->mEntranceWindowMaterial.Data(), //module, //(double*)vert,
+			     module->mEntranceWindowMaterial.Data(), 
 			     module->mEntranceWindowThickness, &yOffset); 
 	}
       }
@@ -354,7 +336,6 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
     }
   } //for wl
 
-  //GetColorTable()         ->AddPatternMatch("ModuleFrame",    kGray);
   GetColorTable()         ->AddPatternMatch("FrameEdge",      kGray);
   GetColorTable()         ->AddPatternMatch("EntranceWindow", kOrange);
   if (mTransparency)
@@ -374,7 +355,6 @@ int GemGeoParData::ConstructGeometry(bool root, bool gdml, bool check)
 void GemGeoParData::PlaceMaterialLayer(const char *detName, const char *volumeNamePrefix, 
 				       unsigned wheelID, 
 				       TGeoVolume *moduleContainer, const char *material, 
-				       //GemModule *module, //double *vert, 
 				       double thickness, double *yOffset)
 {
   char volumeName[128];
@@ -383,6 +363,10 @@ void GemGeoParData::PlaceMaterialLayer(const char *detName, const char *volumeNa
 
   snprintf(volumeName, 128-1, "%s%s%02d", detName, volumeNamePrefix, wheelID);
   
+  // Well, be aware that with a switch from Arb8 (which is a problematic shape in 
+  // many respects assuming a TGeo -> GDML ->TGeo conversion), this volume can not 
+  // be easily used in the native EicRoot tracking since the coordinate system is
+  // kind of wrong (Y & Z flipped);
   TGeoTrd1 *shape = new TGeoTrd1(volumeName,
 				 module->mActiveWindowBottomWidth/2,
 				 module->mActiveWindowTopWidth/2,
@@ -393,18 +377,6 @@ void GemGeoParData::PlaceMaterialLayer(const char *detName, const char *volumeNa
   double zOffset = -(module->mFrameTopEdgeWidth - module->mFrameBottomEdgeWidth)/2;
   moduleContainer->AddNode(vshape, 0, new TGeoCombiTrans(0.0, (*yOffset + thickness/2), 
 							 zOffset, 0));
-
-#if _OLD_
-  TGeoArb8 *shape = new TGeoArb8(volumeName, thickness/2, vert); 
-
-  TGeoVolume *vshape = new TGeoVolume(volumeName, shape, GetMedium(material));
-
-  double zOffset = -(module->mFrameTopEdgeWidth - module->mFrameBottomEdgeWidth)/2;
-  TGeoRotation *rw = new TGeoRotation();
-  rw->RotateX(90.0);
-  moduleContainer->AddNode(vshape, 0, new TGeoCombiTrans(0.0, (*yOffset + thickness/2), 
-							 zOffset, rw));
-#endif
 
   *yOffset += thickness;
 } // GemGeoParData::PlaceMaterialLayer()

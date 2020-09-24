@@ -75,7 +75,9 @@ void EicGeoParData::ResetVars()
 
   mTransparency = 0;
 
-  mGeometryCheckPrecision = 1.0 *etm::um;//.0;
+  // SHould be good enough as a default; in fact may want to eliminate the 'check' variable, 
+  // and invoke check if this value is non-zero; but ok;
+  mGeometryCheckPrecision = 1.0 *etm::um;
 } // EicGeoParData::ResetVars() 
 
 // ---------------------------------------------------------------------------------------
@@ -628,9 +630,7 @@ void EicGeoParData::FinalizeOutput(bool root, bool gdml, bool check) //const
 
   // Check overlap (1um accuracy) and export;
   mRootGeoManager->CloseGeometry();
-  //#if _TODAY_
-  if (check && mGeometryCheckPrecision) mRootGeoManager->CheckOverlaps(mGeometryCheckPrecision);//0.000001);
-  //#endif
+  if (check && mGeometryCheckPrecision) mRootGeoManager->CheckOverlaps(mGeometryCheckPrecision);
 
   if (root) {
     TFile *outputFile = new TFile(GetGeometryFileName(true).Data(), "RECREATE"); 
