@@ -30,6 +30,7 @@ root -l ../scripts/eicroot.C
 # Configure and compile whatever is required for fun4all scripts;
 cd /scratch/EicToyModel/fun4all_with_eicroot && mkdir -p build && cd build
 ../sandbox/autogen.sh --prefix=/scratch/EicToyModel/fun4all_with_eicroot
+make -j2 install
 
 # Go to the macro directory and run them; ignore the G4 and ROOT warnings;
 source /cvmfs/eic.opensciencegrid.org/x8664_sl7/opt/fun4all/core/bin/setup_local.sh /scratch/EicToyModel/fun4all_with_eicroot
