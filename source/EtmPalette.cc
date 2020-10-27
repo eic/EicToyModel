@@ -1,4 +1,6 @@
 
+#include <TStyle.h>
+
 #include <EtmPalette.h>
 
 // ---------------------------------------------------------------------------------------
@@ -6,6 +8,10 @@
 
 EtmPalette::EtmPalette() 
 {
+  // Help transparency to work; do not rely on a fact that 
+  // OpenGL.CanvasPreferGL is set to 1 in $ROOTSYS/etc/system.rootrc ;
+  gStyle->SetCanvasPreferGL(kTRUE);
+
   // Pre-defined "regular" detector colors; would be best to never change them;
   AddEntry("",           _GAP_COLOR_);
   AddEntry("TRD",        kGray);

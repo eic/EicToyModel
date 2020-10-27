@@ -83,11 +83,21 @@ void EtmPolygonGroup::DrawPolygon(unsigned dim, const double xx[], const double 
   TPolyLine *poly = new TPolyLine(dim+1, xxc, yyc);
 
   poly->SetLineColor(mLineColor);
-  poly->SetFillColor(mFillColor);
+  poly->SetFillColorAlpha(IsHighlighted() ? mFillColor : kWhite, GetColorAlpha());
   poly->SetLineWidth(mLineWidth);
   poly->SetLineStyle(mLineStyle);
   poly->Draw("F");
   if (line) poly->Draw();
+  // FIXME: this is indeed a hack;
+  if (eic->mUseDetectorHighlighting) {
+    TPolyLine *qpoly = new TPolyLine(dim+1, xxc, yyc);
+
+    qpoly->SetLineColor(kWhite);
+    qpoly->SetLineWidth(3);
+    qpoly->SetLineStyle(mLineStyle);
+    qpoly->Draw("");
+    if (line) qpoly->Draw();
+  } //if
 } // EtmPolygonGroup::DrawPolygon()
 
 // ---------------------------------------------------------------------------------------

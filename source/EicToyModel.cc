@@ -86,7 +86,7 @@ EicToyModel::EicToyModel(double length, double radius):
   //mSafetyClearance(_SAFETY_CLEARANCE_DEFAULT_), mVisualClearance(_VISUAL_CLEARANCE_DEFAULT_),
   mCrossingAngle(_CROSSING_ANGLE_DEFAULT_), mGeometryLocked(false), mNewCanvasRequired(true),
   //mEicMedia(0)
-  mG4LogicalWorld(0)
+  mG4LogicalWorld(0), mDrawIP6boundaries(false)
 {
   // Sanity check;
   if (mInstance) {
@@ -1236,7 +1236,7 @@ void EicToyModel::DrawBeamLine( void )
     DrawSingleLine(GetIpLocation(), right);//, kBlack, 1, etm::dashed);
   }     
 
-  {
+  if (mDrawIP6boundaries) {
     WriteText(TVector2(-300.0, 365.0), "R = 375 cm", kRed);
     DrawSingleLine(TVector2(-450.0, 375.0), TVector2( 450.0, 375.0), kRed,  3, etm::dashdotted); 
     DrawSingleLine(TVector2(-450.0, 375.0), TVector2(-450.0,   0.0), kRed,  3, etm::dashdotted); 
@@ -1250,7 +1250,7 @@ void EicToyModel::DrawBeamLine( void )
     DrawSingleLine(TVector2( 410.0, 410.0), TVector2( 410.0,   0.0), kBlue, 3, etm::dashdotted); 
     DrawSingleLine(TVector2( 410.0, 410.0), TVector2( 470.0, 410.0), kBlue, 1, etm::dashed); 
     DrawSingleLine(TVector2( 470.0, 410.0), TVector2( 470.0,   0.0), kBlue, 1, etm::dashed);  
-  }
+  } //if
 #if _TODAY_
   for(unsigned tb=0; tb<2; tb++) {
     if (tb && !mMirrorImage) continue;

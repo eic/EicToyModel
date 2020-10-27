@@ -42,6 +42,9 @@ class EtmPolygonGroup: public TObject {
 
   unsigned PolygonCount( void )                                const { return mPolygons.size(); };
 
+  virtual bool IsHighlighted( void ) const { return true; };
+  virtual double GetColorAlpha( void ) const { return 1.0; };
+
  protected:
   // Line color, fill color and line style is the same for all polygons;
   int mFillColor, mLineColor, mLineWidth, mTextColor;

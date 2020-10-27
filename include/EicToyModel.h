@@ -84,6 +84,8 @@ class EicToyModel: public TObject {
   // Remove an eta line; NB: this only removes *currently*defined* eta lines; the next 
   // acceptance() call will call 4x AddEtaLine() internally; 
   EicToyModel *RemoveEtaLine(double eta) { mEtaLines.erase(eta); return this; };
+  // May want to draw IP6 hall boundaries;
+  void DrawIP6boundaries( void ) { mDrawIP6boundaries = true; };
   //
   // -- Other ------------------------------------------------------------------------------------
   //
@@ -106,6 +108,9 @@ class EicToyModel: public TObject {
   EicToyModel *DrawFlatFieldLines(double eta);
 
   void ApplyStandardTrimming( void );
+
+  // FIXME: this is not clean; determine dynamically;
+  void UseDetectorHighlighting( void ) { mUseDetectorHighlighting = true; };
   // =============================================================================================
 
   static EicToyModel *Instance( void ) { return mInstance; };
@@ -300,6 +305,9 @@ class EicToyModel: public TObject {
   bool mNewCanvasRequired; //!
 
   G4LogicalVolume *mG4LogicalWorld; //!
+
+ public:
+  bool mDrawIP6boundaries, mUseDetectorHighlighting;
 
   ClassDef(EicToyModel, 1)
 };

@@ -9,6 +9,8 @@
   eic->acceptance(-4.2, -1.0, 1.2, 4.2);
   eic->SetAzimuthalSegmentation(12);
   eic->DefineVacuumChamber(new vc2020_03_20());
+  //eic->DrawIP6boundaries();
+  //eic->UseDetectorHighlighting();
 
   // Vertex tracker;
   {
@@ -23,7 +25,7 @@
       
     mid->add("TRACKER",   75 * etm::cm);
     mid->add("Cherenkov", 25 * etm::cm);
-    mid->add("EmCal",     30 * etm::cm);
+    mid->add("EmCal",     30 * etm::cm);//->highlight();
     mid->add("Cryostat",  40 * etm::cm);
     mid->add("HCal",     120 * etm::cm)->brick();
   }
@@ -40,7 +42,7 @@
       fwd->add("TRD",     15 * etm::cm)->brick();
 
     fwd->add("Preshower", 10 * etm::cm);
-    fwd->add("EmCal",     40 * etm::cm);
+    fwd->add("EmCal",     40 * etm::cm);//->highlight(0.2);
     fwd->add("HCal",     105 * etm::cm);
   } 
 
@@ -56,7 +58,7 @@
     bck->add("Cherenkov", 25 * etm::cm);
     bck->add("Preshower", 10 * etm::cm)->brick();
     bck->add("TOF",        5 * etm::cm)->brick();
-    bck->add("EmCal",     50 * etm::cm);
+    bck->add("EmCal",     50 * etm::cm);//->highlight();
     bck->add("HCal",     105 * etm::cm);
   }
 

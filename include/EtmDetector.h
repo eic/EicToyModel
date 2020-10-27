@@ -64,6 +64,8 @@ class EtmDetector: public EtmPolygonGroup {
   };
   EtmDetector *stretch(                            double tlength, etm::Stretch how = etm::kRecess);
   EtmDetector *stretch(EtmDetectorStack *refstack, double tlength, etm::Stretch how = etm::kRecess);
+
+  EtmDetector *highlight(double alpha = 1.0) { mColorAlpha = alpha; return this; };
   // =============================================================================================
 
   double GetActualDistance( void ) const { return mActualDistance; };
@@ -75,6 +77,9 @@ class EtmDetector: public EtmPolygonGroup {
   G4VPhysicalVolume *GetG4Volume( void );// const { return mG4PhysicalVolume; };
 
   void Export(const char *fname);
+
+  bool IsHighlighted( void ) const;// { return true; };
+  double GetColorAlpha( void ) const { return mColorAlpha; };
 
  private:
   TString *GetLabel( void )        const { return  mLabel; };
@@ -111,6 +116,9 @@ class EtmDetector: public EtmPolygonGroup {
   //std::vector<EtmDetector*> mChildren;
 
   G4VPhysicalVolume *mG4PhysicalVolume; //!
+
+  // FIXME: use awkward ROOT teminology;
+  double mColorAlpha;
 
   ClassDef(EtmDetector, 1)
 };

@@ -48,11 +48,18 @@ EtmDetector *EtmDetectorStack::CreateDetector(const char *tag, double length)
     return 0;
   } //if
 
-  //auto det = new EtmDetector(this, tag, color, kBlack, length);
-  auto det = new EtmDetector(this, tag, color, kWhite, length);
-  det->SetLineWidth(3);
+  // FIXME: this is indeed a hack;
+  if (eic->mUseDetectorHighlighting) {
+    auto det = new EtmDetector(this, tag, color, kBlack, length);
+    det->SetLineWidth(7);
 
-  return det;
+    return det;
+  } else {
+    auto det = new EtmDetector(this, tag, color, kWhite, length);
+    det->SetLineWidth(3);
+    
+    return det;
+  } //if
 } // EtmDetectorStack::CreateDetector()
 
 // ---------------------------------------------------------------------------------------

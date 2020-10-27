@@ -62,12 +62,19 @@ EtmDetector::EtmDetector(const EtmDetectorStack *stack, const char *label, int f
 			 int linecolor, double length): 
   EtmPolygonGroup(fillcolor, linecolor),
   mStack(stack), //mSegmentation(1), 
-  mLength(length), mOffset(0.0), mActualDistance(0.0), mG4PhysicalVolume(0)
+  mLength(length), mOffset(0.0), mActualDistance(0.0), mG4PhysicalVolume(0), mColorAlpha(-1.0)
 {
   trim(_DEFAULT_TRIM_VALUE_);
 
   mLabel = label ? new TString(label) : 0;
 } // EtmDetector::EtmDetector()
+
+bool EtmDetector::IsHighlighted( void ) const
+{
+  auto eic = EicToyModel::Instance();
+
+  return (!eic->mUseDetectorHighlighting || mColorAlpha != -1.0);
+} // EtmDetector::IsHighlighted()
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------

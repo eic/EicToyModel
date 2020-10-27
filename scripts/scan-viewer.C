@@ -30,7 +30,7 @@ void scan_viewer(const char *fname)
 
   // NB: this does not work as a stack variable;
   auto ellipse = new TEllipse(0.0, 0.0, theta, theta);
-  ellipse->SetLineColor(kGreen);
+  ellipse->SetLineColor(kWhite);//Green);
   ellipse->SetLineWidth(3);
   ellipse->SetLineStyle(9);
   ellipse->SetFillStyle(0);
@@ -50,7 +50,7 @@ void scan_viewer(const char *fname)
     Double_t max = ZL->GetYaxis()->GetXmax();
     gPad->DrawFrame(-max, -max, max, max, "Maximum lever arm for a silicon tracker, [cm]");
     TColor::InvertPalette();
-    ZL->SetMinimum(  0.0);
+    ZL->SetMinimum( -0.01);
     ZL->SetMaximum(200.0);
     ZL->Draw("same colz pol");
     ellipse->Draw();
@@ -59,7 +59,7 @@ void scan_viewer(const char *fname)
     c1->cd(3);
     Double_t max = Bdl->GetYaxis()->GetXmax();
     gPad->DrawFrame(-max, -max, max, max, "Effective |Bt|*dl integral for a silicon tracker, [T*m]");
-    Bdl->SetMinimum(  0.0);
+    Bdl->SetMinimum( -0.01);
     Bdl->SetMaximum(  0.50);
     Bdl->Draw("same colz pol");
     ellipse->Draw();
