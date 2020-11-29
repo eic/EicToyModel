@@ -79,7 +79,7 @@ class EtmDetector: public EtmPolygonGroup {
   void Export(const char *fname);
 
   bool IsHighlighted( void ) const;// { return true; };
-  double GetColorAlpha( void ) const { return mColorAlpha; };
+  double GetColorAlpha( void ) const;// { return mColorAlpha; };
 
  private:
   TString *GetLabel( void )        const { return  mLabel; };

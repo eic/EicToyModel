@@ -16,15 +16,25 @@ EtmPalette::EtmPalette()
   AddEntry("",           _GAP_COLOR_);
   AddEntry("TRD",        kGray);
   AddEntry("TPC",        kCyan);
-  AddEntry("TOF",        kBlack);
-  AddEntry("Preshower",  kOrange-3);
+  //AddEntry("TOF",        kBlack);
+  //AddEntry("Preshower",  kOrange-3);
+  AddEntry("TOF",        kOrange-3);
+  AddEntry("Preshower",  kBlack);
   AddEntry("Si Tracker", kYellow);
   AddEntry("Cherenkov",  kAzure+6);
+  //AddEntry("DIRC",       kAzure+7);
   AddEntry("Mu Tagger",  kViolet);
-  AddEntry("LM PID",     kViolet+1);
+  //AddEntry("LM PID",     kViolet+1);
   AddEntry("MPGD",       kGreen+2);
-  AddEntry("HM RICH",    kMagenta);
+
+  // Keep both for backward compatibility;
+  AddEntry("HM RICH",    kMagenta+1);
+  AddEntry("Fwd RICH",   kMagenta);
+
   AddEntry("EmCal",      kGreen); 
+
+  AddEntry("sTGC",       kViolet+2);
+  AddEntry("DIRC",       kViolet+1);
 
   // Will not be visible anyway;
   AddEntry(_MARKER_,     kPink-8);

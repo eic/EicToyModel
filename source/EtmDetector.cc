@@ -73,8 +73,15 @@ bool EtmDetector::IsHighlighted( void ) const
 {
   auto eic = EicToyModel::Instance();
 
-  return (!eic->mUseDetectorHighlighting || mColorAlpha != -1.0);
+  //return (!eic->mUseDetectorHighlighting || mColorAlpha != -1.0);
+  return (!eic->mUseDetectorHighlighting || (eic->mUseDetectorHighlighting && mColorAlpha != -1.0));
 } // EtmDetector::IsHighlighted()
+
+double EtmDetector::GetColorAlpha( void ) const { 
+  auto eic = EicToyModel::Instance();
+
+  return (eic->mUseDetectorHighlighting  && mColorAlpha != -1.0 ? mColorAlpha : 1.0); 
+} // EtmDetector::GetColorAlpha()
 
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------

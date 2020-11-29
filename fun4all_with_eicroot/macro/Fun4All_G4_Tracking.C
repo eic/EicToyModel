@@ -115,6 +115,7 @@ void Fun4All_G4_Tracking(int nEvents = 1000)
   auto fgt = new EicRootGemSubsystem("FGT");
   {
     fgt->SetActive(true);
+    //fgt->CheckOverlap();
     //fgt->SetTGeoGeometryCheckPrecision(0.000001 * etm::um);
 
     {
