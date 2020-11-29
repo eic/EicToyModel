@@ -9,54 +9,54 @@
   eic->acceptance(-4.2, -1.0, 1.1, 4.2);
   eic->SetAzimuthalSegmentation(12);
   eic->DefineVacuumChamber(new vc2020_03_20());
-  eic->DrawIP6boundaries();
-  //eic->UseDetectorHighlighting();
+  //eic->DrawIP6boundaries();
+  eic->UseDetectorHighlighting();
 
   // Vertex tracker;
   {
     auto vtx = eic->vtx(); vtx->offset(0.0 * etm::cm);
 
-    vtx->add("Si Tracker",20 * etm::cm);
+    vtx->add("Si Tracker",20 * etm::cm);//->highlight(1.0);
   }
 
   // Barrel;
   {
     auto mid = eic->mid(); mid->offset( 20 * etm::cm);
       
-    mid->add("TPC",       80 * etm::cm);
-    mid->add("DIRC",      20 * etm::cm)->trim(1.0, 0.3);
-    mid->add("EmCal",     40 * etm::cm);
+    mid->add("TPC",       80 * etm::cm);//->highlight();
+    mid->add("DIRC",      20 * etm::cm)->trim(1.0, 0.3);//->highlight();
+    mid->add("EmCal",     40 * etm::cm);//->highlight();
     mid->add("Cryostat",  50 * etm::cm)->trim(1.0, 0.6);
-    mid->add("HCal",     120 * etm::cm)->trim(0.0, 1.00);
+    mid->add("HCal",     120 * etm::cm)->trim(0.0, 1.00);//->highlight();;
   }
 
   // Hadron-going endcap;
   {
     auto fwd = eic->fwd(); fwd->offset(130 * etm::cm);
 
-    fwd->add("MPGD",      15 * etm::cm)->brick();
+    fwd->add("MPGD",      15 * etm::cm)->brick();//->highlight();
     fwd->marker();
 
-    fwd->add("Fwd RICH", 150 * etm::cm)->trim(1.0, 1.0);
+    fwd->add("Fwd RICH", 150 * etm::cm)->trim(1.0, 1.0);//->highlight();
     for(unsigned nn=0; nn<2; nn++)
-      fwd->add("TRD",     15 * etm::cm)->brick();
+      fwd->add("TRD",     15 * etm::cm)->brick()->highlight();
 
     fwd->add("TOF",       10 * etm::cm)->brick();
-    fwd->add("EmCal",     40 * etm::cm);
-    fwd->add("HCal",     120 * etm::cm);
+    fwd->add("EmCal",     40 * etm::cm);//->highlight();
+    fwd->add("HCal",     120 * etm::cm);//->highlight();
   } 
 
   // Electron-going endcap;
   {
     auto bck = eic->bck(); bck->offset(130 * etm::cm);
 
-    bck->add("MPGD",      15 * etm::cm)->brick();
+    bck->add("MPGD",      15 * etm::cm)->brick();//->highlight();
 
-    bck->add("Cherenkov", 40 * etm::cm);
+    bck->add("Cherenkov", 40 * etm::cm);//->highlight();
     bck->marker();
     bck->add("TOF",       10 * etm::cm)->brick();
-    bck->add("EmCal",     60 * etm::cm)->trim(1.0, 0.0);
-    bck->add("HCal",     105 * etm::cm);
+    bck->add("EmCal",     60 * etm::cm)->trim(1.0, 0.0);//->highlight();
+    bck->add("HCal",     105 * etm::cm);//->highlight();
   }
 
   // Declare eta boundary configuration;
