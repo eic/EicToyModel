@@ -24,11 +24,12 @@
     auto mid = eic->mid(); mid->offset( 20 * etm::cm);
       
     mid->add("Si Tracker",20 * etm::cm);
+    mid->gap(              8 * etm::cm);
     for(unsigned iq=0; iq<3; iq++) {
       mid->gap(           10 * etm::cm);
       mid->add("MPGD",    10 * etm::cm);
     } //for iq
-    mid->add("DIRC",      20 * etm::cm)->trim(1.0, 0.3);//->highlight();
+    mid->add("DIRC",      12 * etm::cm)->trim(1.0, 0.3);//->highlight();
     mid->add("EmCal",     40 * etm::cm);//->highlight();
     mid->add("Cryostat",  50 * etm::cm)->trim(1.0, 0.6);
     mid->add("HCal",     120 * etm::cm)->trim(0.0, 1.00);//->highlight();;

@@ -23,8 +23,8 @@
   {
     auto mid = eic->mid(); mid->offset( 20 * etm::cm);
       
-    mid->add("TPC",       77 * etm::cm);//->highlight();
-    mid->add("MPGD",       8 * etm::cm); 
+    mid->add("TPC",       78 * etm::cm);//->highlight();
+    mid->add("MPGD",      10 * etm::cm); 
     mid->add("DIRC",      12 * etm::cm)->trim(1.0, 0.3);//->highlight();
     //mid->add("MPGD",       5 * etm::cm);
     mid->add("EmCal",     40 * etm::cm);//->highlight();
