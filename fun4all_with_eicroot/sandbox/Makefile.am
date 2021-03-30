@@ -4,13 +4,12 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include\
-  -I$(G4_MAIN)/include \
-  -I../../build/include/etm
+  -I$(G4_MAIN)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib\
-  -L../../build/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OPT_SPHENIX)/vgm/lib64
 
 pkginclude_HEADERS = \
   EicToyModelSubsystem.h\
@@ -33,11 +32,15 @@ libeicdetectors_la_SOURCES = \
 
 libeicdetectors_la_LIBADD = \
   -lphool \
-  -lSubsysReco\
-  -lg4detectors\
+  -lSubsysReco \
+  -lg4detectors \
   -lg4testbench \
-  -ltrackbase_historic_io\
-  -letm
+  -ltrackbase_historic_io \
+  -letm \
+  -lBaseVGM \
+  -lGeant4GM \
+  -lRootGM \
+  -lClhepVGM
 
 BUILT_SOURCES = testexternals.cc
 

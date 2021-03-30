@@ -1,13 +1,13 @@
+#ifndef _ETM_PALETTE_
+#define _ETM_PALETTE_
+
+#include "EtmOrphans.h"
 
 #include <map>
 
 #include <TObject.h>
 #include <TString.h>
 
-#ifndef _ETM_PALETTE_
-#define _ETM_PALETTE_
-
-#include <EtmOrphans.h>
 
 // NB: kWhite=0, so I seemingly need two distinct GetColor() return values:
 // -1 (does not exist), and some odd number (gap);

@@ -1,3 +1,7 @@
+#include "EicRootDetector.h"
+#include "EicRootSubsystem.h"
+
+#include <etm/EicToyModel.h>
 
 #include <Geant4/G4VPhysicalVolume.hh>
 
@@ -10,9 +14,6 @@
 
 using namespace std;
 
-#include <EicToyModel.h>
-#include "EicRootDetector.h"
-#include "EicRootSubsystem.h"
 
 // ---------------------------------------------------------------------------------------
 
