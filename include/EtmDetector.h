@@ -1,3 +1,9 @@
+#ifndef _ETM_DETECTOR_
+#define _ETM_DETECTOR_
+
+#include "EtmPalette.h"
+#include "EtmPolygonGroup.h"
+
 
 #include <map>
 #include <vector>
@@ -5,16 +11,10 @@
 #include <TString.h>
 #include <TColor.h>
 
-#ifndef _ETM_DETECTOR_
-#define _ETM_DETECTOR_
-
 class EtmDetectorStack;
 class G4VPhysicalVolume;
 class G4LogicalVolume;
 class TopoDS_Shape;
-
-#include <EtmPalette.h> 
-#include <EtmPolygonGroup.h>
 
 // For anything but the beam line edges;
 #define _DEFAULT_TRIM_VALUE_  (0.7654321)

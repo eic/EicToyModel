@@ -1,11 +1,10 @@
-
-#include <vector>
-
-#include <EtmOrphans.h>
-#include <EtmLine2D.h>
-
 #ifndef _ETM_ETA_BOUNDARY_
 #define _ETM_ETA_BOUNDARY_
+
+#include "EtmOrphans.h"
+#include "EtmLine2D.h"
+
+#include <vector>
 
 class EtmDetector;
 

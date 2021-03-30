@@ -1,16 +1,17 @@
+#ifndef _EIC_TOY_MODEL_
+#define _EIC_TOY_MODEL_
+
+#include "EtmPalette.h"
+#include "EtmAzimuthalScan.h"
+#include "EtmVacuumChamber.h"
+#include "EtmDetectorStack.h"
 
 #include <set>
 #include <map>
 
 #include <TCanvas.h>
 
-#ifndef _EIC_TOY_MODEL_
-#define _EIC_TOY_MODEL_
 
-#include <EtmPalette.h>
-#include <EtmAzimuthalScan.h>
-#include <EtmVacuumChamber.h>
-#include <EtmDetectorStack.h>
 
 // +/-4.5 m; up to ~4m radius suffices?; can be changed in the ctor (only);
 #define _IR_REGION_LENGTH_DEFAULT_ (900.0)
