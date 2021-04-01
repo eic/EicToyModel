@@ -3,10 +3,11 @@
 #ifndef _EICROOT_SUBSYSTEM_
 #define _EICROOT_SUBSYSTEM_
 
+#include <g4detectors/PHG4DetectorSubsystem.h>
+
 #include <vector>
 #include <map>
 
-#include <g4detectors/PHG4DetectorSubsystem.h>
 
 class EicRootDetector;
 class PHCompositeNode;
@@ -21,7 +22,7 @@ class EicRootSubsystem : public PHG4DetectorSubsystem
  public:
   // ctor & dtor;
   EicRootSubsystem(const std::string& name);
-  ~EicRootSubsystem() {};
+  virtual ~EicRootSubsystem() {};
 
   // Initialization;
   int InitRunSubsystem(PHCompositeNode*) override;

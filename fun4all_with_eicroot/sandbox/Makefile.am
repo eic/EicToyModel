@@ -3,32 +3,32 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include\
+  -I$(ROOTSYS)/include \
   -I$(G4_MAIN)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L$(OPT_SPHENIX)/vgm/lib64
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
-  EicToyModelSubsystem.h\
-  EicRootSubsystem.h\
-  EicRootVstSubsystem.h\
-  EicRootMuMegasSubsystem.h\
-  EicRootGemSubsystem.h\
-  TrackFastSimEval.h
+  EicToyModelSubsystem.h \
+  EicRootSubsystem.h \
+  EicRootVstSubsystem.h \
+  EicRootMuMegasSubsystem.h \
+  EicRootGemSubsystem.h \
+  EtmTrackFastSimEval.h
 
 lib_LTLIBRARIES = \
-  libeicdetectors.la
+  libeictoydetectors.la
 
 libeicdetectors_la_SOURCES = \
-  EicToyModelSubsystem.cc\
-  EicToyModelDetector.cc\
-  EicRootSubsystem.cc\
-  EicRootDetector.cc\
-  EicRootSteppingAction.cc\
-  TrackFastSimEval.cc
+  EicToyModelSubsystem.cc \
+  EicToyModelDetector.cc \
+  EicRootSubsystem.cc \
+  EicRootDetector.cc \
+  EicRootSteppingAction.cc \
+  EtmTrackFastSimEval.cc
 
 libeicdetectors_la_LIBADD = \
   -lphool \

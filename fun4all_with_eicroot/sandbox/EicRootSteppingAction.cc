@@ -1,9 +1,19 @@
+#include "EicRootSteppingAction.h"
+#include "EicRootDetector.h"
 
-#include <cmath>
-#include <iostream>
-#include <string>
 
-#include <TSystem.h>
+#include <phparameter/PHParameters.h>
+
+#include <g4detectors/PHG4StepStatusDecode.h>
+
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>
+#include <g4main/PHG4TrackUserInfoV1.h>
+
+#include <phool/getClass.h>
 
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>
@@ -21,21 +31,12 @@
 #include <Geant4/G4VTouchable.hh>
 #include <Geant4/G4VUserTrackInformation.hh>
 
-#include <phparameter/PHParameters.h>
+#include <TSystem.h>
 
-#include <g4detectors/PHG4StepStatusDecode.h>
+#include <cmath>
+#include <iostream>
+#include <string>
 
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hitv1.h>
-#include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>
-#include <g4main/PHG4TrackUserInfoV1.h>
-
-#include <phool/getClass.h>
-
-#include "EicRootSteppingAction.h"
-#include "EicRootDetector.h"
 
 using namespace std;
 
