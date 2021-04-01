@@ -22,7 +22,7 @@ pkginclude_HEADERS = \
 lib_LTLIBRARIES = \
   libeictoydetectors.la
 
-libeicdetectors_la_SOURCES = \
+libeictoydetectors_la_SOURCES = \
   EicToyModelSubsystem.cc \
   EicToyModelDetector.cc \
   EicRootSubsystem.cc \
@@ -30,7 +30,7 @@ libeicdetectors_la_SOURCES = \
   EicRootSteppingAction.cc \
   EtmTrackFastSimEval.cc
 
-libeicdetectors_la_LIBADD = \
+libeictoydetectors_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lg4detectors \
@@ -48,7 +48,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libeicdetectors.la
+testexternals_LDADD   = libeictoydetectors.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
