@@ -41,7 +41,7 @@
 using namespace std;
 
 //____________________________________________________________________________..
-GdmlImportDetectorSteppingAction::GdmlImportDetectorSteppingAction(EicRootDetector *detector, const PHParameters *parameters)
+EicRootSteppingAction::EicRootSteppingAction(EicRootDetector *detector, const PHParameters *parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
@@ -60,7 +60,7 @@ GdmlImportDetectorSteppingAction::GdmlImportDetectorSteppingAction(EicRootDetect
 }
 
 //____________________________________________________________________________..
-GdmlImportDetectorSteppingAction::~GdmlImportDetectorSteppingAction()
+EicRootSteppingAction::~EicRootSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
@@ -71,7 +71,7 @@ GdmlImportDetectorSteppingAction::~GdmlImportDetectorSteppingAction()
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool GdmlImportDetectorSteppingAction::UserSteppingAction(const G4Step *aStep, bool was_used)
+bool EicRootSteppingAction::UserSteppingAction(const G4Step *aStep, bool was_used)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
