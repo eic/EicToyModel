@@ -1,14 +1,14 @@
+#ifndef _ETM_DETECTOR_STACK_
+#define _ETM_DETECTOR_STACK_
+
+#include "EtmEtaBoundary.h"
+#include "EtmDetector.h"
+
 
 #include <map>
 #include <vector>
 
 #include <TString.h>
-
-#ifndef _ETM_DETECTOR_STACK_
-#define _ETM_DETECTOR_STACK_
-
-#include <EtmEtaBoundary.h>
-#include <EtmDetector.h>
 
 class EtmDetectorStack: public TObject {
   friend class EicToyModel;

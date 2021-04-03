@@ -1,18 +1,21 @@
+#include "EicRootDetector.h"
+#include "EicRootSubsystem.h"
+
+#include <phparameter/PHParameters.h>
+
+#include <g4main/PHG4Subsystem.h>
+#include <g4main/PHG4HitContainer.h>
+
+#include <phool/PHNodeIterator.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <etm/EicToyModel.h>
 
 #include <Geant4/G4VPhysicalVolume.hh>
 
-#include <phparameter/PHParameters.h>
-#include <g4main/PHG4Subsystem.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHCompositeNode.h>
-#include <g4main/PHG4HitContainer.h>
-#include <phool/getClass.h>
-
 using namespace std;
 
-#include <EicToyModel.h>
-#include "EicRootDetector.h"
-#include "EicRootSubsystem.h"
 
 // ---------------------------------------------------------------------------------------
 

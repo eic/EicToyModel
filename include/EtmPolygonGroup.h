@@ -1,12 +1,12 @@
+#ifndef _ETM_POLYGON_GROUP_
+#define _ETM_POLYGON_GROUP_
+
+#include "EtmOrphans.h"
 
 #include <vector>
 
 #include <TVector2.h>
 
-#ifndef _ETM_POLYGON_GROUP_
-#define _ETM_POLYGON_GROUP_
-
-#include <EtmOrphans.h>
 
 class EtmPolygonGroup: public TObject {
  public:

@@ -1,9 +1,19 @@
+#include "EicRootSteppingAction.h"
+#include "EicRootDetector.h"
 
-#include <cmath>
-#include <iostream>
-#include <string>
 
-#include <TSystem.h>
+#include <phparameter/PHParameters.h>
+
+#include <g4detectors/PHG4StepStatusDecode.h>
+
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>
+#include <g4main/PHG4TrackUserInfoV1.h>
+
+#include <phool/getClass.h>
 
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ReferenceCountedHandle.hh>
@@ -21,26 +31,17 @@
 #include <Geant4/G4VTouchable.hh>
 #include <Geant4/G4VUserTrackInformation.hh>
 
-#include <phparameter/PHParameters.h>
+#include <TSystem.h>
 
-#include <g4detectors/PHG4StepStatusDecode.h>
+#include <cmath>
+#include <iostream>
+#include <string>
 
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hitv1.h>
-#include <g4main/PHG4Shower.h>
-#include <g4main/PHG4SteppingAction.h>
-#include <g4main/PHG4TrackUserInfoV1.h>
-
-#include <phool/getClass.h>
-
-#include "EicRootSteppingAction.h"
-#include "EicRootDetector.h"
 
 using namespace std;
 
 //____________________________________________________________________________..
-GdmlImportDetectorSteppingAction::GdmlImportDetectorSteppingAction(EicRootDetector *detector, const PHParameters *parameters)
+EicRootSteppingAction::EicRootSteppingAction(EicRootDetector *detector, const PHParameters *parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Params(parameters)
@@ -59,7 +60,7 @@ GdmlImportDetectorSteppingAction::GdmlImportDetectorSteppingAction(EicRootDetect
 }
 
 //____________________________________________________________________________..
-GdmlImportDetectorSteppingAction::~GdmlImportDetectorSteppingAction()
+EicRootSteppingAction::~EicRootSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
@@ -70,7 +71,7 @@ GdmlImportDetectorSteppingAction::~GdmlImportDetectorSteppingAction()
 
 //____________________________________________________________________________..
 // This is the implementation of the G4 UserSteppingAction
-bool GdmlImportDetectorSteppingAction::UserSteppingAction(const G4Step *aStep, bool was_used)
+bool EicRootSteppingAction::UserSteppingAction(const G4Step *aStep, bool was_used)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();

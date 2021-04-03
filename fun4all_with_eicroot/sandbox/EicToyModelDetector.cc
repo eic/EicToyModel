@@ -1,8 +1,9 @@
 
+#include "EicToyModelDetector.h"
+
 #include <phparameter/PHParameters.h>
 
-#include <EicToyModelDetector.h>
-#include <EicToyModel.h>
+#include <etm/EicToyModel.h>
 
 using namespace std;
 

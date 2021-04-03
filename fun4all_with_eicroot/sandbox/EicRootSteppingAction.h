@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef GDMLIMPORTDETECTORSTEPPINGACTION_H
-#define GDMLIMPORTDETECTORSTEPPINGACTION_H
+#ifndef EICROOTSTEPPINGACTION_H
+#define EICROOTSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -14,14 +14,14 @@ class PHG4Hit;
 class PHG4HitContainer;
 class PHParameters;
 
-class GdmlImportDetectorSteppingAction : public PHG4SteppingAction
+class EicRootSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  GdmlImportDetectorSteppingAction(EicRootDetector *, const PHParameters* parameters);
+  EicRootSteppingAction(EicRootDetector *, const PHParameters* parameters);
 
   //! destructor
-  virtual ~GdmlImportDetectorSteppingAction();
+  virtual ~EicRootSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -45,4 +45,4 @@ class GdmlImportDetectorSteppingAction : public PHG4SteppingAction
   double m_EdepSum;
 };
 
-#endif  // GDMLIMPORTDETECTORSTEPPINGACTION_H
+#endif  // EICROOTSTEPPINGACTION_H

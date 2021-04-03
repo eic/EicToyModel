@@ -1,19 +1,19 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef _TRACK_FAST_SIM_EVAL_
-#define _TRACK_FAST_SIM_EVAL_
-
-#include <string>
+#ifndef ETMTRACKFASTSIMEVAL_H
+#define ETMTRACKFASTSIMEVAL_H
 
 #include <fun4all/SubsysReco.h>
+
+#include <string>
 
 class PHCompositeNode;
 class TH1D;
 
-class TrackFastSimEval : public SubsysReco {
+class EtmTrackFastSimEval : public SubsysReco {
  public:
   // Default constructor;
-  TrackFastSimEval(const std::string& name = "TrackFastSimEval",
+  EtmTrackFastSimEval(const std::string& name = "EtmTrackFastSimEval",
                    const std::string& filename = "g4eval.root",
                    const std::string& trackmapname = "SvtxTrackMap");
 
@@ -27,7 +27,7 @@ class TrackFastSimEval : public SubsysReco {
   int End(PHCompositeNode*);
 
   // Change output filename;
-  void set_filename(const char* file) { if (file) _outfile_name = file; };
+  void set_filename(const std::string &file) { _outfile_name = file; };
 
  private:
   // Output filename;

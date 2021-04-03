@@ -7,6 +7,10 @@
 //____________________________________________________________________________..
 //
 
+#include "EicRootSubsystem.h"
+#include "EicRootDetector.h"
+#include "EicRootSteppingAction.h"
+
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
@@ -18,10 +22,6 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
-
-#include "EicRootSubsystem.h"
-#include "EicRootDetector.h"
-#include "EicRootSteppingAction.h"
 
 using namespace std;
 

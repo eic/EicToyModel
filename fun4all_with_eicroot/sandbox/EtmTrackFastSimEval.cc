@@ -1,8 +1,4 @@
-
-#include <iostream>
-
-#include <TVector3.h>
-#include <TH1D.h>
+#include "EtmTrackFastSimEval.h"
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
@@ -16,13 +12,17 @@
 
 #include <phool/getClass.h>
 
-#include "TrackFastSimEval.h"
+#include <TVector3.h>
+#include <TH1D.h>
+
+#include <iostream>
+
 
 using namespace std;
 
 // ---------------------------------------------------------------------------------------
 
-TrackFastSimEval::TrackFastSimEval(const string &name, const string &filename, 
+EtmTrackFastSimEval::EtmTrackFastSimEval(const string &name, const string &filename,
 				   const string &trackmapname)
   : SubsysReco(name)
   , _outfile_name(filename)
@@ -30,11 +30,11 @@ TrackFastSimEval::TrackFastSimEval(const string &name, const string &filename,
   , _event(0)
   , _h1d_Delta_mom(nullptr)
 {
-} // TrackFastSimEval::TrackFastSimEval()
+} // EtmTrackFastSimEval::EtmTrackFastSimEval()
 
 // ---------------------------------------------------------------------------------------
 
-int TrackFastSimEval::Init(PHCompositeNode *topNode)
+int EtmTrackFastSimEval::Init(PHCompositeNode *topNode)
 {
   cout << PHWHERE << " Opening file " << _outfile_name << endl;
   PHTFileServer::get().open(_outfile_name, "RECREATE");
@@ -42,11 +42,11 @@ int TrackFastSimEval::Init(PHCompositeNode *topNode)
   _h1d_Delta_mom = new TH1D("_h1d_Delta_mom", "#frac{#Delta p}{truth p}", 100, -0.2, 0.2);
 
   return Fun4AllReturnCodes::EVENT_OK;
-} // TrackFastSimEval::Init()
+} // EtmTrackFastSimEval::Init()
 
 // ---------------------------------------------------------------------------------------
 
-int TrackFastSimEval::process_event(PHCompositeNode *topNode)
+int EtmTrackFastSimEval::process_event(PHCompositeNode *topNode)
 {
   if (++_event % 100 == 0) cout << PHWHERE << "Events processed: " << _event << endl;
 
@@ -87,17 +87,17 @@ int TrackFastSimEval::process_event(PHCompositeNode *topNode)
     }
   }
   return Fun4AllReturnCodes::EVENT_OK;
-} // TrackFastSimEval::process_event()
+} // EtmTrackFastSimEval::process_event()
 
 // ---------------------------------------------------------------------------------------
 
-int TrackFastSimEval::End(PHCompositeNode *topNode)
+int EtmTrackFastSimEval::End(PHCompositeNode *topNode)
 {
   PHTFileServer::get().cd(_outfile_name);
 
   _h1d_Delta_mom->Write();
 
   return Fun4AllReturnCodes::EVENT_OK;
-} // TrackFastSimEval::End()
+} // EtmTrackFastSimEval::End()
 
 // ---------------------------------------------------------------------------------------
